@@ -4,101 +4,228 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Don't Drink! - Home</title>
-    <!-- Placeholder for stylesheet - add <link rel="stylesheet" href="/styles.css"> if you have one -->
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <style>
-        /* Minimal inline styles to ensure visibility - replace with your styles.css if exists */
-        body {
-            font-family: Arial, sans-serif;
+        * {
             margin: 0;
-            padding: 20px;
-            background-color: #121212;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: url('/hostbackground.png') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            padding: 10px;
             color: white;
+            font-size: 1rem;
         }
         .container {
             max-width: 1200px;
             margin: 0 auto;
+            padding: 10px;
         }
-        button {
-            padding: 10px 20px;
-            font-size: 1.2em;
-            cursor: pointer;
-            background-color: #ff69b4;
+        .hero {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .hero h1 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+        }
+        .hero ul {
+            list-style: none;
+            font-size: 1.5rem;
+            margin-bottom: 40px;
+        }
+        .hero li {
+            display: inline;
+            margin: 0 10px;
+        }
+        .join-section {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        .host-btn {
+            background: linear-gradient(135deg, #ff69b4, #ff1493);
             color: white;
             border: none;
-            border-radius: 5px;
+            padding: 15px 30px;
+            font-size: 1.5rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(255, 105, 180, 0.3);
+            text-transform: uppercase;
         }
-        button:hover {
-            background-color: #ff1493;
+        .host-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(255, 105, 180, 0.4);
+        }
+        .room-join {
+            margin: 20px 0;
+        }
+        .room-join input {
+            padding: 10px;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            background: rgba(255, 255, 255, 0.1);
+            color: white;
+            margin-right: 10px;
+        }
+        .join-btn {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            font-size: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+        }
+        .join-btn:hover {
+            background: linear-gradient(135deg, #45a049, #3d8b40);
+        }
+        .section {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        .section h2 {
+            font-size: 2rem;
+            font-weight: 700;
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        .games-grid, .intensity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+        }
+        .game-item {
+            text-align: center;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+        }
+        .game-item h3 {
+            font-size: 1.5rem;
+            margin-bottom: 10px;
+        }
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+        .feature-item {
+            text-align: center;
+        }
+        footer {
+            text-align: center;
+            margin-top: 40px;
+            padding: 20px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 16px;
+        }
+        @media (max-width: 768px) {
+            .hero h1 {
+                font-size: 2rem;
+            }
+            .games-grid, .intensity-grid {
+                grid-template-columns: 1fr;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>The ultimate party game platform for adults who want</h1>
-        <ul>
-            <li>chaos,</li>
-            <li>laughter,</li>
-            <li>and unforgettable nights</li>
-        </ul>
-
-        <div>
-            <button onclick="window.location.href='/host'">🎮 HOST A GAME</button>
-            or
-            <div>
-                join with room code 📱
-                <input type="text" placeholder="Enter code">
-                <button onclick="window.location.href='/play?room=' + document.querySelector('input').value">Join</button>
+        <div class="hero">
+            <h1>The ultimate party game platform for adults who want</h1>
+            <ul>
+                <li>chaos,</li>
+                <li>laughter,</li>
+                <li>and unforgettable nights</li>
+            </ul>
+            <div class="join-section">
+                <button class="host-btn" onclick="window.location.href='/host'">🎮 HOST A GAME</button>
+                or
+                <div class="room-join">
+                    join with room code 📱
+                    <input type="text" id="roomCodeInput" placeholder="Enter code">
+                    <button class="join-btn" onclick="joinRoom()">Join</button>
+                </div>
             </div>
         </div>
 
-        <h2>Available Games</h2>
-        <p>Four wickedly fun games designed to create maximum chaos</p>
-        <ul>
-            <li>🤔 Would You Rather
-                <p>Choose between two impossible or disturbing options that will test your moral boundaries</p>
-                <p>"Fight 100 duck-sized horses or 1 horse-sized duck?"</p>
-            </li>
-            <li>💕 F*ck, Marry, Kill
-                <p>Assign three people to F, M, or K and reveal your true priorities in life</p>
-                <p>"Watch friendships crumble over impossible choices"</p>
-            </li>
-            <li>🍻 Never Have I Ever
-                <p>Discover secrets and wild experiences you never knew about your friends</p>
-                <p>"Never have I ever faked being sick to avoid social plans"</p>
-            </li>
-            <li>🔥 Hot Takes
-                <p>Defend controversial opinions and start heated debates that last all night</p>
-                <p>"Pineapple belongs on pizza and I will die on this hill"</p>
-            </li>
-        </ul>
+        <div class="section">
+            <h2>Available Games</h2>
+            <p>Four wickedly fun games designed to create maximum chaos</p>
+            <div class="games-grid">
+                <div class="game-item">
+                    <h3>🤔 Would You Rather</h3>
+                    <p>Choose between two impossible or disturbing options that will test your moral boundaries</p>
+                    <p>"Fight 100 duck-sized horses or 1 horse-sized duck?"</p>
+                </div>
+                <div class="game-item">
+                    <h3>💕 F*ck, Marry, Kill</h3>
+                    <p>Assign three people to F, M, or K and reveal your true priorities in life</p>
+                    <p>"Watch friendships crumble over impossible choices"</p>
+                </div>
+                <div class="game-item">
+                    <h3>🍻 Never Have I Ever</h3>
+                    <p>Discover secrets and wild experiences you never knew about your friends</p>
+                    <p>"Never have I ever faked being sick to avoid social plans"</p>
+                </div>
+                <div class="game-item">
+                    <h3>🔥 Hot Takes</h3>
+                    <p>Defend controversial opinions and start heated debates that last all night</p>
+                    <p>"Pineapple belongs on pizza and I will die on this hill"</p>
+                </div>
+            </div>
+        </div>
 
-        <h2>Choose Your Intensity</h2>
-        <p>From workplace-safe to absolutely unhinged</p>
-        <ul>
-            <li>😊 Medium
-                <p>Safe for work content, perfect for mixed groups and casual parties</p>
-            </li>
-            <li>🌶️ Spicy
-                <p>Adults only - sexual themes, relationship drama, and personal secrets</p>
-            </li>
-            <li>☠️ Cancelled
-                <p>EXTREMELY OFFENSIVE content that requires explicit consent from all players</p>
-            </li>
-        </ul>
+        <div class="section">
+            <h2>Choose Your Intensity</h2>
+            <p>From workplace-safe to absolutely unhinged</p>
+            <div class="intensity-grid">
+                <div class="game-item">
+                    <h3>😊 Medium</h3>
+                    <p>Safe for work content, perfect for mixed groups and casual parties</p>
+                </div>
+                <div class="game-item">
+                    <h3>🌶️ Spicy</h3>
+                    <p>Adults only - sexual themes, relationship drama, and personal secrets</p>
+                </div>
+                <div class="game-item">
+                    <h3>☠️ Cancelled</h3>
+                    <p>EXTREMELY OFFENSIVE content that requires explicit consent from all players</p>
+                </div>
+            </div>
+        </div>
 
-        <button>🚀 START PLAYING NOW</button>
-
-        <ul>
-            <li>🎯 Multiple Modes
-                <p>Offline, mobile voting, spotlight challenges, plus Mixmaster for total chaos</p>
-            </li>
-            <li>📱 Cross-Device
-                <p>Host on TV, play on phones</p>
-            </li>
-            <li>∞ Endless Content
-                <p>Never repeat + custom questions</p>
-            </li>
-        </ul>
+        <div class="section">
+            <h2>🚀 START PLAYING NOW</h2>
+            <div class="features">
+                <div class="feature-item">
+                    <h3>🎯 Multiple Modes</h3>
+                    <p>Offline, mobile voting, spotlight challenges, plus Mixmaster for total chaos</p>
+                </div>
+                <div class="feature-item">
+                    <h3>📱 Cross-Device</h3>
+                    <p>Host on TV, play on phones</p>
+                </div>
+                <div class="feature-item">
+                    <h3>∞ Endless Content</h3>
+                    <p>Never repeat + custom questions</p>
+                </div>
+            </div>
+        </div>
     </div>
 
     <footer>
@@ -107,5 +234,16 @@
         <p>Built for epic parties and questionable decisions</p>
         <p>⚠️ 18+ Only - Contains adult content</p>
     </footer>
+
+    <script>
+        function joinRoom() {
+            const roomCode = document.getElementById('roomCodeInput').value.trim();
+            if (roomCode) {
+                window.location.href = '/play?room=' + roomCode;
+            } else {
+                alert('Please enter a room code');
+            }
+        }
+    </script>
 </body>
 </html>
