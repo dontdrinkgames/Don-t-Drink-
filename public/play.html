@@ -1,0 +1,563 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Playing - Don't Drink!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+       
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: url('/hostbackground.png') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            padding: 10px;
+            color: white;
+            font-size: 1rem;
+        }
+       
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 10px;
+        }
+       
+        .game-header {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+       
+        .game-title {
+            font-size: 2rem;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+       
+        .exit-btn {
+            background: linear-gradient(135deg, #f44336, #d32f2f);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(244, 67, 54, 0.3);
+        }
+       
+        .exit-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(244, 67, 54, 0.4);
+        }
+       
+        .game-info {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 16px;
+            margin: 16px 0;
+            text-align: center;
+        }
+       
+        .info-item {
+            font-weight: 600;
+            font-size: 1.1rem;
+        }
+       
+        .question-section {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 40px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            text-align: center;
+        }
+       
+        .question-counter {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            opacity: 0.8;
+        }
+       
+        .question-display {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 20px;
+            padding: 40px;
+            margin: 20px 0;
+            min-height: 150px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            font-weight: 600;
+            line-height: 1.4;
+            text-align: center;
+        }
+       
+        .game-controls {
+            display: flex;
+            gap: 16px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+       
+        .control-btn {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
+        }
+       
+        .control-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4);
+        }
+       
+        .control-btn:disabled {
+            background: rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.7);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+       
+        .scoreboard {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 30px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+       
+        .scoreboard h3 {
+            text-align: center;
+            font-size: 1.5rem;
+            margin-bottom: 20px;
+        }
+       
+        .scores-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 16px;
+        }
+       
+        .player-score {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 12px;
+            padding: 16px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+       
+        .player-avatar {
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.2);
+        }
+       
+        .player-info {
+            flex: 1;
+        }
+       
+        .player-name {
+            font-weight: 600;
+            font-size: 1rem;
+        }
+       
+        .player-points {
+            font-size: 0.9rem;
+            opacity: 0.8;
+        }
+       
+        .game-over {
+            display: none;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+       
+        .game-over h2 {
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+        }
+       
+        .winner {
+            font-size: 1.8rem;
+            font-weight: 700;
+            margin: 20px 0;
+            color: #FACC15;
+        }
+       
+        @media (max-width: 768px) {
+            .game-controls {
+                flex-direction: column;
+                align-items: center;
+            }
+           
+            .control-btn {
+                width: 200px;
+            }
+           
+            .game-header {
+                flex-direction: column;
+                gap: 16px;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Game Header -->
+        <div class="game-header">
+            <div class="game-title" id="gameTitle">Loading...</div>
+            <button class="exit-btn" onclick="exitGame()">Exit Game</button>
+        </div>
+       
+        <!-- Game Info -->
+        <div class="game-info" id="gameInfo">
+            <div class="info-item">Loading...</div>
+        </div>
+       
+        <!-- Question Section -->
+        <div class="question-section" id="questionSection">
+            <div class="question-counter" id="questionCounter">Question 1 of ∞</div>
+            <div class="question-display" id="questionDisplay">Loading first question...</div>
+            <div class="game-controls">
+                <button class="control-btn" onclick="nextQuestion()">Next Question</button>
+            </div>
+            <p id="waiting-message" style="font-size: 0.9rem; opacity: 0.8; margin-top: 10px; display: none;">Waiting for players to answer...</p>
+        </div>
+       
+        <!-- Scoreboard -->
+        <div class="scoreboard">
+            <h3>Scoreboard</h3>
+            <div class="scores-grid" id="scoresGrid">
+                Loading players...
+            </div>
+        </div>
+       
+        <!-- Game Over Screen -->
+        <div class="game-over" id="gameOverScreen">
+            <h2>Game Over!</h2>
+            <div class="winner" id="winnerDisplay"></div>
+            <div class="game-controls">
+                <button class="control-btn" onclick="exitGame()">Return to Lobby</button>
+                <button class="control-btn" onclick="playAgain()">Play Again</button>
+            </div>
+        </div>
+    </div>
+   
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        let gameConfig = {};
+        let currentQuestionIndex = 0;
+        let playerScores = {};
+        let totalQuestions = 0;
+        let gameEnded = false;
+        let socket;
+        let waitingForVotes = false;
+
+        // Game name mapping
+        const gameNameMap = {
+            'nhie': 'Never Have I Ever',
+            'fmk': 'F***, Marry, Kill',
+            'would_you_rather': 'Would You Rather',
+            'hot_takes': 'Hot Takes'
+        };
+
+        // Initialize game when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            loadGameConfig();
+            initializeSocket();
+            initializeGame();
+        });
+
+        function initializeSocket() {
+            if (typeof io === 'undefined') {
+                console.warn('Socket.IO not available, running in offline mode');
+                document.getElementById('questionDisplay').textContent = 'Server connection unavailable. Questions will not load from database.';
+                return;
+            }
+
+            socket = io();
+
+            socket.on('connect', () => {
+                console.log('Connected to server');
+                if (gameConfig.roomCode && gameConfig.game) {
+                    socket.emit('start-game', gameConfig);
+                }
+            });
+
+            socket.on('new-question', (data) => {
+                document.getElementById('questionDisplay').textContent = data.question;
+                document.getElementById('questionCounter').textContent = `Question ${data.questionNumber} of ∞`;
+                currentQuestionIndex = data.questionNumber;
+                waitingForVotes = true; // Start waiting for votes
+                updateWaitingMessage();
+            });
+
+            socket.on('vote-results', (data) => {
+                console.log('Received vote results:', data);
+                waitingForVotes = false;
+                updateWaitingMessage();
+                document.getElementById('questionDisplay').textContent = data.question + '\nVotes: ' + JSON.stringify(data.votes);
+                assignDrinkingPoints(data.voters); // Assign points to non-voters
+            });
+
+            socket.on('game-started', (data) => {
+                console.log('Game started:', data);
+            });
+
+            socket.on('disconnect', () => {
+                console.log('Disconnected from server');
+            });
+
+            socket.on('error', (error) => {
+                console.error('Socket error:', error);
+            });
+        }
+
+        function updateWaitingMessage() {
+            const waitingMessageEl = document.getElementById('waiting-message');
+            if (gameConfig.mode === 'mobile' && waitingForVotes) {
+                waitingMessageEl.style.display = 'block';
+            } else {
+                waitingMessageEl.style.display = 'none';
+            }
+        }
+
+        function loadGameConfig() {
+            try {
+                const storedConfig = localStorage.getItem('gameConfig');
+                if (storedConfig) {
+                    gameConfig = JSON.parse(storedConfig);
+                } else {
+                    gameConfig = {
+                        game: 'hottakes',
+                        mode: 'offline',
+                        intensity: 'medium',
+                        players: [],
+                        roomCode: 'DEMO123'
+                    };
+                }
+            } catch (e) {
+                console.error('Error loading game config:', e);
+            }
+
+            const urlParams = new URLSearchParams(window.location.search);
+            const roomCode = urlParams.get('room');
+            const game = urlParams.get('game');
+
+            if (roomCode) gameConfig.roomCode = roomCode;
+            if (game) gameConfig.game = game;
+
+            if (gameConfig.mode === 'offline') {
+                const scoreboard = document.querySelector('.scoreboard');
+                if (scoreboard) {
+                    scoreboard.style.display = 'none';
+                }
+            }
+        }
+
+        function initializeGame() {
+            const fullGameName = gameNameMap[gameConfig.game.toLowerCase()] || gameConfig.game.toUpperCase().replace('_', ' ');
+            document.getElementById('gameTitle').textContent = fullGameName;
+
+            const infoText = gameConfig.roomCode ?
+                `Mode: ${gameConfig.mode} | Intensity: ${gameConfig.intensity} | Players: ${gameConfig.players ? gameConfig.players.length : 0} | Room: ${gameConfig.roomCode}` :
+                `Mode: ${gameConfig.mode} | Intensity: ${gameConfig.intensity} | Players: ${gameConfig.players ? gameConfig.players.length : 0} | Room: Loading...`;
+            document.getElementById('gameInfo').innerHTML = `<div class="info-item">${infoText}</div>`;
+
+            if (gameConfig.mode !== 'offline' && gameConfig.players && gameConfig.players.length > 0) {
+                gameConfig.players.forEach(player => {
+                    playerScores[player.id] = {
+                        name: player.name,
+                        avatar: player.avatar,
+                        points: 0,
+                        correctAnswers: 0,
+                        drinksGiven: 0,
+                        drinkingPoints: 0 // New field for drinking penalties
+                    };
+                });
+                updateScoreboard();
+            }
+
+            loadFirstQuestion();
+        }
+
+        function loadFirstQuestion() {
+            fetchQuestionFromServer();
+        }
+
+        async function fetchQuestionFromServer() {
+            try {
+                const nextQuestionBtn = document.querySelector('.control-btn[onclick="nextQuestion()"]');
+                nextQuestionBtn.disabled = true;
+                document.getElementById('questionDisplay').textContent = 'Loading...';
+
+                const response = await fetch(`/api/question/${gameConfig.game}/${gameConfig.intensity}`);
+                if (!response.ok) throw new Error(`HTTP error! Status: ${response.status}`);
+
+                const data = await response.json();
+                if (data.text) {
+                    currentQuestionIndex++;
+                    document.getElementById('questionDisplay').textContent = data.text;
+                    document.getElementById('questionCounter').textContent = `Question ${currentQuestionIndex} of ∞`;
+                    console.log(`Loaded question from database: ${data.text.substring(0, 50)}...`);
+
+                    if (gameConfig.mode === 'mobile' && socket) {
+                        socket.emit('new-question', {
+                            question: data.text,
+                            questionNumber: currentQuestionIndex,
+                            roomCode: gameConfig.roomCode
+                        });
+                        waitingForVotes = true;
+                        updateWaitingMessage();
+                    }
+                } else {
+                    throw new Error('No question text in response');
+                }
+            } catch (error) {
+                console.error('Failed to fetch question:', error);
+                document.getElementById('questionDisplay').textContent = 'Unable to connect to server for questions.';
+            } finally {
+                const nextQuestionBtn = document.querySelector('.control-btn[onclick="nextQuestion()"]');
+                nextQuestionBtn.disabled = false;
+            }
+        }
+
+        function nextQuestion() {
+            if (gameEnded) return;
+
+            if (gameConfig.mode === 'mobile' && waitingForVotes) {
+                // Override waiting state
+                waitingForVotes = false;
+                updateWaitingMessage();
+                assignDrinkingPoints([]); // Assign drinking points to all as override
+                document.getElementById('questionDisplay').textContent += '\n(Waiting overridden - proceeding to next question)';
+            }
+
+            fetchQuestionFromServer();
+
+            if (gameConfig.mode !== 'offline') {
+                const playerIds = Object.keys(playerScores);
+                if (playerIds.length > 0) {
+                    const randomPlayerId = playerIds[Math.floor(Math.random() * playerIds.length)];
+                    if (playerScores[randomPlayerId]) {
+                        playerScores[randomPlayerId].points += Math.floor(Math.random() * 3) + 1;
+                        playerScores[randomPlayerId].correctAnswers += 1;
+                    }
+                    updateScoreboard();
+                }
+            }
+        }
+
+        function assignDrinkingPoints(voters) {
+            if (gameConfig.mode !== 'mobile' || !gameConfig.players) return;
+
+            const voterIds = new Set(voters);
+            gameConfig.players.forEach(player => {
+                if (!voterIds.has(player.id)) {
+                    playerScores[player.id] = playerScores[player.id] || {
+                        name: player.name,
+                        avatar: player.avatar,
+                        points: 0,
+                        correctAnswers: 0,
+                        drinksGiven: 0,
+                        drinkingPoints: 0
+                    };
+                    playerScores[player.id].drinkingPoints += 1;
+                }
+            });
+            updateScoreboard();
+        }
+
+        function updateScoreboard() {
+            if (gameConfig.mode === 'offline') return;
+
+            const scoresGrid = document.getElementById('scoresGrid');
+            const sortedPlayers = Object.entries(playerScores)
+                .sort(([,a], [,b]) => b.points - a.points);
+
+            scoresGrid.innerHTML = sortedPlayers.map(([id, player]) => `
+                <div class="player-score">
+                    <div class="player-avatar">${player.avatar}</div>
+                    <div class="player-info">
+                        <div class="player-name">${player.name}</div>
+                        <div class="player-points">${player.points} points | ${player.correctAnswers} correct | ${player.drinkingPoints} drinks</div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function exitGame() {
+            const finalScores = {
+                gameType: gameConfig.game,
+                roomCode: gameConfig.roomCode,
+                players: playerScores,
+                questionsPlayed: currentQuestionIndex,
+                timestamp: new Date().toISOString()
+            };
+
+            localStorage.setItem('gameResults', JSON.stringify(finalScores));
+            window.location.href = `/host?room=${gameConfig.roomCode}&returning=true`;
+        }
+
+        function playAgain() {
+            currentQuestionIndex = 0;
+            gameEnded = false;
+            waitingForVotes = false;
+
+            Object.keys(playerScores).forEach(id => {
+                playerScores[id].points = 0;
+                playerScores[id].correctAnswers = 0;
+                playerScores[id].drinksGiven = 0;
+                playerScores[id].drinkingPoints = 0;
+            });
+
+            document.getElementById('questionSection').style.display = 'block';
+            document.getElementById('gameOverScreen').style.display = 'none';
+
+            updateScoreboard();
+            loadFirstQuestion();
+        }
+    </script>
+</body>
+</html>

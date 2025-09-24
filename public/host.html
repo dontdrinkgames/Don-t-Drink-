@@ -1,0 +1,1045 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Host Control - Don't Drink!</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: url('/hostbackground.png') no-repeat center center fixed;
+            background-size: cover;
+            min-height: 100vh;
+            padding: 0;
+            color: white;
+            font-size: 1rem;
+        }
+        .container {
+            width: 100%;
+            max-width: none;
+            margin: 0 auto;
+            padding: 10px;
+        }
+        /* Room section */
+        .room-section {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: white;
+            text-align: center;
+        }
+        .room-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 12px;
+            align-items: stretch;
+        }
+        .room-box {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 12px;
+            padding: 12px;
+            text-align: center;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .room-code-label, .qr-label, .url-label {
+            font-size: 1rem;
+            font-weight: 600;
+            color: white;
+            margin-bottom: 6px;
+        }
+        .room-code-display {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: white;
+            text-shadow: 2px 2px 8px rgba(0, 0, 0, 0.3);
+            letter-spacing: 0.15em;
+            font-family: 'Poppins', monospace;
+        }
+        .qr-code {
+            background: white;
+            padding: 6px;
+            border-radius: 6px;
+            display: inline-block;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+        .url-input {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            align-items: center;
+            width: 100%;
+        }
+        .url-field {
+            padding: 6px 10px;
+            border: none;
+            border-radius: 6px;
+            font-size: 0.8rem;
+            font-family: 'Poppins', sans-serif;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            font-weight: 500;
+            text-align: center;
+            word-break: break-all;
+            width: 100%;
+        }
+        .copy-btn {
+            padding: 6px 12px;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            font-size: 0.8rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 8px rgba(76, 175, 80, 0.3);
+        }
+        .copy-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 16px rgba(76, 175, 80, 0.4);
+        }
+        .player-count {
+            font-size: 1rem;
+            margin-top: 10px;
+            color: white;
+            font-weight: 600;
+            text-align: center;
+        }
+        /* Setup grid */
+        .setup-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 12px;
+            margin-bottom: 16px;
+        }
+        .setup-section {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 12px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+            display: flex;
+            flex-direction: column;
+        }
+        /* Choose Game Grid: 3 top, 2 bottom */
+        .game-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: auto auto;
+            gap: 6px;
+        }
+        .game-grid .card-4 {
+            grid-column: 1 / 2;
+            grid-row: 2;
+        }
+        .game-grid .card-5 {
+            grid-column: 2 / 4;
+            grid-row: 2;
+        }
+        /* Choose Mode Grid: 2x2 */
+        .mode-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            grid-template-rows: auto auto;
+            gap: 6px;
+        }
+        .mode-grid .card-3 {
+            grid-column: 1 / 2;
+            grid-row: 2;
+        }
+        .mode-grid .card-4 {
+            grid-column: 2 / 3;
+            grid-row: 2;
+        }
+        /* Choose Intensity Grid: 3 top, 1 full, button bottom */
+        .intensity-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            grid-template-rows: auto auto auto;
+            gap: 6px;
+        }
+        .intensity-grid .card-4 {
+            grid-column: 1 / 4;
+            grid-row: 2;
+        }
+        .start-lobby-btn {
+            grid-column: 1 / 4;
+            grid-row: 3;
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            border-radius: 10px;
+            cursor: pointer;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
+        }
+        .start-lobby-btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4);
+        }
+        .start-lobby-btn:disabled {
+            background: rgba(255, 255, 255, 0.3);
+            color: rgba(255, 255, 255, 0.7);
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        /* Option cards */
+        .option-card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            min-height: 100px;
+        }
+        .option-card:hover {
+            background: rgba(255, 255, 255, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+        }
+        .option-card.selected {
+            border-color: rgba(255, 255, 255, 0.8);
+            background: rgba(255, 255, 255, 0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(255, 255, 255, 0.2);
+        }
+        .option-icon {
+            font-size: 1.6rem;
+            margin-bottom: 4px;
+            display: block;
+        }
+        .option-title {
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 3px;
+            color: white;
+            line-height: 1.1;
+        }
+        .option-desc {
+            font-size: 0.65rem;
+            opacity: 0.85;
+            line-height: 1.2;
+            color: rgba(255, 255, 255, 0.8);
+        }
+        /* Game specific colors */
+        .wyr-selected {
+            border-color: #2196F3 !important;
+            background: rgba(33, 150, 243, 0.25) !important;
+        }
+        .fmk-selected {
+            border-color: #E91E63 !important;
+            background: rgba(233, 30, 99, 0.25) !important;
+        }
+        .nhie-selected {
+            border-color: #FF9800 !important;
+            background: rgba(255, 152, 0, 0.25) !important;
+        }
+        .hottakes-selected {
+            border-color: #f44336 !important;
+            background: rgba(244, 67, 54, 0.25) !important;
+        }
+        .medium-selected {
+            border-color: #4CAF50 !important;
+            background: rgba(76, 175, 80, 0.25) !important;
+        }
+        .spicy-selected {
+            border-color: #FF5722 !important;
+            background: rgba(255, 87, 34, 0.25) !important;
+        }
+        .cancelled-selected {
+            border-color: #9C27B0 !important;
+            background: rgba(156, 39, 176, 0.25) !important;
+        }
+        .offline-selected {
+            border-color: #607D8B !important;
+            background: rgba(96, 125, 139, 0.25) !important;
+        }
+        .mobile-selected {
+            border-color: #00BCD4 !important;
+            background: rgba(0, 188, 212, 0.25) !important;
+        }
+        .spotlight-selected {
+            border-color: #FFEB3B !important;
+            background: rgba(255, 235, 59, 0.25) !important;
+        }
+        /* Messages */
+        .message {
+            padding: 12px;
+            border-radius: 10px;
+            margin: 12px 0;
+            text-align: center;
+            font-weight: 500;
+        }
+        .success-message {
+            background: rgba(76, 175, 80, 0.2);
+            border: 1px solid rgba(76, 175, 80, 0.4);
+            color: #4CAF50;
+        }
+        .error-message {
+            background: rgba(244, 67, 54, 0.2);
+            border: 1px solid rgba(244, 67, 54, 0.4);
+            color: #f44336;
+        }
+        .hidden {
+            display: none !important;
+        }
+        /* Players section */
+        .players-section {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 24px;
+            padding: 16px;
+            margin-bottom: 16px;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+        .players-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .players-header h2 {
+            font-size: 1.3rem;
+            font-weight: 600;
+        }
+        .add-player-btn {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
+        }
+        .add-player-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4);
+        }
+        .add-player-form {
+            display: none;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 16px;
+            margin-bottom: 16px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+        .form-group {
+            margin-bottom: 12px;
+        }
+        .form-group label {
+            display: block;
+            margin-bottom: 6px;
+            font-weight: 600;
+            font-size: 1rem;
+        }
+        .form-group input {
+            width: 100%;
+            padding: 10px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+        }
+        .avatar-grid {
+            display: grid;
+            grid-template-columns: repeat(10, 35px);
+            gap: 8px;
+            margin-bottom: 12px;
+            justify-content: start;
+        }
+        .avatar-btn {
+            aspect-ratio: 1;
+            background: rgba(255,255,255,0.15);
+            border: none;
+            border-radius: 8px;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.1);
+            width: 35px;
+            height: 35px;
+        }
+        .avatar-btn:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 0 rgba(0,0,0,0.15);
+        }
+        .avatar-btn.selected {
+            background: #FACC15;
+            transform: translateY(-2px) scale(1.1);
+            box-shadow: 0 5px 0 rgba(0,0,0,0.2);
+        }
+        .form-actions {
+            display: flex;
+            gap: 12px;
+        }
+        .btn-secondary, .btn-primary {
+            border: none;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            flex: 1;
+            font-size: 0.9rem;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.1);
+        }
+        .btn-secondary {
+            background: rgba(255,255,255,0.15);
+            color: white;
+        }
+        .btn-secondary:hover {
+            background: rgba(255,255,255,0.25);
+            transform: translateY(-2px);
+            box-shadow: 0 5px 0 rgba(0,0,0,0.15);
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #4CAF50, #45a049);
+            color: white;
+        }
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 0 #047857;
+        }
+        .players-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+            min-height: 100px;
+        }
+        .player-card {
+            background: rgba(255,255,255,0.1);
+            border-radius: 12px;
+            padding: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 1px solid rgba(255,255,255,0.2);
+            position: relative;
+            box-shadow: 0 3px 0 rgba(0,0,0,0.1);
+            transition: all 0.3s ease;
+        }
+        .player-avatar {
+            font-size: 1.8rem;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.2);
+        }
+        .player-info {
+            flex: 1;
+        }
+        .player-name {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .player-status {
+            font-size: 0.7rem;
+            opacity: 0.8;
+        }
+        .remove-player {
+            background: #f44336;
+            color: white;
+            border: none;
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+        .remove-player:hover {
+            transform: scale(1.1);
+        }
+        .empty-players {
+            grid-column: 1 / -1;
+            text-align: center;
+            opacity: 0.7;
+            font-style: italic;
+            padding: 30px;
+            font-size: 0.9rem;
+        }
+        /* Responsive */
+        @media (max-width: 1024px) {
+            .setup-grid {
+                grid-template-columns: 1fr;
+                gap: 16px;
+            }
+        }
+        @media (max-width: 768px) {
+            .room-content {
+                grid-template-columns: 1fr;
+                gap: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Room section -->
+        <div class="room-section">
+            <div class="section-title">Join Options</div>
+            <div class="room-content">
+                <div class="room-box">
+                    <div class="room-code-label">Room Code</div>
+                    <div class="room-code-display" id="roomCodeDisplay">190068</div>
+                </div>
+              
+                <div class="room-box">
+                    <div class="qr-label">Scan to Join</div>
+                    <div id="qrCode" class="qr-code"></div>
+                </div>
+              
+                <div class="room-box">
+                    <div class="url-label">Share Link</div>
+                    <div class="url-input">
+                        <input type="text" id="urlField" class="url-field" readonly value="http://localhost:3000/190068">
+                        <button id="copyBtn" class="copy-btn">Copy</button>
+                    </div>
+                </div>
+            </div>
+          
+            <div class="player-count" id="playerCount">0 players connected</div>
+        </div>
+        <!-- Setup options -->
+        <div class="setup-grid">
+            <!-- Choose Game: 3 top, 2 bottom -->
+            <div class="setup-section">
+                <div class="section-title">Choose Game</div>
+                <div class="game-grid">
+                    <div class="option-card" data-game="wyr">
+                        <div class="option-icon">🤔</div>
+                        <div class="option-title">Would You Rather</div>
+                        <div class="option-desc">Choose between two difficult options</div>
+                    </div>
+                    <div class="option-card" data-game="fmk">
+                        <div class="option-icon">💋</div>
+                        <div class="option-title">F*ck, Marry, Kill</div>
+                        <div class="option-desc">The classic decision game</div>
+                    </div>
+                    <div class="option-card" data-game="nhie">
+                        <div class="option-icon">🙈</div>
+                        <div class="option-title">Never Have I Ever</div>
+                        <div class="option-desc">Share your experiences</div>
+                    </div>
+                    <div class="option-card card-4" data-game="hottakes">
+                        <div class="option-icon">🔥</div>
+                        <div class="option-title">Hot Takes</div>
+                        <div class="option-desc">Controversial opinions</div>
+                    </div>
+                    <div class="option-card card-5" data-game="mixmaster">
+                        <div class="option-icon">🎲</div>
+                        <div class="option-title">Mixmaster</div>
+                        <div class="option-desc">Random mix of all games</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Choose Mode: 2x2 -->
+            <div class="setup-section">
+                <div class="section-title">Choose Mode</div>
+                <div class="mode-grid">
+                    <div class="option-card" data-mode="offline">
+                        <div class="option-icon">📺</div>
+                        <div class="option-title">Offline</div>
+                        <div class="option-desc">Questions on screen, answer together</div>
+                    </div>
+                    <div class="option-card" data-mode="mobile">
+                        <div class="option-icon">📱</div>
+                        <div class="option-title">Mobile Voting</div>
+                        <div class="option-desc">Vote on phones, see results here</div>
+                    </div>
+                    <div class="option-card card-3" data-mode="spotlight">
+                        <div class="option-icon">👀</div>
+                        <div class="option-title">Spotlight</div>
+                        <div class="option-desc">One player in the hot seat</div>
+                    </div>
+                    <div class="option-card card-4" data-mode="mixmaster">
+                        <div class="option-icon">🎲</div>
+                        <div class="option-title">Mode Mixmaster</div>
+                        <div class="option-desc">Random mode each round</div>
+                    </div>
+                </div>
+            </div>
+            <!-- Choose Intensity: 3 top, 1 full, button bottom -->
+            <div class="setup-section">
+                <div class="section-title">Choose Intensity</div>
+                <div class="intensity-grid">
+                    <div class="option-card" data-intensity="medium">
+                        <div class="option-icon">🔥</div>
+                        <div class="option-title">Medium</div>
+                        <div class="option-desc">Fun and playful</div>
+                    </div>
+                    <div class="option-card" data-intensity="spicy">
+                        <div class="option-icon">🌶️</div>
+                        <div class="option-title">Spicy</div>
+                        <div class="option-desc">Adult content</div>
+                    </div>
+                    <div class="option-card" data-intensity="cancelled">
+                        <div class="option-icon">🚫</div>
+                        <div class="option-title">Cancelled</div>
+                        <div class="option-desc">No limits, no filter</div>
+                    </div>
+                    <div class="option-card card-4" data-intensity="mixmaster">
+                        <div class="option-icon">🎲</div>
+                        <div class="option-title">Intensity Mixmaster</div>
+                        <div class="option-desc">Random intensity each round</div>
+                    </div>
+                  
+                    <button id="startLobbyBtn" class="start-lobby-btn" disabled>
+                        Select game, mode, intensity to start
+                    </button>
+                </div>
+            </div>
+        </div>
+        <!-- Players section -->
+        <div class="players-section">
+            <div class="players-header">
+                <h2>Players (<span id="playerCount">0</span>)</h2>
+                <button class="add-player-btn" onclick="showAddPlayerForm()">+ Add Player</button>
+            </div>
+            <!-- Add Player Form -->
+            <div class="add-player-form" id="addPlayerForm">
+                <div class="form-group">
+                    <label>Player Name</label>
+                    <input type="text" id="playerName" placeholder="Enter name..." maxlength="20">
+                </div>
+                <div class="form-group">
+                    <label>Choose Avatar</label>
+                    <div class="avatar-grid">
+                        <button class="avatar-btn" onclick="selectAvatar('🍆')" data-avatar="🍆">🍆</button>
+                        <button class="avatar-btn" onclick="selectAvatar('🍑')" data-avatar="🍑">🍑</button>
+                        <button class="avatar-btn" onclick="selectAvatar('💋')" data-avatar="💋">💋</button>
+                        <button class="avatar-btn" onclick="selectAvatar('😈')" data-avatar="😈">😈</button>
+                        <button class="avatar-btn" onclick="selectAvatar('🔥')" data-avatar="🔥">🔥</button>
+                        <button class="avatar-btn" onclick="selectAvatar('💦')" data-avatar="💦">💦</button>
+                        <button class="avatar-btn" onclick="selectAvatar('🌶️')" data-avatar="🌶️">🌶️</button>
+                        <button class="avatar-btn" onclick="selectAvatar('🍌')" data-avatar="🍌">🍌</button>
+                        <button class="avatar-btn" onclick="selectAvatar('🥵')" data-avatar="🥵">🥵</button>
+                        <button class="avatar-btn" onclick="selectAvatar('😏')" data-avatar="😏">😏</button>
+                        <button class="avatar-btn" onclick="selectAvatar('🕺')" data-avatar="🕺">🕺</button>
+                        <button class="avatar-btn" onclick="selectAvatar('💃')" data-avatar="💃">💃</button>
+                        <button class="avatar-btn" onclick="selectAvatar('👅')" data-avatar="👅">👅</button>
+                        <button class="avatar-btn" onclick="selectAvatar('🤤')" data-avatar="🤤">🤤</button>
+                        <button class="avatar-btn" onclick="selectAvatar('🍯')" data-avatar="🍯">🍯</button>
+                        <button class="avatar-btn" onclick="selectAvatar('🍼')" data-avatar="🍼">🍼</button>
+                        <button class="avatar-btn" onclick="selectAvatar('💅')" data-avatar="💅">💅</button>
+                        <button class="avatar-btn" onclick="selectAvatar('🤭')" data-avatar="🤭">🤭</button>
+                        <button class="avatar-btn" onclick="selectAvatar('🙈')" data-avatar="🙈">🙈</button>
+                        <button class="avatar-btn" onclick="selectAvatar('😎')" data-avatar="😎">😎</button>
+                    </div>
+                </div>
+                <div class="form-actions">
+                    <button class="btn-secondary" onclick="hideAddPlayerForm()">Cancel</button>
+                    <button class="btn-primary" onclick="addPlayer()">Add Player</button>
+                </div>
+            </div>
+            <!-- Players List -->
+            <div class="players-list" id="playersList">
+                <div class="empty-players">
+                    No players joined yet. Add players manually or have them join via the room code.
+                </div>
+            </div>
+        </div>
+        <!-- Messages -->
+        <div id="successMessage" class="message success-message hidden"></div>
+        <div id="errorMessage" class="message error-message hidden"></div>
+    </div>
+    <script>
+        let socket;
+        let gameState = {
+            selectedGame: null,
+            selectedMode: null,
+            selectedIntensity: null,
+            roomCode: null
+        };
+        let selectedAvatar = '😎';
+        let players = [];
+        function showAddPlayerForm() {
+            document.getElementById('addPlayerForm').style.display = 'block';
+            document.getElementById('playerName').focus();
+        }
+        function hideAddPlayerForm() {
+            document.getElementById('addPlayerForm').style.display = 'none';
+            document.getElementById('playerName').value = '';
+            document.querySelectorAll('.avatar-btn').forEach(btn => btn.classList.remove('selected'));
+            document.querySelector('[data-avatar="😎"]').classList.add('selected');
+            selectedAvatar = '😎';
+        }
+        function selectAvatar(avatar) {
+            selectedAvatar = avatar;
+            document.querySelectorAll('.avatar-btn').forEach(btn => btn.classList.remove('selected'));
+            document.querySelector(`[data-avatar="${avatar}"]`).classList.add('selected');
+        }
+        function addPlayer() {
+            const playerName = document.getElementById('playerName').value.trim();
+           
+            if (!playerName) {
+                alert('Please enter a player name');
+                return;
+            }
+            if (players.find(p => p.name === playerName)) {
+                alert('Player name already exists');
+                return;
+            }
+            const newPlayer = {
+                id: 'host-' + Date.now(),
+                name: playerName,
+                avatar: selectedAvatar,
+                isHost: false,
+                connected: true
+            };
+            players.push(newPlayer);
+            updatePlayersDisplay();
+            hideAddPlayerForm();
+            console.log('Player added:', newPlayer);
+            // Optionally send to server if needed
+            if (socket) {
+                socket.emit('add-manual-player', { roomCode: gameState.roomCode, player: newPlayer });
+            }
+        }
+        function removePlayer(playerId) {
+            players = players.filter(p => p.id !== playerId);
+            updatePlayersDisplay();
+            // Optionally send to server if needed
+            if (socket) {
+                socket.emit('remove-player', { roomCode: gameState.roomCode, playerId });
+            }
+        }
+        function updatePlayersDisplay() {
+            const playersList = document.getElementById('playersList');
+            const playerCountElements = document.querySelectorAll('#playerCount');
+           
+            // Update both player count elements
+            playerCountElements.forEach(element => {
+                element.textContent = players.length;
+            });
+
+            if (players.length === 0) {
+                playersList.innerHTML = '<div class="empty-players">No players joined yet. Add players manually or have them join via the room code.</div>';
+            } else {
+                playersList.innerHTML = players.map(player => `
+                    <div class="player-card">
+                        <div class="player-avatar">${player.avatar}</div>
+                        <div class="player-info">
+                            <div class="player-name">${player.name}</div>
+                            <div class="player-status">${player.connected ? 'Connected' : 'Disconnected'}</div>
+                        </div>
+                        <button class="remove-player" onclick="removePlayer('${player.id}')">×</button>
+                    </div>
+                `).join('');
+            }
+            
+            // Update start button after player count changes
+            updateStartButton();
+        }
+        // Enter key support for add player form
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && document.getElementById('addPlayerForm').style.display !== 'none') {
+                addPlayer();
+            }
+            // ESC key to close add player form
+            if (e.key === 'Escape' && document.getElementById('addPlayerForm').style.display !== 'none') {
+                hideAddPlayerForm();
+            }
+        });
+        // Initialize first avatar as selected
+        document.addEventListener('DOMContentLoaded', () => {
+            const firstAvatar = document.querySelector('[data-avatar="😎"]');
+            if (firstAvatar) {
+                firstAvatar.classList.add('selected');
+            }
+        });
+        function loadSocketIO() {
+            return new Promise((resolve, reject) => {
+                if (typeof io !== 'undefined') {
+                    resolve();
+                    return;
+                }
+              
+                const script = document.createElement('script');
+                script.src = '/socket.io/socket.io.js';
+                script.onload = () => {
+                    if (typeof io !== 'undefined') {
+                        resolve();
+                    } else {
+                        reject(new Error('Socket.IO object not available'));
+                    }
+                };
+                script.onerror = () => reject(new Error('Socket.IO script not found'));
+                document.head.appendChild(script);
+              
+                setTimeout(() => reject(new Error('Socket.IO loading timeout')), 5000);
+            });
+        }
+        function initializeSocket() {
+            loadSocketIO().then(() => {
+                try {
+                    socket = io({
+                        transports: ['websocket', 'polling'],
+                        timeout: 10000,
+                        forceNew: true
+                    });
+                    setupSocketListeners();
+                    generateRoomCode();
+                    console.log('Socket connected successfully');
+                } catch (error) {
+                    console.log('Socket connection failed, using demo mode');
+                    initializeFallbackMode();
+                }
+            }).catch((error) => {
+                console.log('Server not available, running in demo mode');
+                initializeFallbackMode();
+            });
+        }
+        function initializeFallbackMode() {
+            const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
+            updateRoomCode(roomCode);
+            gameState.roomCode = roomCode;
+            updatePlayerCount(0);
+        }
+        function setupSocketListeners() {
+            socket.on('connect', () => {
+                console.log('Connected to server');
+            });
+            socket.on('room-created', (data) => {
+                updateRoomCode(data.roomCode);
+            });
+            socket.on('player-joined', (data) => {
+                updatePlayerCount(data.playerCount);
+                showSuccess(`${data.playerName} joined the game!`);
+            });
+            socket.on('player-left', (data) => {
+                updatePlayerCount(data.playerCount);
+            });
+            socket.on('error', (error) => {
+                showError(error.message);
+            });
+        }
+        function generateRoomCode() {
+            if (!socket) return;
+          
+            socket.emit('create-room', (response) => {
+                if (response.success) {
+                    updateRoomCode(response.roomCode);
+                    gameState.roomCode = response.roomCode;
+                } else {
+                    showError('Failed to create room');
+                }
+            });
+        }
+        function updateRoomCode(roomCode) {
+            const displayElement = document.getElementById('roomCodeDisplay');
+            const urlField = document.getElementById('urlField');
+          
+            if (displayElement) displayElement.textContent = roomCode;
+            if (urlField) {
+                const url = `${window.location.origin}/${roomCode}`;
+                urlField.value = url;
+                generateQRCode(url);
+            }
+        }
+        function updatePlayerCount(count) {
+            const element = document.getElementById('playerCount');
+            if (element) {
+                element.textContent = `${count} player${count !== 1 ? 's' : ''} connected`;
+            }
+        }
+        // Event listeners
+        document.addEventListener('click', (e) => {
+            const card = e.target.closest('.option-card');
+            if (!card) return;
+            if (card.dataset.game) {
+                selectOption('game', card);
+            } else if (card.dataset.mode) {
+                selectOption('mode', card);
+            } else if (card.dataset.intensity) {
+                selectOption('intensity', card);
+            }
+            updateStartButton();
+        });
+        function selectOption(type, card) {
+            const container = card.parentElement;
+          
+            // Remove selected class from all cards in container
+            container.querySelectorAll('.option-card').forEach(c => {
+                c.classList.remove('selected');
+                c.classList.remove('wyr-selected', 'fmk-selected', 'nhie-selected', 'hottakes-selected');
+                c.classList.remove('medium-selected', 'spicy-selected', 'cancelled-selected');
+                c.classList.remove('offline-selected', 'mobile-selected', 'spotlight-selected');
+            });
+          
+            // Add selected class
+            card.classList.add('selected');
+          
+            const value = card.dataset[type];
+          
+            if (type === 'game') {
+                gameState.selectedGame = value;
+                if (value !== 'mixmaster') {
+                    card.classList.add(`${value}-selected`);
+                }
+            } else if (type === 'mode') {
+                gameState.selectedMode = value;
+                if (value !== 'mixmaster') {
+                    card.classList.add(`${value}-selected`);
+                }
+            } else if (type === 'intensity') {
+                gameState.selectedIntensity = value;
+                if (value !== 'mixmaster') {
+                    card.classList.add(`${value}-selected`);
+                }
+            }
+        }
+        function updateStartButton() {
+            const btn = document.getElementById('startLobbyBtn');
+            const hasPlayers = players.length >= 2;
+            const hasSettings = gameState.selectedGame && gameState.selectedMode && gameState.selectedIntensity;
+            const canStart = hasSettings && hasPlayers;
+          
+            btn.disabled = !canStart;
+          
+            if (canStart) {
+                btn.textContent = 'Start Game';
+            } else if (!hasSettings && !hasPlayers) {
+                btn.textContent = 'Select game, mode, intensity and add 2+ players to start';
+            } else if (!hasSettings) {
+                const missing = [];
+                if (!gameState.selectedGame) missing.push('game');
+                if (!gameState.selectedMode) missing.push('mode');
+                if (!gameState.selectedIntensity) missing.push('intensity');
+                btn.textContent = `Select ${missing.join(', ')} to start`;
+            } else if (!hasPlayers) {
+                btn.textContent = 'Add at least 2 players to start';
+            }
+        }
+        // Copy button
+        document.getElementById('copyBtn').addEventListener('click', async () => {
+            try {
+                const text = document.getElementById('urlField').value;
+                await navigator.clipboard.writeText(text);
+                showSuccess('URL copied to clipboard!');
+            } catch (err) {
+                showError('Failed to copy URL');
+            }
+        });
+        // Start button
+        document.getElementById('startLobbyBtn').addEventListener('click', () => {
+            if (gameState.selectedGame && gameState.selectedMode && gameState.selectedIntensity && players.length >= 2) {
+                const config = {
+                    game: gameState.selectedGame,
+                    mode: gameState.selectedMode,
+                    intensity: gameState.selectedIntensity,
+                    players: players,
+                    roomCode: gameState.roomCode
+                };
+             
+                console.log('Starting game with config:', config);
+                
+                if (socket) {
+                    socket.emit('start-game', config);
+                }
+                
+                showSuccess(`Starting ${config.game} game!`);
+                
+                // Store game config in localStorage for game page
+                localStorage.setItem('gameConfig', JSON.stringify(config));
+                
+                // Navigate to dedicated game page immediately
+                window.location.href = `/play?room=${gameState.roomCode}&game=${config.game}`;
+                
+            } else {
+                showError('Please select all game options and add at least 2 players');
+            }
+        });
+        // QR Code generation
+        function generateQRCode(url) {
+            const qrContainer = document.getElementById('qrCode');
+            if (!qrContainer) return;
+            qrContainer.innerHTML = ''; // Clear previous content
+            new QRCode(qrContainer, {
+                text: url,
+                width: 128,
+                height: 128,
+                colorDark : "#000000",
+                colorLight : "#ffffff",
+                correctLevel : QRCode.CorrectLevel.H
+            });
+        }
+        // Messages
+        function showSuccess(message) {
+            const el = document.getElementById('successMessage');
+            if (el) {
+                el.textContent = message;
+                el.classList.remove('hidden');
+                setTimeout(() => el.classList.add('hidden'), 3000);
+            }
+        }
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            if (el) {
+                el.textContent = message;
+                el.classList.remove('hidden');
+                setTimeout(() => el.classList.add('hidden'), 5000);
+            }
+        }
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('DOM loaded, initializing...');
+            initializeSocket();
+            updateStartButton();
+            generateQRCode('http://localhost:3000/190068');
+        });
+    </script>
+</body>
+</html>

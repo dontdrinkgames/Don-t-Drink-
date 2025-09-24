@@ -1,0 +1,14 @@
+{
+  "name": "dont-drink-party-game",
+  "version": "1.0.0",
+  "description": "The ultimate party game platform for adults",
+  "homepage": "https://www.dontdrinkgames.com",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2",
+    "socket.io": "^4.7.4"
+  }
+}

@@ -1,0 +1,745 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Don't Drink! - Mobile</title>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Fredoka', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: white;
+            overflow-x: hidden;
+        }
+
+        .container {
+            padding: 20px;
+            max-width: 500px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .game-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+        }
+
+        .room-code {
+            font-size: 1.2rem;
+            opacity: 0.9;
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px 20px;
+            border-radius: 25px;
+            display: inline-block;
+        }
+
+        /* Join Screen */
+        .join-screen {
+            display: block;
+        }
+
+        .join-form {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+        }
+
+        .input-group {
+            margin-bottom: 20px;
+        }
+
+        .input-group label {
+            display: block;
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+        .input-group input, .input-group select {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.1rem;
+            font-family: 'Fredoka', sans-serif;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+        }
+
+        .emoji-selector {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        .emoji-option {
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid transparent;
+            border-radius: 10px;
+            padding: 10px;
+            font-size: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-align: center;
+        }
+
+        .emoji-option.selected {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.3);
+        }
+
+        .join-btn {
+            width: 100%;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 18px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: 'Fredoka', sans-serif;
+            transition: transform 0.3s ease;
+        }
+
+        .join-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        /* Lobby Screen */
+        .lobby-screen {
+            display: none;
+        }
+
+        .lobby-header {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .game-info {
+            font-size: 1.1rem;
+            opacity: 0.9;
+            margin-bottom: 10px;
+        }
+
+        .player-count {
+            font-size: 1rem;
+            color: #4CAF50;
+        }
+
+        /* Custom Questions Section */
+        .custom-questions-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .question-counter {
+            text-align: center;
+            font-size: 1rem;
+            margin-bottom: 15px;
+            color: #4CAF50;
+        }
+
+        .question-input {
+            width: 100%;
+            padding: 15px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1rem;
+            font-family: 'Fredoka', sans-serif;
+            background: rgba(255, 255, 255, 0.9);
+            color: #333;
+            margin-bottom: 10px;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .add-question-btn {
+            width: 100%;
+            background: linear-gradient(45deg, #ff6b6b, #ee5a24);
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 1.1rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: 'Fredoka', sans-serif;
+            margin-bottom: 15px;
+            transition: transform 0.3s ease;
+        }
+
+        .add-question-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .add-question-btn:disabled {
+            background: #999;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .my-questions {
+            margin-top: 15px;
+        }
+
+        .question-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 10px;
+            border-radius: 10px;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            line-height: 1.4;
+        }
+
+        /* Ready Section */
+        .ready-section {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .ready-btn {
+            width: 100%;
+            background: linear-gradient(45deg, #4CAF50, #45a049);
+            color: white;
+            border: none;
+            padding: 18px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            border-radius: 12px;
+            cursor: pointer;
+            font-family: 'Fredoka', sans-serif;
+            transition: all 0.3s ease;
+            margin-bottom: 15px;
+        }
+
+        .ready-btn.ready {
+            background: linear-gradient(45deg, #ff9800, #f57c00);
+        }
+
+        .ready-btn:hover {
+            transform: translateY(-2px);
+        }
+
+        .ready-status {
+            font-size: 1rem;
+            opacity: 0.9;
+        }
+
+        /* Players Status */
+        .players-status {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .player-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .player-item:last-child {
+            border-bottom: none;
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+        }
+
+        .player-avatar {
+            font-size: 1.2rem;
+            margin-right: 10px;
+        }
+
+        .player-name {
+            font-weight: 500;
+        }
+
+        .player-questions {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-left: 5px;
+        }
+
+        .ready-indicator {
+            padding: 5px 10px;
+            border-radius: 15px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .ready-indicator.ready {
+            background: rgba(76, 175, 80, 0.3);
+            color: #4CAF50;
+        }
+
+        .ready-indicator.waiting {
+            background: rgba(255, 152, 0, 0.3);
+            color: #ff9800;
+        }
+
+        /* Game Screen */
+        .game-screen {
+            display: none;
+        }
+
+        .question-display {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+
+        .question-number {
+            font-size: 1rem;
+            opacity: 0.8;
+            margin-bottom: 10px;
+        }
+
+        .question-text {
+            font-size: 1.3rem;
+            line-height: 1.4;
+            font-weight: 500;
+        }
+
+        /* Waiting Screen */
+        .waiting-screen {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .waiting-message {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            opacity: 0.9;
+        }
+
+        /* Utility Classes */
+        .hidden {
+            display: none !important;
+        }
+
+        .success-message {
+            background: rgba(76, 175, 80, 0.3);
+            color: #4CAF50;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .error-message {
+            background: rgba(244, 67, 54, 0.3);
+            color: #f44336;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        @media (max-width: 380px) {
+            .game-title {
+                font-size: 2rem;
+            }
+            
+            .container {
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Join Screen -->
+        <div id="joinScreen" class="join-screen">
+            <div class="header">
+                <h1 class="game-title">Don't Drink!</h1>
+                <div class="room-code">Room: <span id="displayRoomCode">LOADING</span></div>
+            </div>
+            
+            <div class="join-form">
+                <div class="input-group">
+                    <label for="playerName">Your Name:</label>
+                    <input type="text" id="playerName" placeholder="Enter your name" maxlength="15" required>
+                </div>
+                
+                <div class="input-group">
+                    <label>Choose your avatar:</label>
+                    <div class="emoji-selector" id="emojiSelector">
+                        <div class="emoji-option selected" data-emoji="😎">😎</div>
+                        <div class="emoji-option" data-emoji="🔥">🔥</div>
+                        <div class="emoji-option" data-emoji="🎉">🎉</div>
+                        <div class="emoji-option" data-emoji="🚀">🚀</div>
+                        <div class="emoji-option" data-emoji="⚡">⚡</div>
+                        <div class="emoji-option" data-emoji="🌟">🌟</div>
+                        <div class="emoji-option" data-emoji="🎯">🎯</div>
+                        <div class="emoji-option" data-emoji="🎪">🎪</div>
+                        <div class="emoji-option" data-emoji="🎨">🎨</div>
+                        <div class="emoji-option" data-emoji="🎭">🎭</div>
+                    </div>
+                </div>
+                
+                <button class="join-btn" id="joinBtn">Join Game</button>
+            </div>
+        </div>
+
+        <!-- Lobby Screen -->
+        <div id="lobbyScreen" class="lobby-screen">
+            <div class="header">
+                <h1 class="game-title">Don't Drink!</h1>
+                <div class="room-code">Room: <span id="lobbyRoomCode"></span></div>
+            </div>
+
+            <div class="lobby-header">
+                <div class="game-info" id="gameInfo">Waiting for host to start lobby...</div>
+                <div class="player-count" id="playerCount">0 players connected</div>
+            </div>
+
+            <div id="customQuestionsSection" class="custom-questions-section">
+                <div class="section-title">Add Your Questions</div>
+                <div class="question-counter" id="questionCounter">0/10 questions added</div>
+                
+                <textarea 
+                    id="questionInput" 
+                    class="question-input" 
+                    placeholder="Write your custom question here..."
+                    maxlength="500"
+                ></textarea>
+                
+                <button id="addQuestionBtn" class="add-question-btn">Add Question</button>
+                
+                <div id="myQuestions" class="my-questions"></div>
+            </div>
+
+            <div class="ready-section">
+                <button id="readyBtn" class="ready-btn">I'm Ready to Start!</button>
+                <div id="readyStatus" class="ready-status">Click when you're done adding questions</div>
+            </div>
+
+            <div id="playersStatus" class="players-status">
+                <div class="section-title">Players Status</div>
+                <div id="playersList"></div>
+            </div>
+        </div>
+
+        <!-- Game Screen -->
+        <div id="gameScreen" class="game-screen">
+            <div class="header">
+                <h1 class="game-title">Don't Drink!</h1>
+                <div class="room-code">Room: <span id="gameRoomCode"></span></div>
+            </div>
+            
+            <div class="question-display">
+                <div class="question-number" id="questionNumber">Question 1</div>
+                <div class="question-text" id="questionText">Loading question...</div>
+            </div>
+        </div>
+
+        <!-- Waiting Screen -->
+        <div id="waitingScreen" class="waiting-screen">
+            <div class="header">
+                <h1 class="game-title">Don't Drink!</h1>
+            </div>
+            <div class="waiting-message" id="waitingMessage">Connecting...</div>
+        </div>
+
+        <!-- Messages -->
+        <div id="successMessage" class="success-message hidden"></div>
+        <div id="errorMessage" class="error-message hidden"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        const socket = io();
+        
+        // Get room code from URL
+        const pathParts = window.location.pathname.split('/');
+        const roomCode = pathParts[1] && pathParts[1].length === 6 ? pathParts[1].toUpperCase() : 
+                        pathParts[2] && pathParts[2].length === 6 ? pathParts[2].toUpperCase() : '';
+
+        // State
+        let gameState = 'waiting'; // waiting, lobby, playing
+        let selectedAvatar = '😎';
+        let myQuestions = [];
+        let isReady = false;
+        let players = [];
+
+        // DOM Elements
+        const joinScreen = document.getElementById('joinScreen');
+        const lobbyScreen = document.getElementById('lobbyScreen');
+        const gameScreen = document.getElementById('gameScreen');
+        const waitingScreen = document.getElementById('waitingScreen');
+
+        // Initialize
+        if (roomCode) {
+            document.getElementById('displayRoomCode').textContent = roomCode;
+            document.getElementById('lobbyRoomCode').textContent = roomCode;
+            document.getElementById('gameRoomCode').textContent = roomCode;
+        } else {
+            showError('Invalid room code');
+        }
+
+        // Avatar selection
+        document.getElementById('emojiSelector').addEventListener('click', (e) => {
+            if (e.target.classList.contains('emoji-option')) {
+                document.querySelectorAll('.emoji-option').forEach(opt => opt.classList.remove('selected'));
+                e.target.classList.add('selected');
+                selectedAvatar = e.target.dataset.emoji;
+            }
+        });
+
+        // Join game
+        document.getElementById('joinBtn').addEventListener('click', () => {
+            const playerName = document.getElementById('playerName').value.trim();
+            
+            if (!playerName) {
+                showError('Please enter your name');
+                return;
+            }
+
+            if (playerName.length < 2) {
+                showError('Name must be at least 2 characters');
+                return;
+            }
+
+            socket.emit('join-room', {
+                roomCode: roomCode,
+                playerName: playerName,
+                avatar: selectedAvatar
+            });
+        });
+
+        // Add question
+        document.getElementById('addQuestionBtn').addEventListener('click', () => {
+            const questionText = document.getElementById('questionInput').value.trim();
+            
+            if (!questionText) {
+                showError('Please write a question');
+                return;
+            }
+
+            if (questionText.length < 10) {
+                showError('Question must be at least 10 characters');
+                return;
+            }
+
+            if (myQuestions.length >= 10) {
+                showError('Maximum 10 questions per player');
+                return;
+            }
+
+            socket.emit('add-lobby-question', { question: questionText });
+        });
+
+        // Ready toggle
+        document.getElementById('readyBtn').addEventListener('click', () => {
+            if (isReady) {
+                socket.emit('player-unready');
+            } else {
+                socket.emit('player-ready');
+            }
+        });
+
+        // Socket events
+        socket.on('room-update', (data) => {
+            players = data.players || [];
+            updatePlayerCount();
+            
+            if (data.gameState === 'lobby') {
+                gameState = 'lobby';
+                showLobbyScreen();
+            }
+        });
+
+        socket.on('lobby-started', (data) => {
+            gameState = 'lobby';
+            document.getElementById('gameInfo').textContent = 
+                `Playing ${data.game.toUpperCase()} - ${data.intensity} intensity`;
+            showLobbyScreen();
+            updatePlayersList();
+        });
+
+        socket.on('question-added-success', (data) => {
+            myQuestions.push(document.getElementById('questionInput').value.trim());
+            document.getElementById('questionInput').value = '';
+            updateQuestionCounter();
+            updateMyQuestions();
+            showSuccess('Question added!');
+        });
+
+        socket.on('lobby-question-update', (data) => {
+            // Update player question counts in the UI
+            updatePlayersList();
+        });
+
+        socket.on('player-ready-update', (data) => {
+            updatePlayersList();
+            
+            if (data.allReady) {
+                showSuccess('All players ready! Game starting soon...');
+            }
+        });
+
+        socket.on('game-started', (data) => {
+            gameState = 'playing';
+            showGameScreen();
+            document.getElementById('questionNumber').textContent = `Question ${data.questionNumber}`;
+            document.getElementById('questionText').textContent = data.question;
+        });
+
+        socket.on('new-question', (data) => {
+            document.getElementById('questionNumber').textContent = `Question ${data.questionNumber}`;
+            document.getElementById('questionText').textContent = data.question;
+        });
+
+        socket.on('error', (data) => {
+            showError(data.message);
+        });
+
+        // Helper functions
+        function showJoinScreen() {
+            hideAllScreens();
+            joinScreen.style.display = 'block';
+        }
+
+        function showLobbyScreen() {
+            hideAllScreens();
+            lobbyScreen.style.display = 'block';
+        }
+
+        function showGameScreen() {
+            hideAllScreens();
+            gameScreen.style.display = 'block';
+        }
+
+        function showWaitingScreen(message = 'Connecting...') {
+            hideAllScreens();
+            waitingScreen.style.display = 'block';
+            document.getElementById('waitingMessage').textContent = message;
+        }
+
+        function hideAllScreens() {
+            joinScreen.style.display = 'none';
+            lobbyScreen.style.display = 'none';
+            gameScreen.style.display = 'none';
+            waitingScreen.style.display = 'none';
+        }
+
+        function updatePlayerCount() {
+            document.getElementById('playerCount').textContent = 
+                `${players.length} player${players.length !== 1 ? 's' : ''} connected`;
+        }
+
+        function updateQuestionCounter() {
+            document.getElementById('questionCounter').textContent = `${myQuestions.length}/10 questions added`;
+            
+            const addBtn = document.getElementById('addQuestionBtn');
+            if (myQuestions.length >= 10) {
+                addBtn.disabled = true;
+                addBtn.textContent = 'Maximum Reached';
+            } else {
+                addBtn.disabled = false;
+                addBtn.textContent = 'Add Question';
+            }
+        }
+
+        function updateMyQuestions() {
+            const container = document.getElementById('myQuestions');
+            if (myQuestions.length === 0) {
+                container.innerHTML = '<div style="opacity: 0.7; text-align: center; padding: 10px;">No questions added yet</div>';
+                return;
+            }
+
+            container.innerHTML = myQuestions.map((q, i) => 
+                `<div class="question-item">${i + 1}. ${q}</div>`
+            ).join('');
+        }
+
+        function updatePlayersList() {
+            const container = document.getElementById('playersList');
+            if (players.length === 0) {
+                container.innerHTML = '<div style="opacity: 0.7; text-align: center; padding: 10px;">No players connected</div>';
+                return;
+            }
+
+            container.innerHTML = players.map(player => `
+                <div class="player-item">
+                    <div class="player-info">
+                        <span class="player-avatar">${player.avatar}</span>
+                        <span class="player-name">${player.name}</span>
+                        <span class="player-questions">(${player.customQuestions?.length || 0} questions)</span>
+                    </div>
+                    <div class="ready-indicator ${player.isReady ? 'ready' : 'waiting'}">
+                        ${player.isReady ? 'Ready' : 'Adding questions...'}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function showSuccess(message) {
+            const el = document.getElementById('successMessage');
+            el.textContent = message;
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 3000);
+        }
+
+        function showError(message) {
+            const el = document.getElementById('errorMessage');
+            el.textContent = message;
+            el.classList.remove('hidden');
+            setTimeout(() => el.classList.add('hidden'), 5000);
+        }
+
+        // Initialize UI
+        updateQuestionCounter();
+        updateMyQuestions();
+        showJoinScreen();
+    </script>
+</body>
+</html>
