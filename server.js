@@ -2,20 +2,27 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
+
+// Import questions database
 const { questionsDatabase, QuestionManager } = require('./questions-database.js');
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
     cors: {
-        origin: '*',
-        methods: ['GET', 'POST']
+        origin: "*",
+        methods: ["GET", "POST"]
     }
 });
 
+// Initialize question manager
 const questionManager = new QuestionManager();
-const rooms = new Map();
 
+// Middleware
+app.use(express.static(path.join(__dirname, 'public')));
+app.use(express.json());
+
+// Game name mapping
 const gameNameMapping = {
     'wyr': 'would_you_rather',
     'fmk': 'fmk',
@@ -23,41 +30,19 @@ const gameNameMapping = {
     'hottakes': 'hot_takes'
 };
 
-function generateRoomCode() {
-    return Math.random().toString(36).substr(2, 6).toUpperCase();
-}
+// Store active rooms
+const rooms = new Map();
 
-function getFallbackQuestion(game, intensity) {
-    const fallbacks = {
-        wyr: {
-            medium: "Would you rather have the ability to fly or be invisible?",
-            spicy: "Would you rather accidentally send a flirty text to your boss or your mom?",
-            cancelled: "Would you rather have your browser history made public or your text messages?"
-        },
-        fmk: {
-            medium: "Taylor Swift, Beyoncé, Ariana Grande",
-            spicy: "Your attractive neighbor, your ex's best friend, your boss",
-            cancelled: "Your best friend's parent, your teacher, your doctor"
-        },
-        nhie: {
-            medium: "Never have I ever stayed up all night binge-watching a TV show.",
-            spicy: "Never have I ever had a crush on a friend's significant other.",
-            cancelled: "Never have I ever hooked up with someone I met online."
-        },
-        hottakes: {
-            medium: "Pineapple belongs on pizza and anyone who disagrees has no taste.",
-            spicy: "People who don't tip at restaurants are terrible humans.",
-            cancelled: "Social media has completely ruined dating and relationships."
-        }
-    };
-    return fallbacks[game]?.[intensity] || "Fallback question: Database issue.";
-}
+// Health check endpoint for Render
+app.get('/health', (req, res) => {
+    res.status(200).json({ 
+        status: 'OK',
+        rooms: rooms.size,
+        timestamp: new Date().toISOString()
+    });
+});
 
-// Middleware
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json());
-
-// Main routes - FIXED FILE PATHS
+// Main routes
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -66,49 +51,51 @@ app.get('/host', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'host.html'));
 });
 
-app.get('/play', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'play.html'));
-});
-
-// Room code routing - handles /ABC123 style URLs - FIXED FILE PATH
+// Room code routing - handles /ABC123 style URLs
 app.get('/:roomCode', (req, res) => {
     const roomCode = req.params.roomCode.toUpperCase();
     
     // Validate room code format (6 alphanumeric characters)
     if (roomCode.match(/^[A-Z0-9]{6}$/)) {
-        // Serve the mobile player interface - FIXED PATH
         res.sendFile(path.join(__dirname, 'public', 'mobile.html'));
     } else {
-        // Invalid room code, redirect to home
         res.redirect('/');
     }
 });
 
-// API routes
-app.get('/api/question/:game/:intensity', (req, res) => {
-    try {
-        const { game, intensity } = req.params;
-        const dbGame = gameNameMapping[game] || game;
-        if (!questionsDatabase[dbGame] || !questionsDatabase[dbGame][intensity]) {
-            return res.status(400).json({ error: 'Invalid game or intensity' });
+// Fallback questions
+function getFallbackQuestion(game, intensity) {
+    const fallbacks = {
+        would_you_rather: {
+            medium: "Would you rather have the ability to fly or be invisible?",
+            spicy: "Would you rather know when you're going to die or how you're going to die?",
+            cancelled: "Would you rather accidentally send a dirty text to your mom or your boss?"
+        },
+        fmk: {
+            medium: "Ryan Reynolds, Chris Hemsworth, Michael B. Jordan",
+            spicy: "Your ex, your boss, your best friend's partner",
+            cancelled: "Your therapist, your Uber driver, your dentist"
+        },
+        never_have_i_ever: {
+            medium: "Never have I ever pretended to be sick to skip work/school.",
+            spicy: "Never have I ever had a crush on a friend's significant other.",
+            cancelled: "Never have I ever hooked up with someone I met online."
+        },
+        hot_takes: {
+            medium: "Pineapple belongs on pizza and anyone who disagrees has no taste.",
+            spicy: "People who don't tip at restaurants are terrible humans.",
+            cancelled: "Social media has completely ruined dating and relationships."
         }
-        const questionData = questionManager.getRandomQuestion(dbGame, intensity);
-        if (!questionData) {
-            return res.status(404).json({ error: 'No questions available' });
-        }
-        res.json(questionData);
-    } catch (error) {
-        console.error('API error:', error);
-        res.status(500).json({ error: 'Server error' });
-    }
-});
+    };
+    return fallbacks[game]?.[intensity] || "Fallback question: Database issue.";
+}
 
 // Socket.IO handling
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
 
     // Create room
-    socket.on('create-room', (callback) => {
+    socket.on('create-room', (data, callback) => {
         const roomCode = generateRoomCode();
         rooms.set(roomCode, { 
             host: socket.id, 
@@ -120,38 +107,41 @@ io.on('connection', (socket) => {
             answers: new Map()
         });
         socket.join(roomCode);
-        console.log(`Room ${roomCode} created by ${socket.id}`);
+        console.log(`Room created: ${roomCode} by host: ${socket.id}`);
         
         // Send response both ways for compatibility
-        if (typeof callback === 'function') {
+        if (callback && typeof callback === 'function') {
             callback({ success: true, roomCode: roomCode });
         }
         socket.emit('room-created', { roomCode: roomCode });
     });
 
-    // Player joins room
-    socket.on('join-room', ({ roomCode, playerName, avatar }) => {
+    // Join room
+    socket.on('join-room', (data) => {
+        const { roomCode, playerName, avatar } = data;
         const room = rooms.get(roomCode);
+        
         if (room) {
             const playerId = socket.id;
-            room.players.set(playerId, { 
+            room.players.set(playerId, {
                 id: playerId,
-                name: playerName, 
-                avatar: avatar, 
-                score: 0,
+                name: playerName,
+                avatar: avatar,
                 connected: true,
-                isReady: false,
-                customQuestions: []
+                ready: false
             });
+            
             socket.join(roomCode);
             
-            // Notify everyone in the room
-            const playerList = Array.from(room.players.values());
-            io.to(roomCode).emit('player-joined', {
+            // Send to host
+            io.to(room.host).emit('player-joined', {
+                playerId: playerId,
                 playerName: playerName,
-                playerCount: playerList.length,
-                players: playerList
+                avatar: avatar
             });
+            
+            // Send confirmation to player
+            socket.emit('joined-room', { success: true, roomCode });
             
             console.log(`Player ${playerName} joined room ${roomCode}`);
         } else {
@@ -159,198 +149,140 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Add manual player from host
-    socket.on('add-manual-player', ({ roomCode, player }) => {
-        const room = rooms.get(roomCode);
-        if (room && room.host === socket.id) {
-            room.players.set(player.id, {
-                ...player,
-                score: 0,
-                connected: true,
-                isReady: false,
-                customQuestions: []
-            });
-            
-            const playerList = Array.from(room.players.values());
-            io.to(roomCode).emit('player-joined', {
-                playerName: player.name,
-                playerCount: playerList.length,
-                players: playerList
-            });
-        }
-    });
-
-    // Remove player
-    socket.on('remove-player', ({ roomCode, playerId }) => {
-        const room = rooms.get(roomCode);
-        if (room && room.host === socket.id) {
-            room.players.delete(playerId);
-            const playerList = Array.from(room.players.values());
-            io.to(roomCode).emit('player-left', {
-                playerCount: playerList.length,
-                players: playerList
-            });
-        }
-    });
-
     // Start game
-    socket.on('start-game', (config) => {
-        const { roomCode } = config;
+    socket.on('start-game', (data) => {
+        const { roomCode, gameSettings } = data;
+        console.log(`🎮 Received start-game event for room ${roomCode}`);
+        
         const room = rooms.get(roomCode);
-        if (room && room.host === socket.id) {
-            room.gameSettings = config;
-            room.gameStarted = true;
-            io.to(roomCode).emit('game-started', config);
-            console.log(`Game started in room ${roomCode}`, config);
+        if (!room) {
+            console.log(`Room ${roomCode} not found`);
+            socket.emit('error', { message: 'Room not found' });
+            return;
         }
+
+        if (room.host !== socket.id) {
+            socket.emit('error', { message: 'Only host can start game' });
+            return;
+        }
+
+        // Store game settings
+        room.gameSettings = gameSettings;
+        room.gameStarted = true;
+        room.questionNumber = 1;
+        
+        console.log(`Game: ${gameSettings.game}, Mode: ${gameSettings.mode}, Category: ${gameSettings.intensity}`);
+        console.log(`Starting game: ${gameSettings.game} - ${gameSettings.mode} - ${gameSettings.intensity}`);
+        
+        // Generate first question
+        generateAndSendQuestion(roomCode, gameSettings);
     });
 
-    // Get new question
-    socket.on('get-question', ({ roomCode }) => {
+    // Next question
+    socket.on('next-question', (data) => {
+        const { roomCode } = data;
         const room = rooms.get(roomCode);
+        
         if (room && room.gameSettings) {
-            const { game, intensity } = room.gameSettings;
-            const dbGame = gameNameMapping[game] || game;
-            const question = questionManager.getRandomQuestion(dbGame, intensity) || 
-                { id: 'fallback', text: getFallbackQuestion(game, intensity), isCustom: false };
-            
-            room.currentQuestion = question;
-            room.questionNumber = (room.questionNumber || 0) + 1;
-            
-            io.to(roomCode).emit('new-question', {
-                question: question.text,
-                questionNumber: room.questionNumber
-            });
-            console.log(`New question sent to room ${roomCode}`);
+            room.questionNumber++;
+            generateAndSendQuestion(roomCode, room.gameSettings);
         }
     });
 
-    // Send new question to mobile players
-    socket.on('new-question', ({ roomCode, question, questionNumber }) => {
-        const room = rooms.get(roomCode);
-        if (room && room.host === socket.id) {
-            room.currentQuestion = { text: question };
-            room.questionNumber = questionNumber;
-            
-            // Send to all players in the room
-            socket.to(roomCode).emit('new-question', {
-                question: question,
-                questionNumber: questionNumber
-            });
-            console.log(`Question ${questionNumber} sent to mobile players in room ${roomCode}`);
-        }
-    });
-
-    // Submit answer
-    socket.on('submit-answer', ({ roomCode, answer }) => {
-        const room = rooms.get(roomCode);
-        if (room) {
-            room.answers.set(socket.id, answer);
-            console.log(`Answer submitted in room ${roomCode}:`, answer);
-            
-            // Check if all players have answered
-            if (room.answers.size === room.players.size) {
-                const results = Array.from(room.answers.entries()).map(([playerId, answer]) => ({
-                    playerId,
-                    playerName: room.players.get(playerId)?.name,
-                    answer
-                }));
-                io.to(roomCode).emit('vote-results', {
-                    question: room.currentQuestion?.text || 'Question',
-                    votes: results.reduce((acc, result) => {
-                        acc[result.answer] = (acc[result.answer] || 0) + 1;
-                        return acc;
-                    }, {}),
-                    voters: results.map(r => r.playerId)
-                });
-                room.answers.clear(); // Reset for next question
-            }
-        }
-    });
-
-    // Add lobby question
-    socket.on('add-lobby-question', ({ question }) => {
-        // Find which room this player is in
-        for (const [roomCode, room] of rooms.entries()) {
-            if (room.players.has(socket.id)) {
-                const player = room.players.get(socket.id);
-                if (player.customQuestions.length < 10) {
-                    player.customQuestions.push(question);
-                    socket.emit('question-added-success', { question });
-                    io.to(roomCode).emit('lobby-question-update', {
-                        playerId: socket.id,
-                        questionCount: player.customQuestions.length
-                    });
-                } else {
-                    socket.emit('error', { message: 'Maximum 10 questions per player' });
-                }
-                break;
-            }
-        }
-    });
-
-    // Player ready toggle
-    socket.on('player-ready', () => {
-        for (const [roomCode, room] of rooms.entries()) {
-            if (room.players.has(socket.id)) {
-                const player = room.players.get(socket.id);
-                player.isReady = true;
-                
-                const allReady = Array.from(room.players.values()).every(p => p.isReady);
-                io.to(roomCode).emit('player-ready-update', {
-                    playerId: socket.id,
-                    isReady: true,
-                    allReady: allReady
-                });
-                break;
-            }
-        }
-    });
-
-    socket.on('player-unready', () => {
-        for (const [roomCode, room] of rooms.entries()) {
-            if (room.players.has(socket.id)) {
-                const player = room.players.get(socket.id);
-                player.isReady = false;
-                
-                io.to(roomCode).emit('player-ready-update', {
-                    playerId: socket.id,
-                    isReady: false,
-                    allReady: false
-                });
-                break;
-            }
-        }
-    });
-
-    // Disconnect handling
+    // Player disconnect
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
         
-        // Remove player from all rooms and notify others
+        // Find and clean up rooms
         for (const [code, room] of rooms.entries()) {
-            if (room.players.has(socket.id)) {
-                const player = room.players.get(socket.id);
-                room.players.delete(socket.id);
-                
-                const playerList = Array.from(room.players.values());
-                io.to(code).emit('player-left', {
-                    playerName: player.name,
-                    playerCount: playerList.length,
-                    players: playerList
-                });
-                console.log(`Player ${player.name} left room ${code}`);
-            }
-            
-            // Close room if host disconnects
             if (room.host === socket.id) {
+                // Host disconnected - close room
                 io.to(code).emit('host-disconnected');
                 rooms.delete(code);
-                console.log(`Room ${code} closed - host disconnected`);
+                console.log(`Host disconnected, cleaning up room: ${code}`);
+            } else if (room.players.has(socket.id)) {
+                // Player disconnected
+                const player = room.players.get(socket.id);
+                room.players.delete(socket.id);
+                io.to(room.host).emit('player-left', {
+                    playerId: socket.id,
+                    playerName: player.name
+                });
+                console.log(`Player ${player.name} left room ${code}`);
             }
         }
     });
 });
+
+function generateRoomCode() {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let result = '';
+    for (let i = 0; i < 6; i++) {
+        result += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return result;
+}
+
+function generateAndSendQuestion(roomCode, gameSettings) {
+    console.log(`Generating question for ${gameSettings.game} - ${gameSettings.intensity}`);
+    
+    try {
+        const dbGame = gameNameMapping[gameSettings.game] || gameSettings.game;
+        const questionData = questionManager.getRandomQuestion(dbGame, gameSettings.intensity);
+        
+        let question;
+        if (questionData && questionData.question) {
+            question = {
+                id: questionData.id,
+                text: questionData.question,
+                type: gameSettings.game,
+                intensity: gameSettings.intensity,
+                options: questionData.options || null,
+                source: questionData.source || 'database'
+            };
+            console.log(`✅ Question generated from database: ${question.text.substring(0, 50)}...`);
+        } else {
+            // Fallback question
+            const fallbackText = getFallbackQuestion(dbGame, gameSettings.intensity);
+            question = {
+                id: `fallback_${Date.now()}`,
+                text: fallbackText,
+                type: gameSettings.game,
+                intensity: gameSettings.intensity,
+                options: null,
+                source: 'fallback'
+            };
+            console.log(`⚠️ Using fallback question: ${question.text.substring(0, 50)}...`);
+        }
+        
+        // Store current question
+        const room = rooms.get(roomCode);
+        if (room) {
+            room.currentQuestion = question;
+        }
+        
+        // Send to all clients in room
+        io.to(roomCode).emit('question-generated', question);
+        console.log(`Question sent successfully to room: ${roomCode}`);
+        
+    } catch (error) {
+        console.error('Error generating question:', error);
+        
+        // Send fallback question on error
+        const fallbackText = getFallbackQuestion(gameSettings.game, gameSettings.intensity);
+        const fallbackQuestion = {
+            id: `error_fallback_${Date.now()}`,
+            text: fallbackText,
+            type: gameSettings.game,
+            intensity: gameSettings.intensity,
+            options: null,
+            source: 'error_fallback'
+        };
+        
+        io.to(roomCode).emit('question-generated', fallbackQuestion);
+        console.log(`Sent error fallback question to room: ${roomCode}`);
+    }
+}
 
 // Startup logs
 console.log('Don\'t Drink server running');
@@ -365,7 +297,8 @@ for (const [game, intensities] of Object.entries(questionsDatabase)) {
 }
 console.log(`Total: ${totalQuestions} questions loaded!`);
 
+// Start server - IMPORTANT: Use process.env.PORT for Render
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`Server is running on port ${PORT}`);
 });
