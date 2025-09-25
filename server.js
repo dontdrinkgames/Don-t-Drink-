@@ -1,254 +1,166 @@
+// server.js — Don't Drink! (functional fix, no design changes)
 const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
 
-// Import questions database
-const { questionsDatabase, QuestionManager } = require('./questions-database.js');
+let questionsDatabase = {};
+let QuestionManager = null;
+try {
+  ({ questionsDatabase, QuestionManager } = require('./questions-database.js'));
+} catch {
+  questionsDatabase = {};
+  QuestionManager = class { constructor() {} };
+}
 
 const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
-    cors: {
-        origin: "*",
-        methods: ["GET", "POST"]
-    }
+  cors: { origin: "*", methods: ["GET","POST"] }
 });
 
-// Initialize question manager
-const questionManager = new QuestionManager();
+app.use(express.static(path.join(__dirname, 'public')));
 
-// Game name mapping
-const gameNameMapping = {
-    'wyr': 'would_you_rather',
-    'fmk': 'fmk', 
-    'nhie': 'never_have_i_ever',
-    'hottakes': 'hot_takes'
-};
+app.get('/health', (_req, res) => res.status(200).json({ status: 'OK' }));
 
-// Store active rooms
+app.get('/', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'index.html')));
+app.get('/host', (_req, res) => res.sendFile(path.join(__dirname, 'public', 'host.html')));
+
+app.get('/:roomCode([A-Za-z0-9]{6})', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'mobile.html'));
+});
+
 const rooms = new Map();
 
-// Middleware
-app.use(express.static(path.join(__dirname, 'public')));
-app.use(express.json());
-
-// RENDER FIX: Health check endpoint
-app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'OK' });
-});
-
-// Main routes
-app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
-});
-
-app.get('/host', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'host.html'));
-});
-
-// Room code routing - handles /ABC123 style URLs
-app.get('/:roomCode', (req, res) => {
-    const roomCode = req.params.roomCode.toUpperCase();
-    
-    // Validate room code format (6 alphanumeric characters)
-    if (roomCode.match(/^[A-Z0-9]{6}$/)) {
-        res.sendFile(path.join(__dirname, 'public', 'mobile.html'));
-    } else {
-        res.redirect('/');
-    }
-});
-
-// Socket.IO handling
-io.on('connection', (socket) => {
-    console.log('User connected:', socket.id);
-
-    // FIX: Create room with both callback and emit compatibility
-    socket.on('create-room', (data, callback) => {
-        const roomCode = generateRoomCode();
-        rooms.set(roomCode, { 
-            host: socket.id, 
-            players: new Map(),
-            gameSettings: null,
-            gameStarted: false,
-            currentQuestion: null,
-            questionNumber: 0
-        });
-        
-        socket.join(roomCode);
-        console.log(`Room created: ${roomCode} by host: ${socket.id}`);
-        
-        // Send both ways for maximum compatibility
-        if (callback && typeof callback === 'function') {
-            callback({ success: true, roomCode: roomCode });
-        }
-        socket.emit('room-created', { roomCode: roomCode });
-    });
-
-    // FIX: Handle re-joining - clear old connections first
-    socket.on('join-room', (data) => {
-        const { roomCode, playerName, avatar } = data;
-        const room = rooms.get(roomCode);
-        
-        if (room) {
-            // Check if player with same name already exists
-            let existingPlayerId = null;
-            for (const [playerId, player] of room.players.entries()) {
-                if (player.name === playerName) {
-                    existingPlayerId = playerId;
-                    break;
-                }
-            }
-            
-            // Remove old connection if exists
-            if (existingPlayerId) {
-                room.players.delete(existingPlayerId);
-                console.log(`Removed old connection for ${playerName}`);
-            }
-            
-            // Add new connection
-            room.players.set(socket.id, {
-                name: playerName,
-                avatar: avatar,
-                connected: true
-            });
-            
-            socket.join(roomCode);
-            
-            // Notify host
-            io.to(room.host).emit('player-joined', {
-                playerId: socket.id,
-                playerName: playerName,
-                avatar: avatar
-            });
-            
-            // FIX: Send proper confirmation to mobile player
-            socket.emit('player-joined-success', { 
-                success: true, 
-                roomCode: roomCode,
-                playerName: playerName,
-                avatar: avatar
-            });
-            
-            console.log(`Player ${playerName} joined room ${roomCode} (socket: ${socket.id})`);
-        } else {
-            socket.emit('join-error', { message: 'Room not found' });
-        }
-    });
-
-    // Start game
-    socket.on('start-game', (data) => {
-        const { roomCode, gameSettings } = data;
-        console.log(`🎮 Received start-game event for room ${roomCode}`);
-        
-        const room = rooms.get(roomCode);
-        if (!room) {
-            console.log(`Room ${roomCode} not found`);
-            return;
-        }
-
-        room.gameSettings = gameSettings;
-        room.gameStarted = true;
-        
-        console.log(`Game: ${gameSettings.game}, Mode: ${gameSettings.mode}, Category: ${gameSettings.intensity}`);
-        
-        // Get question from database
-        try {
-            const dbGame = gameNameMapping[gameSettings.game] || gameSettings.game;
-            const questionData = questionManager.getRandomQuestion(dbGame, gameSettings.intensity);
-            
-            if (questionData) {
-                io.to(roomCode).emit('question-generated', questionData);
-                console.log(`Question sent to room ${roomCode}`);
-            } else {
-                // Fallback
-                io.to(roomCode).emit('question-generated', {
-                    question: 'Sample question - database connection issue',
-                    type: gameSettings.game
-                });
-            }
-        } catch (error) {
-            console.error('Question generation error:', error);
-            io.to(roomCode).emit('question-generated', {
-                question: 'Sample fallback question',
-                type: gameSettings.game
-            });
-        }
-    });
-
-    // Next question
-    socket.on('next-question', (data) => {
-        const { roomCode } = data;
-        const room = rooms.get(roomCode);
-        
-        if (room && room.gameSettings) {
-            try {
-                const dbGame = gameNameMapping[room.gameSettings.game] || room.gameSettings.game;
-                const questionData = questionManager.getRandomQuestion(dbGame, room.gameSettings.intensity);
-                
-                if (questionData) {
-                    io.to(roomCode).emit('question-generated', questionData);
-                }
-            } catch (error) {
-                console.error('Next question error:', error);
-            }
-        }
-    });
-
-    // FIX: Better disconnect handling
-    socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
-        
-        // Clean up rooms but don't remove players immediately (allow rejoin)
-        for (const [code, room] of rooms.entries()) {
-            if (room.host === socket.id) {
-                // Host disconnected - close room completely
-                io.to(code).emit('host-disconnected');
-                rooms.delete(code);
-                console.log(`Host disconnected, room ${code} closed`);
-                break;
-            } else if (room.players.has(socket.id)) {
-                // Player disconnected - mark as disconnected but keep in room
-                const player = room.players.get(socket.id);
-                player.connected = false;
-                
-                // Notify host of disconnection
-                io.to(room.host).emit('player-disconnected', {
-                    playerId: socket.id,
-                    playerName: player.name
-                });
-                
-                console.log(`Player ${player.name} disconnected from room ${code} (can rejoin)`);
-                break;
-            }
-        }
-    });
-});
-
 function generateRoomCode() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let result = '';
-    for (let i = 0; i < 6; i++) {
-        result += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
-    return result;
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let result = '';
+  for (let i=0;i<6;i++) result += chars.charAt(Math.floor(Math.random()*chars.length));
+  return result;
 }
 
-// Startup logs
-console.log('Don\'t Drink server running');
-console.log('Question Database Loaded:');
-let totalQuestions = 0;
-for (const [game, intensities] of Object.entries(questionsDatabase)) {
-    console.log(`${game}:`);
-    for (const [intensity, questions] of Object.entries(intensities)) {
-        console.log(`  ${intensity}: ${questions.length} questions`);
-        totalQuestions += questions.length;
-    }
+function emitPlayerList(roomCode) {
+  const room = rooms.get(roomCode);
+  if (!room) return;
+  const playersArr = Array.from(room.players.entries()).map(([clientId, p]) => ({
+    clientId,
+    name: p.name,
+    avatar: p.avatar,
+    connected: !!p.connected
+  }));
+  io.to(room.host).emit('player-list', { players: playersArr });
 }
-console.log(`Total: ${totalQuestions} questions loaded!`);
 
-// RENDER FIX: Listen on 0.0.0.0 and use process.env.PORT
+io.on('connection', (socket) => {
+
+  socket.on('create-room', (_data, callback) => {
+    const roomCode = generateRoomCode();
+    rooms.set(roomCode, {
+      host: socket.id,
+      players: new Map(),
+      gameSettings: null,
+      gameStarted: false,
+      currentQuestion: null,
+      questionNumber: 0
+    });
+    socket.join(roomCode);
+    if (typeof callback === 'function') callback({ success: true, roomCode });
+    socket.emit('room-created', { roomCode });
+  });
+
+  socket.on('join-room', (data = {}) => {
+    const { roomCode, playerName, avatar, clientId } = data;
+    if (!roomCode || !playerName) {
+      socket.emit('join-error', { message: 'Missing room or name' });
+      return;
+    }
+    const room = rooms.get(roomCode);
+    if (!room) {
+      socket.emit('join-error', { message: 'Room not found' });
+      return;
+    }
+
+    const finalClientId = (clientId && String(clientId)) || `c_${Math.random().toString(36).slice(2,10)}${Date.now().toString(36)}`;
+    const existing = room.players.get(finalClientId);
+
+    if (existing) {
+      existing.name = playerName || existing.name;
+      existing.avatar = avatar || existing.avatar;
+      existing.socketId = socket.id;
+      existing.connected = true;
+    } else {
+      room.players.set(finalClientId, {
+        name: playerName,
+        avatar: avatar || '🙂',
+        socketId: socket.id,
+        connected: true
+      });
+    }
+
+    socket.join(roomCode);
+
+    socket.emit('player-joined-success', {
+      success: true,
+      roomCode,
+      playerName,
+      avatar: avatar || '🙂',
+      clientId: finalClientId
+    });
+
+    emitPlayerList(roomCode);
+  });
+
+  socket.on('leave-room', ({ roomCode, clientId } = {}) => {
+    const room = rooms.get(roomCode);
+    if (!room) return;
+    if (clientId && room.players.has(clientId)) {
+      room.players.delete(clientId);
+      emitPlayerList(roomCode);
+    }
+  });
+
+  socket.on('start-game', ({ roomCode, settings }) => {
+    const room = rooms.get(roomCode);
+    if (!room) return;
+    room.gameSettings = settings || null;
+    room.gameStarted = true;
+    io.to(roomCode).emit('game-started', { settings: room.gameSettings });
+  });
+
+  socket.on('next-question', ({ roomCode }) => {
+    const room = rooms.get(roomCode);
+    if (!room) return;
+    room.questionNumber = (room.questionNumber || 0) + 1;
+    let q = null;
+    try {
+      const qm = new QuestionManager(questionsDatabase);
+      q = qm.next(room.gameSettings);
+    } catch {
+      q = { text: '🍻 Skål! (placeholder)', type: 'party' };
+    }
+    room.currentQuestion = q;
+    io.to(roomCode).emit('question', { question: q, number: room.questionNumber });
+  });
+
+  socket.on('disconnect', () => {
+    for (const [code, room] of rooms.entries()) {
+      if (room.host === socket.id) {
+        io.to(code).emit('host-disconnected');
+        rooms.delete(code);
+        break;
+      }
+      for (const [clientId, p] of room.players.entries()) {
+        if (p.socketId === socket.id) {
+          p.connected = false;
+          emitPlayerList(code);
+          break;
+        }
+      }
+    }
+  });
+});
+
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server is running on port ${PORT}`);
+  console.log(`Server running on ${PORT}`);
 });

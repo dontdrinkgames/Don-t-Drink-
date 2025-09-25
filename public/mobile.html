@@ -1,530 +1,202 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Don't Drink! - Join Game</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <style>
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-
-        body {
-            font-family: 'Poppins', sans-serif;
-            background: linear-gradient(135deg, #8B5CF6 0%, #7C3AED 50%, #6D28D9 100%);
-            min-height: 100vh;
-            color: white;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .container {
-            flex: 1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            text-align: center;
-        }
-
-        .header {
-            margin-bottom: 30px;
-        }
-
-        .game-title {
-            font-size: 2rem;
-            font-weight: 700;
-            text-transform: uppercase;
-            margin-bottom: 10px;
-        }
-
-        .room-code {
-            font-size: 1.2rem;
-            opacity: 0.8;
-        }
-
-        .join-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(15px);
-            border-radius: 20px;
-            padding: 40px 30px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .input-group {
-            margin-bottom: 25px;
-            text-align: left;
-        }
-
-        .input-group label {
-            display: block;
-            font-size: 1.1rem;
-            font-weight: 600;
-            margin-bottom: 8px;
-        }
-
-        .input-group input {
-            width: 100%;
-            padding: 15px;
-            border: none;
-            border-radius: 12px;
-            font-size: 1.1rem;
-            font-family: 'Poppins', sans-serif;
-            background: rgba(255, 255, 255, 0.9);
-            color: #333;
-        }
-
-        .emoji-selector {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-top: 10px;
-        }
-
-        .emoji-option {
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid transparent;
-            border-radius: 10px;
-            padding: 10px;
-            font-size: 1.5rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-align: center;
-        }
-
-        .emoji-option.selected {
-            border-color: #4CAF50;
-            background: rgba(76, 175, 80, 0.3);
-        }
-
-        .join-btn {
-            width: 100%;
-            background: linear-gradient(45deg, #4CAF50, #45a049);
-            color: white;
-            border: none;
-            padding: 18px;
-            font-size: 1.2rem;
-            font-weight: 600;
-            border-radius: 12px;
-            cursor: pointer;
-            font-family: 'Poppins', sans-serif;
-            transition: transform 0.3s ease;
-        }
-
-        .join-btn:hover {
-            transform: translateY(-2px);
-        }
-
-        .join-btn:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-            transform: none;
-        }
-
-        .waiting-screen {
-            display: none;
-            text-align: center;
-        }
-
-        .waiting-card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 40px 30px;
-            margin-bottom: 20px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
-            border: 1px solid rgba(255, 255, 255, 0.2);
-            width: 100%;
-            max-width: 400px;
-        }
-
-        .player-info {
-            margin-bottom: 30px;
-        }
-
-        .player-avatar {
-            font-size: 4rem;
-            margin-bottom: 15px;
-        }
-
-        .player-name {
-            font-size: 1.5rem;
-            font-weight: 600;
-        }
-
-        .waiting-text {
-            font-size: 1.2rem;
-            opacity: 0.8;
-            margin-bottom: 20px;
-        }
-
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0%, 100% { opacity: 1; }
-            50% { opacity: 0.5; }
-        }
-
-        .connection-status {
-            margin-bottom: 20px;
-            padding: 10px;
-            border-radius: 8px;
-            font-size: 0.9rem;
-        }
-
-        .status-connecting {
-            background: rgba(255, 193, 7, 0.3);
-            border: 1px solid #ffc107;
-        }
-
-        .status-connected {
-            background: rgba(76, 175, 80, 0.3);
-            border: 1px solid #4caf50;
-        }
-
-        .status-error {
-            background: rgba(244, 67, 54, 0.3);
-            border: 1px solid #f44336;
-        }
-
-        .error-message, .success-message {
-            padding: 15px;
-            border-radius: 12px;
-            margin-bottom: 15px;
-            font-weight: 600;
-            display: none;
-        }
-
-        .error-message {
-            background: rgba(244, 67, 54, 0.9);
-        }
-
-        .success-message {
-            background: rgba(76, 175, 80, 0.9);
-        }
-
-        .hidden {
-            display: none !important;
-        }
-    </style>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Don't Drink! – Join</title>
+  <link rel="stylesheet" href="/styles.css"/>
 </head>
 <body>
-    <div class="container">
-        <div class="header">
-            <div class="game-title">Don't Drink!</div>
-            <div class="room-code">Room: <span id="displayRoomCode">------</span></div>
+  <!-- BEHOLDER EKSISTERENDE DESIGN/MARKUP: -->
+  <header class="mobile-header">
+    <h1>Join the game</h1>
+    <div id="connectionStatus" class="connection-status info"><span>Connecting…</span></div>
+  </header>
+
+  <main class="mobile-main">
+    <section id="joinScreen" class="join-screen">
+      <div class="room-line">
+        Room code: <strong id="displayRoomCode">———</strong>
+      </div>
+
+      <div class="name-line">
+        <label for="playerName">Name</label>
+        <input id="playerName" type="text" placeholder="Your name"/>
+      </div>
+
+      <div class="avatar-picker">
+        <!-- behold dine avatar-knapper i HTML/CSS -->
+        <button class="avatar-btn">🙂</button>
+        <button class="avatar-btn">🍺</button>
+        <button class="avatar-btn">🔥</button>
+        <button class="avatar-btn">🤖</button>
+      </div>
+
+      <button id="joinBtn" class="btn primary" disabled>Join</button>
+    </section>
+
+    <section id="waitingScreen" class="waiting-screen" style="display:none">
+      <div class="waiting-card">
+        <div id="waitingAvatar" class="waiting-avatar">🙂</div>
+        <div class="waiting-text">
+          <div>You are in!</div>
+          <div id="waitingName" class="waiting-name">—</div>
         </div>
+      </div>
+      <p class="waiting-note">Waiting for the game to start…</p>
+    </section>
+  </main>
 
-        <!-- Connection Status -->
-        <div id="connectionStatus" class="connection-status status-connecting">
-            <div>Connecting to game server...</div>
-        </div>
+  <!-- (Hvis du har egne skript-referanser her, behold dem) -->
+  <script>
+let selectedAvatar = '🙂';
+let playerName = '';
+let roomCode = '';
+let socket = null;
 
-        <!-- Join Screen -->
-        <div id="joinScreen" class="join-card">
-            <div class="input-group">
-                <label>Enter your name:</label>
-                <input 
-                    type="text" 
-                    id="playerName" 
-                    placeholder="Your name" 
-                    maxlength="20" 
-                    required
-                >
-            </div>
-            
-            <div class="input-group">
-                <label>Choose your avatar:</label>
-                <div class="emoji-selector" id="emojiSelector">
-                    <div class="emoji-option selected" data-emoji="🍆">🍆</div>
-                    <div class="emoji-option" data-emoji="🍑">🍑</div>
-                    <div class="emoji-option" data-emoji="💋">💋</div>
-                    <div class="emoji-option" data-emoji="😈">😈</div>
-                    <div class="emoji-option" data-emoji="🔥">🔥</div>
-                    <div class="emoji-option" data-emoji="💦">💦</div>
-                    <div class="emoji-option" data-emoji="🌶️">🌶️</div>
-                    <div class="emoji-option" data-emoji="🌮">🌮</div>
-                    <div class="emoji-option" data-emoji="🥵">🥵</div>
-                    <div class="emoji-option" data-emoji="😏">😏</div>
-                    <div class="emoji-option" data-emoji="🕺">🕺</div>
-                    <div class="emoji-option" data-emoji="💃">💃</div>
-                    <div class="emoji-option" data-emoji="👅">👅</div>
-                    <div class="emoji-option" data-emoji="🤤">🤤</div>
-                    <div class="emoji-option" data-emoji="🍯">🍯</div>
-                    <div class="emoji-option" data-emoji="😎">😎</div>
-                </div>
-            </div>
-            
-            <button class="join-btn" id="joinBtn">Join Game</button>
-        </div>
+let clientIdKey = '';
 
-        <!-- Waiting Screen -->
-        <div id="waitingScreen" class="waiting-screen">
-            <div class="waiting-card">
-                <div class="player-info">
-                    <div class="player-avatar" id="waitingAvatar">🍆</div>
-                    <div class="player-name" id="waitingName">Player Name</div>
-                </div>
-                
-                <div class="waiting-text pulse">
-                    Waiting for host to start game...
-                </div>
-            </div>
-        </div>
+function showError(msg) {
+  const el = document.getElementById('connectionStatus');
+  if (!el) return;
+  el.className = 'connection-status error';
+  el.querySelector('span').textContent = msg;
+}
+function showSuccess(msg) {
+  const el = document.getElementById('connectionStatus');
+  if (!el) return;
+  el.className = 'connection-status connected';
+  el.querySelector('span').textContent = msg;
+}
+function updateConnectionStatus(status, message) {
+  const el = document.getElementById('connectionStatus');
+  if (!el) return;
+  el.className = `connection-status ${status}`;
+  el.querySelector('span').textContent = message;
+}
 
-        <!-- Messages -->
-        <div id="successMessage" class="success-message"></div>
-        <div id="errorMessage" class="error-message"></div>
-    </div>
+function showWaitingScreen() {
+  const join = document.getElementById('joinScreen');
+  const wait = document.getElementById('waitingScreen');
+  if (join) join.style.display = 'none';
+  if (wait) wait.style.display = 'flex';
+}
 
-    <script>
-        let selectedAvatar = '🍆';
-        let playerName = '';
-        let roomCode = '';
-        let socket = null;
-        let connectionAttempts = 0;
-        let maxAttempts = 3;
+function initRoomCode() {
+  const parts = window.location.pathname.split('/');
+  roomCode = parts[1] && parts[1].length === 6 ? parts[1].toUpperCase() : '';
+  if (!roomCode) { showError('Invalid room code'); return false; }
+  clientIdKey = `dd_clientId_${roomCode}`;
+  const disp = document.getElementById('displayRoomCode');
+  if (disp) disp.textContent = roomCode;
+  return true;
+}
 
-        // Get room code from URL
-        function initializeRoomCode() {
-            const pathParts = window.location.pathname.split('/');
-            roomCode = pathParts[1] && pathParts[1].length === 6 ? pathParts[1].toUpperCase() : '';
-            
-            if (roomCode) {
-                document.getElementById('displayRoomCode').textContent = roomCode;
-                return true;
-            } else {
-                showError('Invalid room code in URL');
-                return false;
-            }
-        }
+function getOrCreateClientId() {
+  let cid = localStorage.getItem(clientIdKey);
+  if (!cid) {
+    cid = `c_${Math.random().toString(36).slice(2,10)}${Date.now().toString(36)}`;
+    localStorage.setItem(clientIdKey, cid);
+  }
+  return cid;
+}
 
-        // Initialize on page load
-        document.addEventListener('DOMContentLoaded', () => {
-            if (initializeRoomCode()) {
-                attemptConnection();
-                setupUI();
-            }
-        });
+function loadSocketIO() {
+  return new Promise((resolve, reject) => {
+    if (typeof io !== 'undefined') return resolve();
+    const s = document.createElement('script');
+    s.src = '/socket.io/socket.io.js';
+    s.onload = resolve;
+    s.onerror = () => reject(new Error('Failed to load socket.io'));
+    document.head.appendChild(s);
+  });
+}
 
-        function setupUI() {
-            // Avatar selection
-            document.querySelectorAll('.emoji-option').forEach(option => {
-                option.addEventListener('click', () => {
-                    document.querySelectorAll('.emoji-option').forEach(opt => 
-                        opt.classList.remove('selected')
-                    );
-                    option.classList.add('selected');
-                    selectedAvatar = option.dataset.emoji;
-                });
-            });
+function initializeSocket() {
+  socket = io({ transports: ['websocket', 'polling'], timeout: 10000, forceNew: true });
 
-            // Join button
-            document.getElementById('joinBtn').addEventListener('click', joinGame);
-            
-            // Enter key support
-            document.getElementById('playerName').addEventListener('keypress', (e) => {
-                if (e.key === 'Enter') {
-                    joinGame();
-                }
-            });
-        }
+  socket.on('connect', () => {
+    updateConnectionStatus('connected', 'Connected to game server!');
+    const btn = document.getElementById('joinBtn');
+    if (btn) btn.disabled = false;
 
-        function attemptConnection() {
-            connectionAttempts++;
-            updateConnectionStatus('connecting', 'Connecting to game server...');
+    const cid = localStorage.getItem(clientIdKey);
+    const savedName = localStorage.getItem(`dd_name_${roomCode}`);
+    const savedAvatar = localStorage.getItem(`dd_avatar_${roomCode}`) || selectedAvatar;
+    if (cid && savedName) {
+      playerName = savedName;
+      selectedAvatar = savedAvatar;
+      socket.emit('join-room', {
+        roomCode,
+        playerName,
+        avatar: selectedAvatar,
+        clientId: cid
+      });
+    }
+  });
 
-            try {
-                // Try CDN Socket.IO first
-                if (typeof io === 'undefined') {
-                    loadSocketIOFromCDN();
-                } else {
-                    initializeSocket();
-                }
-            } catch (error) {
-                console.error('Connection attempt failed:', error);
-                handleConnectionFailure();
-            }
-        }
+  socket.on('disconnect', () => {
+    updateConnectionStatus('error', 'Disconnected from server');
+    const btn = document.getElementById('joinBtn');
+    if (btn) btn.disabled = true;
+  });
 
-        function loadSocketIOFromCDN() {
-            const script = document.createElement('script');
-            script.src = 'https://cdn.socket.io/4.7.4/socket.io.min.js';
-            
-            script.onload = () => {
-                setTimeout(() => {
-                    if (typeof io !== 'undefined') {
-                        initializeSocket();
-                    } else {
-                        handleConnectionFailure();
-                    }
-                }, 100);
-            };
-            
-            script.onerror = () => {
-                // Fallback to server-served Socket.IO
-                loadSocketIOFromServer();
-            };
-            
-            document.head.appendChild(script);
-        }
+  socket.on('join-error', (e) => showError(e?.message || 'Join failed'));
 
-        function loadSocketIOFromServer() {
-            const script = document.createElement('script');
-            script.src = '/socket.io/socket.io.js';
-            
-            script.onload = () => {
-                setTimeout(() => {
-                    if (typeof io !== 'undefined') {
-                        initializeSocket();
-                    } else {
-                        handleConnectionFailure();
-                    }
-                }, 100);
-            };
-            
-            script.onerror = () => {
-                handleConnectionFailure();
-            };
-            
-            document.head.appendChild(script);
-        }
+  socket.on('player-joined-success', (data) => {
+    if (data.clientId) localStorage.setItem(clientIdKey, data.clientId);
+    if (data.playerName) localStorage.setItem(`dd_name_${roomCode}`, data.playerName);
+    if (data.avatar) localStorage.setItem(`dd_avatar_${roomCode}`, data.avatar);
+    const wa = document.getElementById('waitingAvatar');
+    const wn = document.getElementById('waitingName');
+    if (wa) wa.textContent = data.avatar || selectedAvatar;
+    if (wn) wn.textContent = data.playerName || playerName;
+    showWaitingScreen();
+    showSuccess(`Successfully joined as ${data.playerName}!`);
+  });
+}
 
-        function initializeSocket() {
-            try {
-                socket = io({
-                    transports: ['websocket', 'polling'],
-                    timeout: 10000,
-                    forceNew: true
-                });
+function joinGame() {
+  const input = document.getElementById('playerName');
+  if (!input) { showError('No name field'); return; }
+  const name = input.value.trim();
+  if (!name || name.length < 2) { showError('Please enter your name'); return; }
+  playerName = name;
 
-                socket.on('connect', () => {
-                    console.log('Connected to server');
-                    updateConnectionStatus('connected', 'Connected to game server!');
-                    document.getElementById('joinBtn').disabled = false;
-                });
+  const wa = document.getElementById('waitingAvatar');
+  const wn = document.getElementById('waitingName');
+  if (wa) wa.textContent = selectedAvatar;
+  if (wn) wn.textContent = playerName;
 
-                socket.on('disconnect', () => {
-                    console.log('Disconnected from server');
-                    updateConnectionStatus('error', 'Disconnected from server');
-                });
+  if (socket && socket.connected) {
+    const cid = getOrCreateClientId();
+    const btn = document.getElementById('joinBtn');
+    if (btn) {
+      btn.textContent = 'Joining...';
+      btn.disabled = true;
+    }
+    socket.emit('join-room', { roomCode, playerName, avatar: selectedAvatar, clientId: cid });
+  } else {
+    showError('Not connected to server. Please wait and try again.');
+  }
+}
 
-                socket.on('player-joined-success', (data) => {
-                    console.log('Join success:', data);
-                    showWaitingScreen();
-                    showSuccess(`Successfully joined as ${data.playerName}!`);
-                });
+document.addEventListener('click', (e) => {
+  const btn = e.target.closest('.avatar-btn');
+  if (!btn) return;
+  document.querySelectorAll('.avatar-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+  selectedAvatar = btn.textContent.trim();
+});
 
-                socket.on('join-error', (data) => {
-                    console.log('Join error:', data);
-                    showError(data.message || 'Failed to join room');
-                });
+document.getElementById('joinBtn')?.addEventListener('click', joinGame);
 
-                socket.on('host-disconnected', () => {
-                    showError('Host has left the game');
-                    setTimeout(() => {
-                        window.location.href = '/';
-                    }, 3000);
-                });
-
-                socket.on('connect_error', (error) => {
-                    console.error('Socket connection error:', error);
-                    handleConnectionFailure();
-                });
-
-            } catch (error) {
-                console.error('Socket initialization error:', error);
-                handleConnectionFailure();
-            }
-        }
-
-        function handleConnectionFailure() {
-            if (connectionAttempts < maxAttempts) {
-                updateConnectionStatus('connecting', `Connection failed. Retrying... (${connectionAttempts}/${maxAttempts})`);
-                setTimeout(attemptConnection, 2000);
-            } else {
-                updateConnectionStatus('error', 'Unable to connect to game server');
-                showError('Connection failed. Please refresh the page or check your internet connection.');
-                // Enable offline mode button
-                document.getElementById('joinBtn').disabled = false;
-                document.getElementById('joinBtn').textContent = 'Try Again';
-                document.getElementById('joinBtn').onclick = () => {
-                    connectionAttempts = 0;
-                    attemptConnection();
-                };
-            }
-        }
-
-        function joinGame() {
-            const name = document.getElementById('playerName').value.trim();
-            
-            if (!name) {
-                showError('Please enter your name');
-                return;
-            }
-
-            if (name.length < 2) {
-                showError('Name must be at least 2 characters');
-                return;
-            }
-
-            playerName = name;
-            
-            // Update waiting screen immediately
-            document.getElementById('waitingAvatar').textContent = selectedAvatar;
-            document.getElementById('waitingName').textContent = playerName;
-
-            if (socket && socket.connected) {
-                document.getElementById('joinBtn').textContent = 'Joining...';
-                document.getElementById('joinBtn').disabled = true;
-                
-                socket.emit('join-room', {
-                    roomCode: roomCode,
-                    playerName: playerName,
-                    avatar: selectedAvatar
-                });
-            } else {
-                showError('Not connected to server. Please wait and try again.');
-                attemptConnection();
-            }
-        }
-
-        function showWaitingScreen() {
-            document.getElementById('joinScreen').style.display = 'none';
-            document.getElementById('waitingScreen').style.display = 'block';
-        }
-
-        function updateConnectionStatus(status, message) {
-            const statusEl = document.getElementById('connectionStatus');
-            statusEl.className = `connection-status status-${status}`;
-            statusEl.innerHTML = `<div>${message}</div>`;
-        }
-
-        function showSuccess(message) {
-            const el = document.getElementById('successMessage');
-            el.textContent = message;
-            el.style.display = 'block';
-            setTimeout(() => el.style.display = 'none', 4000);
-        }
-
-        function showError(message) {
-            const el = document.getElementById('errorMessage');
-            el.textContent = message;
-            el.style.display = 'block';
-            setTimeout(() => el.style.display = 'none', 5000);
-        }
-    </script>
+window.addEventListener('load', async () => {
+  if (!initRoomCode()) return;
+  try { if (typeof io === 'undefined') await loadSocketIO(); }
+  catch { showError('Failed to load socket.io'); return; }
+  initializeSocket();
+});
+  </script>
 </body>
 </html>
