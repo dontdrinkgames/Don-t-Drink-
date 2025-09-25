@@ -59,15 +59,15 @@ app.use(express.json());
 
 // Main routes
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'index.html'));
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
 app.get('/host', (req, res) => {
-    res.sendFile(path.join(__dirname, 'host.html'));
+    res.sendFile(path.join(__dirname, 'public', 'host.html'));
 });
 
 app.get('/play', (req, res) => {
-    res.sendFile(path.join(__dirname, 'play.html'));
+    res.sendFile(path.join(__dirname, 'public', 'play.html'));
 });
 
 // Room code routing - handles /ABC123 style URLs
