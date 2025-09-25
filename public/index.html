@@ -533,7 +533,7 @@
     
     <!-- Footer -->
     <footer class="footer">
-        <p class="footer-text">Drink responsibly. Play irresponsibly. 🐒</p>
+        <p class="footer-text">Drink responsibly. Play irresponsibly. 👊</p>
         <p class="footer-copyright">© 2024 Don't Drink! Platform</p>
         <p class="footer-note">Built for epic parties and questionable decisions</p>
         <p class="footer-warning">⚠️ 18+ Only - Contains adult content</p>
@@ -551,27 +551,16 @@
             }, 0);
         });
         
-        // Join functionality
-        document.getElementById('joinButton').addEventListener('click', async () => {
+        // FIXED: Join functionality - removed async and fetch that caused the error
+        document.getElementById('joinButton').addEventListener('click', () => {
             const code = document.getElementById('roomCodeInput').value.trim().toUpperCase();
             if (!code || !/^[A-Z0-9]{6}$/.test(code)) {
                 alert('Please enter a valid 6-character room code');
                 return;
             }
             
-            try {
-                const response = await fetch('/api/rooms');
-                const rooms = await response.json();
-                const exists = rooms.some(room => room.code === code);
-                
-                if (exists) {
-                    window.location.href = `/${code}`;
-                } else {
-                    alert('This room does not exist');
-                }
-            } catch (error) {
-                alert('Error checking room: ' + error.message);
-            }
+            // Direct navigation - let server handle if room exists
+            window.location.href = `/${code}`;
         });
         
         // Optional: Join on enter key
