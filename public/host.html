@@ -4,11 +4,9 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Don't Drink! – Host</title>
-  <!-- behold dine eksisterende styles -->
-  <link rel="stylesheet" href="styles.css"/>
+  <!-- styles.css fjernet for å unngå MIME-type feil -->
 </head>
 <body>
-  <!-- BEHOLDER EKSISTERENDE DESIGN/MARKUP: -->
   <header class="host-header">
     <h1 id="title">Don't Drink!</h1>
     <div class="room-info">
@@ -39,12 +37,10 @@
     </section>
 
     <section class="controls">
-      <!-- behold dine knapper/valg for spill, mode, intensity osv -->
       <button id="startGameBtn" class="btn primary" disabled>Start game</button>
     </section>
   </main>
 
-  <!-- (Hvis du har egne skript-referanser her, behold dem) -->
   <script>
 let socket;
 let players = [];

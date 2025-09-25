@@ -4,10 +4,9 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Don't Drink! – Join</title>
-  <link rel="stylesheet" href="/styles.css"/>
+  <!-- styles.css fjernet for å unngå MIME-type feil -->
 </head>
 <body>
-  <!-- BEHOLDER EKSISTERENDE DESIGN/MARKUP: -->
   <header class="mobile-header">
     <h1>Join the game</h1>
     <div id="connectionStatus" class="connection-status info"><span>Connecting…</span></div>
@@ -25,7 +24,6 @@
       </div>
 
       <div class="avatar-picker">
-        <!-- behold dine avatar-knapper i HTML/CSS -->
         <button class="avatar-btn">🙂</button>
         <button class="avatar-btn">🍺</button>
         <button class="avatar-btn">🔥</button>
@@ -47,13 +45,11 @@
     </section>
   </main>
 
-  <!-- (Hvis du har egne skript-referanser her, behold dem) -->
   <script>
 let selectedAvatar = '🙂';
 let playerName = '';
 let roomCode = '';
 let socket = null;
-
 let clientIdKey = '';
 
 function showError(msg) {
