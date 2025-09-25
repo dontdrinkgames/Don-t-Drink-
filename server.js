@@ -129,44 +129,116 @@ io.on('connection', (socket) => {
         socket.emit('room-created', { roomCode: roomCode });
     });
 
-    // Player joins room (fixed rejoin without duplicates)
+    // Player joins room
     socket.on('join-room', ({ roomCode, playerName, avatar }) => {
         const room = rooms.get(roomCode);
-        if (!room) {
-            socket.emit('error', { message: 'Room not found' });
-            return;
-        }
-        const normalizedName = playerName.toLowerCase();
-        let existingPlayer = Array.from(room.players.values()).find(p => p.name.toLowerCase() === normalizedName);
-        if (existingPlayer) {
-            // Update for reconnect
-            room.players.delete(existingPlayer.id);
-            existingPlayer.id = socket.id;
-            existingPlayer.avatar = avatar; // Update avatar if changed
-            room.players.set(socket.id, existingPlayer);
-            socket.join(roomCode);
-            socket.emit('joined-room', { success: true, player: existingPlayer });
-            console.log(`Player ${playerName} reconnected to room ${roomCode}`);
-        } else {
-            // New player
-            const player = { 
-                id: socket.id,
+        if (room) {
+            const playerId = socket.id;
+            room.players.set(playerId, { 
+                id: playerId,
                 name: playerName, 
                 avatar: avatar, 
-                score: 0
-            };
-            room.players.set(socket.id, player);
+                score: 0,
+                connected: true,
+                isReady: false,
+                customQuestions: []
+            });
             socket.join(roomCode);
-            socket.emit('joined-room', { success: true, player });
+            
+            // Notify everyone in the room
+            const playerList = Array.from(room.players.values());
+            io.to(roomCode).emit('player-joined', {
+                playerName: playerName,
+                playerCount: playerList.length,
+                players: playerList
+            });
+            
             console.log(`Player ${playerName} joined room ${roomCode}`);
+        } else {
+            socket.emit('error', { message: 'Room not found' });
         }
-        // Broadcast updated player list
-        const playerList = Array.from(room.players.values());
-        io.to(roomCode).emit('player-joined', { 
-            player: room.players.get(socket.id), 
-            playerCount: room.players.size,
-            players: playerList
-        });
+    });
+
+    // Add manual player from host
+    socket.on('add-manual-player', ({ roomCode, player }) => {
+        const room = rooms.get(roomCode);
+        if (room && room.host === socket.id) {
+            room.players.set(player.id, {
+                ...player,
+                score: 0,
+                connected: true,
+                isReady: false,
+                customQuestions: []
+            });
+            
+            const playerList = Array.from(room.players.values());
+            io.to(roomCode).emit('player-joined', {
+                playerName: player.name,
+                playerCount: playerList.length,
+                players: playerList
+            });
+        }
+    });
+
+    // Remove player
+    socket.on('remove-player', ({ roomCode, playerId }) => {
+        const room = rooms.get(roomCode);
+        if (room && room.host === socket.id) {
+            room.players.delete(playerId);
+            const playerList = Array.from(room.players.values());
+            io.to(roomCode).emit('player-left', {
+                playerCount: playerList.length,
+                players: playerList
+            });
+        }
+    });
+
+    // Start game
+    socket.on('start-game', (config) => {
+        const { roomCode } = config;
+        const room = rooms.get(roomCode);
+        if (room && room.host === socket.id) {
+            room.gameSettings = config;
+            room.gameStarted = true;
+            io.to(roomCode).emit('game-started', config);
+            console.log(`Game started in room ${roomCode}`, config);
+        }
+    });
+
+    // Get new question
+    socket.on('get-question', ({ roomCode }) => {
+        const room = rooms.get(roomCode);
+        if (room && room.gameSettings) {
+            const { game, intensity } = room.gameSettings;
+            const dbGame = gameNameMapping[game] || game;
+            const question = questionManager.getRandomQuestion(dbGame, intensity) || 
+                { id: 'fallback', text: getFallbackQuestion(game, intensity), isCustom: false };
+            
+            room.currentQuestion = question;
+            room.questionNumber = (room.questionNumber || 0) + 1;
+            
+            io.to(roomCode).emit('new-question', {
+                question: question.text,
+                questionNumber: room.questionNumber
+            });
+            console.log(`New question sent to room ${roomCode}`);
+        }
+    });
+
+    // Send new question to mobile players
+    socket.on('new-question', ({ roomCode, question, questionNumber }) => {
+        const room = rooms.get(roomCode);
+        if (room && room.host === socket.id) {
+            room.currentQuestion = { text: question };
+            room.questionNumber = questionNumber;
+            
+            // Send to all players in the room
+            socket.to(roomCode).emit('new-question', {
+                question: question,
+                questionNumber: questionNumber
+            });
+            console.log(`Question ${questionNumber} sent to mobile players in room ${roomCode}`);
+        }
     });
 
     // Submit answer
