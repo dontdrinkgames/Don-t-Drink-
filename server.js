@@ -53,11 +53,11 @@ function getFallbackQuestion(game, intensity) {
     return fallbacks[game]?.[intensity] || "Fallback question: Database issue.";
 }
 
-// Middleware and routes
+// Middleware
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
-// Main routes
+// Main routes - FIXED FILE PATHS
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
@@ -70,20 +70,21 @@ app.get('/play', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'play.html'));
 });
 
-// Room code routing - handles /ABC123 style URLs
+// Room code routing - handles /ABC123 style URLs - FIXED FILE PATH
 app.get('/:roomCode', (req, res) => {
     const roomCode = req.params.roomCode.toUpperCase();
     
     // Validate room code format (6 alphanumeric characters)
     if (roomCode.match(/^[A-Z0-9]{6}$/)) {
-        // Serve the mobile player interface
-        res.sendFile(path.join(__dirname, 'mobile.html'));
+        // Serve the mobile player interface - FIXED PATH
+        res.sendFile(path.join(__dirname, 'public', 'mobile.html'));
     } else {
         // Invalid room code, redirect to home
         res.redirect('/');
     }
 });
 
+// API routes
 app.get('/api/question/:game/:intensity', (req, res) => {
     try {
         const { game, intensity } = req.params;
@@ -106,6 +107,7 @@ app.get('/api/question/:game/:intensity', (req, res) => {
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
 
+    // Create room
     socket.on('create-room', (callback) => {
         const roomCode = generateRoomCode();
         rooms.set(roomCode, { 
@@ -114,6 +116,7 @@ io.on('connection', (socket) => {
             gameSettings: null,
             gameStarted: false,
             currentQuestion: null,
+            questionNumber: 0,
             answers: new Map()
         });
         socket.join(roomCode);
@@ -126,6 +129,7 @@ io.on('connection', (socket) => {
         socket.emit('room-created', { roomCode: roomCode });
     });
 
+    // Player joins room
     socket.on('join-room', ({ roomCode, playerName, avatar }) => {
         const room = rooms.get(roomCode);
         if (room) {
@@ -135,7 +139,9 @@ io.on('connection', (socket) => {
                 name: playerName, 
                 avatar: avatar, 
                 score: 0,
-                connected: true
+                connected: true,
+                isReady: false,
+                customQuestions: []
             });
             socket.join(roomCode);
             
@@ -153,6 +159,41 @@ io.on('connection', (socket) => {
         }
     });
 
+    // Add manual player from host
+    socket.on('add-manual-player', ({ roomCode, player }) => {
+        const room = rooms.get(roomCode);
+        if (room && room.host === socket.id) {
+            room.players.set(player.id, {
+                ...player,
+                score: 0,
+                connected: true,
+                isReady: false,
+                customQuestions: []
+            });
+            
+            const playerList = Array.from(room.players.values());
+            io.to(roomCode).emit('player-joined', {
+                playerName: player.name,
+                playerCount: playerList.length,
+                players: playerList
+            });
+        }
+    });
+
+    // Remove player
+    socket.on('remove-player', ({ roomCode, playerId }) => {
+        const room = rooms.get(roomCode);
+        if (room && room.host === socket.id) {
+            room.players.delete(playerId);
+            const playerList = Array.from(room.players.values());
+            io.to(roomCode).emit('player-left', {
+                playerCount: playerList.length,
+                players: playerList
+            });
+        }
+    });
+
+    // Start game
     socket.on('start-game', (config) => {
         const { roomCode } = config;
         const room = rooms.get(roomCode);
@@ -164,6 +205,7 @@ io.on('connection', (socket) => {
         }
     });
 
+    // Get new question
     socket.on('get-question', ({ roomCode }) => {
         const room = rooms.get(roomCode);
         if (room && room.gameSettings) {
@@ -173,15 +215,33 @@ io.on('connection', (socket) => {
                 { id: 'fallback', text: getFallbackQuestion(game, intensity), isCustom: false };
             
             room.currentQuestion = question;
+            room.questionNumber = (room.questionNumber || 0) + 1;
+            
             io.to(roomCode).emit('new-question', {
                 question: question.text,
-                questionNumber: (room.questionNumber || 0) + 1
+                questionNumber: room.questionNumber
             });
-            room.questionNumber = (room.questionNumber || 0) + 1;
             console.log(`New question sent to room ${roomCode}`);
         }
     });
 
+    // Send new question to mobile players
+    socket.on('new-question', ({ roomCode, question, questionNumber }) => {
+        const room = rooms.get(roomCode);
+        if (room && room.host === socket.id) {
+            room.currentQuestion = { text: question };
+            room.questionNumber = questionNumber;
+            
+            // Send to all players in the room
+            socket.to(roomCode).emit('new-question', {
+                question: question,
+                questionNumber: questionNumber
+            });
+            console.log(`Question ${questionNumber} sent to mobile players in room ${roomCode}`);
+        }
+    });
+
+    // Submit answer
     socket.on('submit-answer', ({ roomCode, answer }) => {
         const room = rooms.get(roomCode);
         if (room) {
@@ -195,12 +255,75 @@ io.on('connection', (socket) => {
                     playerName: room.players.get(playerId)?.name,
                     answer
                 }));
-                io.to(roomCode).emit('all-answers-submitted', results);
+                io.to(roomCode).emit('vote-results', {
+                    question: room.currentQuestion?.text || 'Question',
+                    votes: results.reduce((acc, result) => {
+                        acc[result.answer] = (acc[result.answer] || 0) + 1;
+                        return acc;
+                    }, {}),
+                    voters: results.map(r => r.playerId)
+                });
                 room.answers.clear(); // Reset for next question
             }
         }
     });
 
+    // Add lobby question
+    socket.on('add-lobby-question', ({ question }) => {
+        // Find which room this player is in
+        for (const [roomCode, room] of rooms.entries()) {
+            if (room.players.has(socket.id)) {
+                const player = room.players.get(socket.id);
+                if (player.customQuestions.length < 10) {
+                    player.customQuestions.push(question);
+                    socket.emit('question-added-success', { question });
+                    io.to(roomCode).emit('lobby-question-update', {
+                        playerId: socket.id,
+                        questionCount: player.customQuestions.length
+                    });
+                } else {
+                    socket.emit('error', { message: 'Maximum 10 questions per player' });
+                }
+                break;
+            }
+        }
+    });
+
+    // Player ready toggle
+    socket.on('player-ready', () => {
+        for (const [roomCode, room] of rooms.entries()) {
+            if (room.players.has(socket.id)) {
+                const player = room.players.get(socket.id);
+                player.isReady = true;
+                
+                const allReady = Array.from(room.players.values()).every(p => p.isReady);
+                io.to(roomCode).emit('player-ready-update', {
+                    playerId: socket.id,
+                    isReady: true,
+                    allReady: allReady
+                });
+                break;
+            }
+        }
+    });
+
+    socket.on('player-unready', () => {
+        for (const [roomCode, room] of rooms.entries()) {
+            if (room.players.has(socket.id)) {
+                const player = room.players.get(socket.id);
+                player.isReady = false;
+                
+                io.to(roomCode).emit('player-ready-update', {
+                    playerId: socket.id,
+                    isReady: false,
+                    allReady: false
+                });
+                break;
+            }
+        }
+    });
+
+    // Disconnect handling
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
         
@@ -230,7 +353,7 @@ io.on('connection', (socket) => {
 });
 
 // Startup logs
-console.log('Server running on dontdrinkgames.com');
+console.log('Don\'t Drink server running');
 console.log('Question Database Loaded:');
 let totalQuestions = 0;
 for (const [game, intensities] of Object.entries(questionsDatabase)) {
