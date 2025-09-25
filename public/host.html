@@ -332,7 +332,7 @@
         }
         .players-header {
             display: flex;
-            justify-content: space-between;
+            justify-content: center;
             align-items: center;
             margin-bottom: 12px;
         }
@@ -340,117 +340,11 @@
             font-size: 1.3rem;
             font-weight: 600;
         }
-        .add-player-btn {
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 10px;
-            font-size: 0.9rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            box-shadow: 0 4px 16px rgba(76, 175, 80, 0.3);
-        }
-        .add-player-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 24px rgba(76, 175, 80, 0.4);
-        }
-        .add-player-form {
-            display: none;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 16px;
-            padding: 16px;
-            margin-bottom: 16px;
-            border: 1px solid rgba(255,255,255,0.2);
-        }
-        .form-group {
-            margin-bottom: 12px;
-        }
-        .form-group label {
-            display: block;
-            margin-bottom: 6px;
-            font-weight: 600;
-            font-size: 1rem;
-        }
-        .form-group input {
-            width: 100%;
-            padding: 10px;
-            border: none;
-            border-radius: 8px;
-            font-size: 1rem;
-            background: rgba(255,255,255,0.9);
-            color: #333;
-        }
-        .avatar-grid {
-            display: grid;
-            grid-template-columns: repeat(10, 35px);
-            gap: 8px;
-            margin-bottom: 12px;
-            justify-content: start;
-        }
-        .avatar-btn {
-            aspect-ratio: 1;
-            background: rgba(255,255,255,0.15);
-            border: none;
-            border-radius: 8px;
-            font-size: 1.2rem;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.1);
-            width: 35px;
-            height: 35px;
-        }
-        .avatar-btn:hover {
-            background: rgba(255,255,255,0.25);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 0 rgba(0,0,0,0.15);
-        }
-        .avatar-btn.selected {
-            background: #FACC15;
-            transform: translateY(-2px) scale(1.1);
-            box-shadow: 0 5px 0 rgba(0,0,0,0.2);
-        }
-        .form-actions {
-            display: flex;
-            gap: 12px;
-        }
-        .btn-secondary, .btn-primary {
-            border: none;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            flex: 1;
-            font-size: 0.9rem;
-            box-shadow: 0 3px 0 rgba(0,0,0,0.1);
-        }
-        .btn-secondary {
-            background: rgba(255,255,255,0.15);
-            color: white;
-        }
-        .btn-secondary:hover {
-            background: rgba(255,255,255,0.25);
-            transform: translateY(-2px);
-            box-shadow: 0 5px 0 rgba(0,0,0,0.15);
-        }
-        .btn-primary {
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-            color: white;
-        }
-        .btn-primary:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 0 #047857;
-        }
         .players-list {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
             gap: 12px;
-            min-height: 100px;
+            min-height: 60px;
         }
         .player-card {
             background: rgba(255,255,255,0.1);
@@ -484,23 +378,6 @@
         .player-status {
             font-size: 0.7rem;
             opacity: 0.8;
-        }
-        .remove-player {
-            background: #f44336;
-            color: white;
-            border: none;
-            width: 20px;
-            height: 20px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 0.8rem;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-        .remove-player:hover {
-            transform: scale(1.1);
         }
         .empty-players {
             grid-column: 1 / -1;
@@ -552,6 +429,7 @@
           
             <div class="player-count" id="playerCount">0 players connected</div>
         </div>
+        
         <!-- Setup options -->
         <div class="setup-grid">
             <!-- Choose Game: 3 top, 2 bottom -->
@@ -642,59 +520,26 @@
                 </div>
             </div>
         </div>
+        
         <!-- Players section -->
         <div class="players-section">
             <div class="players-header">
-                <h2>Players (<span id="playerCount">0</span>)</h2>
-                <button class="add-player-btn" onclick="showAddPlayerForm()">+ Add Player</button>
+                <h2>Players (<span id="playerCountDisplay">0</span>)</h2>
             </div>
-            <!-- Add Player Form -->
-            <div class="add-player-form" id="addPlayerForm">
-                <div class="form-group">
-                    <label>Player Name</label>
-                    <input type="text" id="playerName" placeholder="Enter name..." maxlength="20">
-                </div>
-                <div class="form-group">
-                    <label>Choose Avatar</label>
-                    <div class="avatar-grid">
-                        <button class="avatar-btn" onclick="selectAvatar('🍆')" data-avatar="🍆">🍆</button>
-                        <button class="avatar-btn" onclick="selectAvatar('🍑')" data-avatar="🍑">🍑</button>
-                        <button class="avatar-btn" onclick="selectAvatar('💋')" data-avatar="💋">💋</button>
-                        <button class="avatar-btn" onclick="selectAvatar('😈')" data-avatar="😈">😈</button>
-                        <button class="avatar-btn" onclick="selectAvatar('🔥')" data-avatar="🔥">🔥</button>
-                        <button class="avatar-btn" onclick="selectAvatar('💦')" data-avatar="💦">💦</button>
-                        <button class="avatar-btn" onclick="selectAvatar('🌶️')" data-avatar="🌶️">🌶️</button>
-                        <button class="avatar-btn" onclick="selectAvatar('🍌')" data-avatar="🍌">🍌</button>
-                        <button class="avatar-btn" onclick="selectAvatar('🥵')" data-avatar="🥵">🥵</button>
-                        <button class="avatar-btn" onclick="selectAvatar('😏')" data-avatar="😏">😏</button>
-                        <button class="avatar-btn" onclick="selectAvatar('🕺')" data-avatar="🕺">🕺</button>
-                        <button class="avatar-btn" onclick="selectAvatar('💃')" data-avatar="💃">💃</button>
-                        <button class="avatar-btn" onclick="selectAvatar('👅')" data-avatar="👅">👅</button>
-                        <button class="avatar-btn" onclick="selectAvatar('🤤')" data-avatar="🤤">🤤</button>
-                        <button class="avatar-btn" onclick="selectAvatar('🍯')" data-avatar="🍯">🍯</button>
-                        <button class="avatar-btn" onclick="selectAvatar('🍼')" data-avatar="🍼">🍼</button>
-                        <button class="avatar-btn" onclick="selectAvatar('💅')" data-avatar="💅">💅</button>
-                        <button class="avatar-btn" onclick="selectAvatar('🤭')" data-avatar="🤭">🤭</button>
-                        <button class="avatar-btn" onclick="selectAvatar('🙈')" data-avatar="🙈">🙈</button>
-                        <button class="avatar-btn" onclick="selectAvatar('😎')" data-avatar="😎">😎</button>
-                    </div>
-                </div>
-                <div class="form-actions">
-                    <button class="btn-secondary" onclick="hideAddPlayerForm()">Cancel</button>
-                    <button class="btn-primary" onclick="addPlayer()">Add Player</button>
-                </div>
-            </div>
+            
             <!-- Players List -->
             <div class="players-list" id="playersList">
                 <div class="empty-players">
-                    No players joined yet. Add players manually or have them join via the room code.
+                    No players joined yet. Share the room code, link, or QR code for players to join.
                 </div>
             </div>
         </div>
+        
         <!-- Messages -->
         <div id="successMessage" class="message success-message hidden"></div>
         <div id="errorMessage" class="message error-message hidden"></div>
     </div>
+    
     <script>
         let socket;
         let gameState = {
@@ -703,103 +548,8 @@
             selectedIntensity: null,
             roomCode: null
         };
-        let selectedAvatar = '😎';
         let players = [];
-        function showAddPlayerForm() {
-            document.getElementById('addPlayerForm').style.display = 'block';
-            document.getElementById('playerName').focus();
-        }
-        function hideAddPlayerForm() {
-            document.getElementById('addPlayerForm').style.display = 'none';
-            document.getElementById('playerName').value = '';
-            document.querySelectorAll('.avatar-btn').forEach(btn => btn.classList.remove('selected'));
-            document.querySelector('[data-avatar="😎"]').classList.add('selected');
-            selectedAvatar = '😎';
-        }
-        function selectAvatar(avatar) {
-            selectedAvatar = avatar;
-            document.querySelectorAll('.avatar-btn').forEach(btn => btn.classList.remove('selected'));
-            document.querySelector(`[data-avatar="${avatar}"]`).classList.add('selected');
-        }
-        function addPlayer() {
-            const playerName = document.getElementById('playerName').value.trim();
-           
-            if (!playerName) {
-                alert('Please enter a player name');
-                return;
-            }
-            if (players.find(p => p.name === playerName)) {
-                alert('Player name already exists');
-                return;
-            }
-            const newPlayer = {
-                id: 'host-' + Date.now(),
-                name: playerName,
-                avatar: selectedAvatar,
-                isHost: false,
-                connected: true
-            };
-            players.push(newPlayer);
-            updatePlayersDisplay();
-            hideAddPlayerForm();
-            console.log('Player added:', newPlayer);
-            // Optionally send to server if needed
-            if (socket) {
-                socket.emit('add-manual-player', { roomCode: gameState.roomCode, player: newPlayer });
-            }
-        }
-        function removePlayer(playerId) {
-            players = players.filter(p => p.id !== playerId);
-            updatePlayersDisplay();
-            // Optionally send to server if needed
-            if (socket) {
-                socket.emit('remove-player', { roomCode: gameState.roomCode, playerId });
-            }
-        }
-        function updatePlayersDisplay() {
-            const playersList = document.getElementById('playersList');
-            const playerCountElements = document.querySelectorAll('#playerCount');
-           
-            // Update both player count elements
-            playerCountElements.forEach(element => {
-                element.textContent = players.length;
-            });
 
-            if (players.length === 0) {
-                playersList.innerHTML = '<div class="empty-players">No players joined yet. Add players manually or have them join via the room code.</div>';
-            } else {
-                playersList.innerHTML = players.map(player => `
-                    <div class="player-card">
-                        <div class="player-avatar">${player.avatar}</div>
-                        <div class="player-info">
-                            <div class="player-name">${player.name}</div>
-                            <div class="player-status">${player.connected ? 'Connected' : 'Disconnected'}</div>
-                        </div>
-                        <button class="remove-player" onclick="removePlayer('${player.id}')">×</button>
-                    </div>
-                `).join('');
-            }
-            
-            // Update start button after player count changes
-            updateStartButton();
-        }
-        // Enter key support for add player form
-        document.addEventListener('keydown', function(e) {
-            if (e.key === 'Enter' && document.getElementById('addPlayerForm').style.display !== 'none') {
-                addPlayer();
-            }
-            // ESC key to close add player form
-            if (e.key === 'Escape' && document.getElementById('addPlayerForm').style.display !== 'none') {
-                hideAddPlayerForm();
-            }
-        });
-        // Initialize first avatar as selected
-        document.addEventListener('DOMContentLoaded', () => {
-            const firstAvatar = document.querySelector('[data-avatar="😎"]');
-            if (firstAvatar) {
-                firstAvatar.classList.add('selected');
-            }
-        });
         function loadSocketIO() {
             return new Promise((resolve, reject) => {
                 if (typeof io !== 'undefined') {
@@ -822,6 +572,7 @@
                 setTimeout(() => reject(new Error('Socket.IO loading timeout')), 5000);
             });
         }
+
         function initializeSocket() {
             loadSocketIO().then(() => {
                 try {
@@ -842,35 +593,72 @@
                 initializeFallbackMode();
             });
         }
+
         function initializeFallbackMode() {
             const roomCode = Math.random().toString(36).substring(2, 8).toUpperCase();
             updateRoomCode(roomCode);
             gameState.roomCode = roomCode;
-            updatePlayerCount(0);
+            updatePlayerCount();
         }
+
         function setupSocketListeners() {
             socket.on('connect', () => {
                 console.log('Connected to server');
             });
+
             socket.on('room-created', (data) => {
                 updateRoomCode(data.roomCode);
             });
+
+            // Fixed player joined handler
             socket.on('player-joined', (data) => {
-                updatePlayerCount(data.playerCount);
+                console.log('Player joined:', data);
+                
+                // Add player to local list if not already there
+                if (data.players) {
+                    players = data.players;
+                } else if (data.playerName && !players.find(p => p.name === data.playerName)) {
+                    players.push({
+                        id: Date.now(),
+                        name: data.playerName,
+                        avatar: '😎',
+                        connected: true
+                    });
+                }
+                
+                updatePlayerCount();
+                updatePlayersDisplay();
                 showSuccess(`${data.playerName} joined the game!`);
             });
+
             socket.on('player-left', (data) => {
-                updatePlayerCount(data.playerCount);
+                console.log('Player left:', data);
+                if (data.players) {
+                    players = data.players;
+                } else {
+                    // Remove player from local list
+                    players = players.filter(p => p.name !== data.playerName);
+                }
+                updatePlayerCount();
+                updatePlayersDisplay();
             });
+
             socket.on('error', (error) => {
-                showError(error.message);
+                console.error('Socket error:', error);
+                showError(error.message || 'Connection error');
+            });
+
+            // Debug: Log all socket events
+            socket.onAny((event, ...args) => {
+                console.log('Socket event received:', event, args);
             });
         }
+
         function generateRoomCode() {
             if (!socket) return;
           
             socket.emit('create-room', (response) => {
-                if (response.success) {
+                if (response && response.success) {
                     updateRoomCode(response.roomCode);
                     gameState.roomCode = response.roomCode;
                 } else {
@@ -878,6 +666,7 @@
                 }
             });
         }
+
         function updateRoomCode(roomCode) {
             const displayElement = document.getElementById('roomCodeDisplay');
             const urlField = document.getElementById('urlField');
@@ -889,12 +678,40 @@
                 generateQRCode(url);
             }
         }
-        function updatePlayerCount(count) {
+
+        function updatePlayerCount() {
+            const count = players.length;
             const element = document.getElementById('playerCount');
+            const displayElement = document.getElementById('playerCountDisplay');
+            
             if (element) {
                 element.textContent = `${count} player${count !== 1 ? 's' : ''} connected`;
             }
+            if (displayElement) {
+                displayElement.textContent = count;
+            }
         }
+
+        function updatePlayersDisplay() {
+            const playersList = document.getElementById('playersList');
+           
+            if (players.length === 0) {
+                playersList.innerHTML = '<div class="empty-players">No players joined yet. Share the room code, link, or QR code for players to join.</div>';
+            } else {
+                playersList.innerHTML = players.map(player => `
+                    <div class="player-card">
+                        <div class="player-avatar">${player.avatar || '😎'}</div>
+                        <div class="player-info">
+                            <div class="player-name">${player.name}</div>
+                            <div class="player-status">${player.connected ? 'Connected' : 'Disconnected'}</div>
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            updateStartButton();
+        }
+
         // Event listeners
         document.addEventListener('click', (e) => {
             const card = e.target.closest('.option-card');
@@ -908,6 +725,7 @@
             }
             updateStartButton();
         });
+
         function selectOption(type, card) {
             const container = card.parentElement;
           
@@ -941,6 +759,7 @@
                 }
             }
         }
+
         function updateStartButton() {
             const btn = document.getElementById('startLobbyBtn');
             const hasPlayers = players.length >= 2;
@@ -952,7 +771,7 @@
             if (canStart) {
                 btn.textContent = 'Start Game';
             } else if (!hasSettings && !hasPlayers) {
-                btn.textContent = 'Select game, mode, intensity and add 2+ players to start';
+                btn.textContent = 'Select game, mode, intensity and get 2+ players to start';
             } else if (!hasSettings) {
                 const missing = [];
                 if (!gameState.selectedGame) missing.push('game');
@@ -960,9 +779,10 @@
                 if (!gameState.selectedIntensity) missing.push('intensity');
                 btn.textContent = `Select ${missing.join(', ')} to start`;
             } else if (!hasPlayers) {
-                btn.textContent = 'Add at least 2 players to start';
+                btn.textContent = 'Need at least 2 players to start';
             }
         }
+
         // Copy button
         document.getElementById('copyBtn').addEventListener('click', async () => {
             try {
@@ -973,6 +793,7 @@
                 showError('Failed to copy URL');
             }
         });
+
         // Start button
         document.getElementById('startLobbyBtn').addEventListener('click', () => {
             if (gameState.selectedGame && gameState.selectedMode && gameState.selectedIntensity && players.length >= 2) {
@@ -1002,6 +823,7 @@
                 showError('Please select all game options and add at least 2 players');
             }
         });
+
         // QR Code generation
         function generateQRCode(url) {
             const qrContainer = document.getElementById('qrCode');
@@ -1016,6 +838,7 @@
                 correctLevel : QRCode.CorrectLevel.H
             });
         }
+
         // Messages
         function showSuccess(message) {
             const el = document.getElementById('successMessage');
@@ -1025,6 +848,7 @@
                 setTimeout(() => el.classList.add('hidden'), 3000);
             }
         }
+
         function showError(message) {
             const el = document.getElementById('errorMessage');
             if (el) {
@@ -1033,12 +857,14 @@
                 setTimeout(() => el.classList.add('hidden'), 5000);
             }
         }
+
         // Initialize
         document.addEventListener('DOMContentLoaded', () => {
             console.log('DOM loaded, initializing...');
             initializeSocket();
             updateStartButton();
-            generateQRCode('http://localhost:3000/190068');
+            updatePlayerCount();
+            updatePlayersDisplay();
         });
     </script>
 </body>
