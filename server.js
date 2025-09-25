@@ -8,7 +8,12 @@ const { questionsDatabase, QuestionManager } = require('./questions-database.js'
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
+const io = socketIo(server, {
+    cors: {
+        origin: "*",
+        methods: ["GET", "POST"]
+    }
+});
 
 // Initialize question manager
 const questionManager = new QuestionManager();
@@ -48,10 +53,8 @@ app.get('/:roomCode', (req, res) => {
     
     // Validate room code format (6 alphanumeric characters)
     if (roomCode.match(/^[A-Z0-9]{6}$/)) {
-        // Serve the mobile player interface
         res.sendFile(path.join(__dirname, 'public', 'mobile.html'));
     } else {
-        // Invalid room code, redirect to home
         res.redirect('/');
     }
 });
@@ -60,6 +63,7 @@ app.get('/:roomCode', (req, res) => {
 io.on('connection', (socket) => {
     console.log('User connected:', socket.id);
 
+    // FIX: Create room with both callback and emit compatibility
     socket.on('create-room', (data, callback) => {
         const roomCode = generateRoomCode();
         rooms.set(roomCode, { 
@@ -74,18 +78,35 @@ io.on('connection', (socket) => {
         socket.join(roomCode);
         console.log(`Room created: ${roomCode} by host: ${socket.id}`);
         
-        // RENDER FIX: Handle both callback and emit for compatibility
+        // Send both ways for maximum compatibility
         if (callback && typeof callback === 'function') {
             callback({ success: true, roomCode: roomCode });
         }
         socket.emit('room-created', { roomCode: roomCode });
     });
 
+    // FIX: Handle re-joining - clear old connections first
     socket.on('join-room', (data) => {
         const { roomCode, playerName, avatar } = data;
         const room = rooms.get(roomCode);
         
         if (room) {
+            // Check if player with same name already exists
+            let existingPlayerId = null;
+            for (const [playerId, player] of room.players.entries()) {
+                if (player.name === playerName) {
+                    existingPlayerId = playerId;
+                    break;
+                }
+            }
+            
+            // Remove old connection if exists
+            if (existingPlayerId) {
+                room.players.delete(existingPlayerId);
+                console.log(`Removed old connection for ${playerName}`);
+            }
+            
+            // Add new connection
             room.players.set(socket.id, {
                 name: playerName,
                 avatar: avatar,
@@ -101,15 +122,21 @@ io.on('connection', (socket) => {
                 avatar: avatar
             });
             
-            // Confirm to player
-            socket.emit('player-joined', { success: true });
+            // FIX: Send proper confirmation to mobile player
+            socket.emit('player-joined-success', { 
+                success: true, 
+                roomCode: roomCode,
+                playerName: playerName,
+                avatar: avatar
+            });
             
-            console.log(`Player ${playerName} joined room ${roomCode}`);
+            console.log(`Player ${playerName} joined room ${roomCode} (socket: ${socket.id})`);
         } else {
-            socket.emit('error', { message: 'Room not found' });
+            socket.emit('join-error', { message: 'Room not found' });
         }
     });
 
+    // Start game
     socket.on('start-game', (data) => {
         const { roomCode, gameSettings } = data;
         console.log(`🎮 Received start-game event for room ${roomCode}`);
@@ -149,6 +176,7 @@ io.on('connection', (socket) => {
         }
     });
 
+    // Next question
     socket.on('next-question', (data) => {
         const { roomCode } = data;
         const room = rooms.get(roomCode);
@@ -167,22 +195,31 @@ io.on('connection', (socket) => {
         }
     });
 
+    // FIX: Better disconnect handling
     socket.on('disconnect', () => {
         console.log('User disconnected:', socket.id);
         
-        // Clean up rooms
+        // Clean up rooms but don't remove players immediately (allow rejoin)
         for (const [code, room] of rooms.entries()) {
             if (room.host === socket.id) {
+                // Host disconnected - close room completely
+                io.to(code).emit('host-disconnected');
                 rooms.delete(code);
-                console.log(`Host disconnected, cleaning up room: ${code}`);
+                console.log(`Host disconnected, room ${code} closed`);
+                break;
             } else if (room.players.has(socket.id)) {
+                // Player disconnected - mark as disconnected but keep in room
                 const player = room.players.get(socket.id);
-                room.players.delete(socket.id);
-                io.to(room.host).emit('player-left', {
+                player.connected = false;
+                
+                // Notify host of disconnection
+                io.to(room.host).emit('player-disconnected', {
                     playerId: socket.id,
                     playerName: player.name
                 });
-                console.log(`Player ${player.name} left room ${code}`);
+                
+                console.log(`Player ${player.name} disconnected from room ${code} (can rejoin)`);
+                break;
             }
         }
     });
