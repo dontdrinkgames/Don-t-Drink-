@@ -1591,15 +1591,35 @@ class QuestionManager {
   getRandomQuestion(game, intensity, mode = 'offline', questionNumber = 1) {
     this.ensureStructure(game, intensity);
 
-    // Get available default questions
-    const defaultQuestions = questionsDatabase[game] && questionsDatabase[game][intensity] 
-      ? [...questionsDatabase[game][intensity]] 
-      : [];
-    
-    // Include custom questions only in first 20 questions (regardless of mode)
-    const customQuestions = (questionNumber <= 20) 
-      ? [...this.customQuestions[game][intensity]]
-      : [];
+    // Sikkerhetssjekkelser først
+if (!questionsDatabase[game]) {
+  console.error(`Game "${game}" not found in database`);
+  return { text: `Sample ${game} question`, type: 'text' };
+}
+
+if (!questionsDatabase[game][intensity]) {
+  console.error(`Intensity "${intensity}" not found for game "${game}"`);
+  return { text: `Sample ${game} ${intensity} question`, type: 'text' };
+}
+
+// Sjekk customQuestions også
+if (!this.customQuestions[game]) {
+  this.customQuestions[game] = {
+    medium: [],
+    spicy: [],
+    cancelled: []
+  };
+}
+
+if (!this.customQuestions[game][intensity]) {
+  this.customQuestions[game][intensity] = [];
+}
+
+// Nå kan vi trygt hente spørsmålene
+const defaultQuestions = [...questionsDatabase[game][intensity]];
+const customQuestions = (questionNumber <= 20)
+  ? [...this.customQuestions[game][intensity]]
+  : [];
     
     // Combine all questions
     const allQuestions = [...defaultQuestions, ...customQuestions];
