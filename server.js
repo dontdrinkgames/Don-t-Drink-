@@ -94,6 +94,10 @@ app.get('/player', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'mobile.html'));
 });
 
+app.get('/play', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'play.html'));
+});
+
 // VIKTIG: Room code routing - MÅ være etter andre routes
 app.get('/:roomCode', (req, res) => {
     const roomCode = req.params.roomCode;
