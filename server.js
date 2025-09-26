@@ -14,7 +14,7 @@ const io = socketIo(server, {
     transports: ['websocket', 'polling']
 });
 
-// Game name mapping - håndterer både store og små bokstaver
+// Game name mapping
 const gameNameMapping = {
     'wyr': 'would_you_rather',
     'WYR': 'would_you_rather',
@@ -27,7 +27,7 @@ const gameNameMapping = {
     'hot_takes': 'hot_takes'
 };
 
-// Load questions database med bedre error handling
+// Load questions database
 let questionManager = null;
 let questionsDatabase = {};
 
@@ -40,125 +40,48 @@ try {
         questionManager = new QuestionManagerClass(questionsDatabase);
         console.log('✅ Questions database loaded successfully');
         
-        // Vis statistikk
         const stats = questionManager.getStats();
         console.log(`📊 Total questions loaded: ${stats.totalQuestions}`);
-        
-        // Vis detaljer per kategori
-        console.log('📋 Question Database Loaded:');
-        for (const [game, intensities] of Object.entries(stats.questionsByCategory)) {
-            console.log(`${game}:`);
-            for (const [intensity, count] of Object.entries(intensities)) {
-                console.log(`  ${intensity}: ${count} questions`);
-            }
-        }
     }
 } catch (error) {
     console.error('⚠️ Questions database error:', error.message);
     console.log('🔧 Running with fallback questions');
 }
 
-// Fallback spørsmål hvis database feiler
+// Fallback questions
 const fallbackQuestions = {
     never_have_i_ever: {
-        medium: [
-            "Never have I ever sang in the shower",
-            "Never have I ever eaten food that fell on the floor",
-            "Never have I ever googled myself",
-            "Never have I ever been on TV",
-            "Never have I ever met a celebrity"
-        ],
-        spicy: [
-            "Never have I ever had a one night stand",
-            "Never have I ever sent a sext to the wrong person",
-            "Never have I ever hooked up with someone from work",
-            "Never have I ever kissed more than one person in 24 hours",
-            "Never have I ever had sex in public"
-        ],
-        cancelled: [
-            "Never have I ever cheated on someone",
-            "Never have I ever stolen something worth over $100",
-            "Never have I ever lied about my age to get laid",
-            "Never have I ever hooked up with a friend's ex",
-            "Never have I ever had sex for money or gifts"
-        ]
+        medium: ["Never have I ever sang in the shower"],
+        spicy: ["Never have I ever had a one night stand"],
+        cancelled: ["Never have I ever cheated on someone"]
     },
     fmk: {
-        medium: [
-            { text: "Ryan Gosling, Chris Hemsworth, Michael B. Jordan", type: "celebrity" },
-            { text: "Zendaya, Emma Stone, Margot Robbie", type: "celebrity" },
-            { text: "Batman, Superman, Spider-Man", type: "fictional" },
-            { text: "Rachel, Monica, Phoebe (from Friends)", type: "tv" },
-            { text: "Harry Potter, Ron Weasley, Draco Malfoy", type: "fictional" }
-        ],
-        spicy: [
-            { text: "Your boss, your ex, your best friend's partner", type: "spicy" },
-            { text: "Someone 20 years older, your cousin's hot friend, your therapist", type: "spicy" },
-            { text: "Three people in this room", type: "group" },
-            { text: "Your ex, your ex's best friend, your ex's sibling", type: "spicy" },
-            { text: "A celebrity crush, your first love, your worst enemy", type: "spicy" }
-        ],
-        cancelled: [
-            { text: "Your sibling's ex, your parent's friend, your professor", type: "cancelled" },
-            { text: "Someone for money, someone for revenge, someone for a dare", type: "dark" },
-            { text: "Your partner's parent, your partner's sibling, your partner's best friend", type: "taboo" },
-            { text: "Your stalker, your bully, someone you hate", type: "dark" },
-            { text: "Three coworkers", type: "workplace" }
-        ]
+        medium: [{ text: "Ryan Gosling, Chris Hemsworth, Michael B. Jordan", type: "celebrity" }],
+        spicy: [{ text: "Your boss, your ex, your best friend's partner", type: "spicy" }],
+        cancelled: [{ text: "Your sibling's ex, your parent's friend, your professor", type: "cancelled" }]
     },
     would_you_rather: {
-        medium: [
-            { optionA: "Never use social media again", optionB: "Never watch TV again" },
-            { optionA: "Be able to fly", optionB: "Be invisible" },
-            { optionA: "Win the lottery", optionB: "Live twice as long" },
-            { optionA: "Be famous", optionB: "Be rich" },
-            { optionA: "Travel the world", optionB: "Own your dream home" }
-        ],
-        spicy: [
-            { optionA: "Have sex with lights on always", optionB: "Only in complete darkness" },
-            { optionA: "Kiss your ex", optionB: "Kiss your enemy" },
-            { optionA: "Give up oral", optionB: "Give up penetrative sex" },
-            { optionA: "Be loud in bed", optionB: "Be completely silent" },
-            { optionA: "Walk in on your parents", optionB: "Have them walk in on you" }
-        ],
-        cancelled: [
-            { optionA: "Sleep with your boss for a promotion", optionB: "Stay in your dead-end job forever" },
-            { optionA: "Cheat and never get caught", optionB: "Be cheated on and know" },
-            { optionA: "Have sex with your cousin", optionB: "Have sex with your step-sibling" },
-            { optionA: "Eat ass", optionB: "Have your ass eaten" },
-            { optionA: "Never have sex again", optionB: "Never masturbate again" }
-        ]
+        medium: [{ optionA: "Never use social media again", optionB: "Never watch TV again" }],
+        spicy: [{ optionA: "Have sex with lights on always", optionB: "Only in complete darkness" }],
+        cancelled: [{ optionA: "Sleep with your boss for a promotion", optionB: "Stay in your dead-end job forever" }]
     },
     hot_takes: {
-        medium: [
-            "Pineapple belongs on pizza",
-            "The book is always better than the movie",
-            "Social media does more harm than good",
-            "Money can buy happiness",
-            "Breakfast for dinner is better than dinner for breakfast"
-        ],
-        spicy: [
-            "Open relationships are healthier than monogamy",
-            "Body count matters in a relationship",
-            "It's okay to fake orgasms",
-            "Size does matter",
-            "Everyone has a price for cheating"
-        ],
-        cancelled: [
-            "Cheating can sometimes save a relationship",
-            "Some people deserve to be ghosted",
-            "Gold diggers provide a valuable service",
-            "It's okay to lie about your body count",
-            "Drunk sex is better than sober sex"
-        ]
+        medium: ["Pineapple belongs on pizza"],
+        spicy: ["Open relationships are healthier than monogamy"],
+        cancelled: ["Cheating can sometimes save a relationship"]
     }
 };
 
-// Serve static files from public folder
+// Serve static files
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
-// Specific routes for HTML pages
+// Health check
+app.get('/health', (req, res) => {
+    res.status(200).json({ status: 'OK' });
+});
+
+// Specific HTML routes
 app.get('/host', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'host.html'));
 });
@@ -168,28 +91,21 @@ app.get('/mobile', (req, res) => {
 });
 
 app.get('/player', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'player.html'));
+    res.sendFile(path.join(__dirname, 'public', 'mobile.html'));
 });
 
-app.get('/play', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'play.html'));
-});
-
-// Health check for Render
-app.get('/health', (req, res) => {
-    res.status(200).json({ 
-        status: 'OK', 
-        questions: questionManager ? 'loaded' : 'fallback',
-        rooms: rooms.size
-    });
-});
-
-// API endpoint for question stats
-app.get('/api/stats', (req, res) => {
-    if (questionManager) {
-        res.json(questionManager.getStats());
+// VIKTIG: Room code routing - MÅ være etter andre routes
+app.get('/:roomCode', (req, res) => {
+    const roomCode = req.params.roomCode;
+    
+    // Sjekk om det er en gyldig room code (6 tegn, alfanumerisk)
+    if (roomCode && roomCode.match(/^[A-Z0-9]{6}$/i)) {
+        console.log(`📱 Mobile player accessing room: ${roomCode}`);
+        // Send til mobile.html, som vil håndtere room code via JavaScript
+        res.sendFile(path.join(__dirname, 'public', 'mobile.html'));
     } else {
-        res.json({ error: 'Questions database not loaded' });
+        // Ikke en gyldig room code, redirect til forsiden
+        res.redirect('/');
     }
 });
 
@@ -200,8 +116,8 @@ const rooms = new Map();
 io.on('connection', (socket) => {
     console.log('🔌 User connected:', socket.id);
 
-    // Create room - FIXED to handle both callback and non-callback cases
-    socket.on('create-room', (callback) => {
+    // Create room
+    socket.on('create-room', (data, callback) => {
         try {
             const roomCode = Math.floor(100000 + Math.random() * 900000).toString();
             
@@ -220,30 +136,26 @@ io.on('connection', (socket) => {
             socket.join(roomCode);
             console.log(`🏠 Room created: ${roomCode} by host ${socket.id}`);
             
-            // Handle both callback and emit patterns
-            const responseData = { roomCode };
-            
+            // Send response
+            const response = { roomCode };
             if (typeof callback === 'function') {
-                // If callback is provided, use it
-                callback(responseData);
+                callback(response);
             } else {
-                // Otherwise, emit an event
-                socket.emit('room-created', responseData);
+                socket.emit('room-created', response);
             }
         } catch (error) {
             console.error('Error creating room:', error);
             if (typeof callback === 'function') {
                 callback({ error: 'Failed to create room' });
             } else {
-                socket.emit('room-creation-error', { message: 'Failed to create room' });
+                socket.emit('error', { message: 'Failed to create room' });
             }
         }
     });
 
-    // Join room - ALSO FIXED for safety
+    // Join room
     socket.on('join-room', (data, callback) => {
         try {
-            // Handle different data formats
             const roomCode = data?.roomCode ? data.roomCode.toUpperCase() : '';
             const playerName = data?.playerName || 'Anonymous';
             const avatar = data?.avatar || '😎';
@@ -255,7 +167,6 @@ io.on('connection', (socket) => {
             if (!room) {
                 console.log(`❌ Room ${roomCode} not found`);
                 const error = { message: 'Room not found' };
-                
                 if (typeof callback === 'function') {
                     callback(error);
                 } else {
@@ -264,8 +175,13 @@ io.on('connection', (socket) => {
                 return;
             }
 
-            // Add or update player
-            const existingPlayerIndex = room.players.findIndex(p => p.name === playerName);
+            // Remove old connection if exists
+            const existingIndex = room.players.findIndex(p => p.name === playerName);
+            if (existingIndex !== -1) {
+                room.players.splice(existingIndex, 1);
+            }
+
+            // Add player
             const player = {
                 id: socket.id,
                 name: playerName,
@@ -273,33 +189,25 @@ io.on('connection', (socket) => {
                 ready: false,
                 connected: true
             };
-
-            if (existingPlayerIndex !== -1) {
-                room.players[existingPlayerIndex] = player;
-            } else {
-                room.players.push(player);
-            }
-
+            
+            room.players.push(player);
             socket.join(roomCode);
             socket.roomCode = roomCode;
-            socket.playerName = playerName;
 
             console.log(`✅ ${playerName} joined room ${roomCode}. Total: ${room.players.length} players`);
 
             // Notify everyone
             io.to(roomCode).emit('players-updated', room.players);
+            io.to(room.host).emit('player-joined', player);
             
-            // Handle response
-            const successData = { roomCode, playerId: socket.id };
-            
+            // Send success
+            const success = { roomCode, playerId: socket.id, playerName };
             if (typeof callback === 'function') {
-                callback(null, successData);
+                callback(null, success);
             } else {
-                socket.emit('join-success', successData);
+                socket.emit('join-success', success);
             }
             
-            // Notify host
-            io.to(room.host).emit('player-joined', player);
         } catch (error) {
             console.error('Error joining room:', error);
             if (typeof callback === 'function') {
@@ -321,17 +229,11 @@ io.on('connection', (socket) => {
                 return;
             }
 
-            // Convert game name to lowercase for mapping
             const gameName = config?.game ? config.game.toLowerCase() : '';
             const dbGameName = gameNameMapping[gameName] || gameName;
             
             console.log(`🎮 Starting game in room ${room.code}:`);
-            console.log(`  Original game: ${config?.game}`);
-            console.log(`  Converted to: ${gameName}`);
-            console.log(`  Database name: ${dbGameName}`);
-            console.log(`  Mode: ${config?.mode}`);
-            console.log(`  Intensity: ${config?.intensity}`);
-            console.log(`  Players: ${room.players.length}`);
+            console.log(`  Game: ${dbGameName}, Mode: ${config?.mode}, Intensity: ${config?.intensity}`);
             
             room.currentGame = dbGameName;
             room.currentMode = config?.mode || 'offline';
@@ -344,11 +246,10 @@ io.on('connection', (socket) => {
             
             if (firstQuestion) {
                 room.questionNumber = 1;
-                room.usedQuestions.push(firstQuestion);
                 
                 // Send to all clients
                 io.to(room.code).emit('game-started', {
-                    game: config?.game,  // Send back original game name
+                    game: config?.game,
                     mode: room.currentMode,
                     intensity: room.currentIntensity,
                     question: firstQuestion,
@@ -356,7 +257,6 @@ io.on('connection', (socket) => {
                 });
                 
                 console.log('✅ Game started successfully');
-                console.log('📤 Sent question:', JSON.stringify(firstQuestion).substring(0, 100));
             } else {
                 console.error('❌ Failed to get first question');
                 socket.emit('error', { message: 'Failed to load questions' });
@@ -381,149 +281,73 @@ io.on('connection', (socket) => {
             const question = getQuestion(room.currentGame, room.currentIntensity);
             
             if (question) {
-                room.usedQuestions.push(question);
-                
                 io.to(room.code).emit('new-question', {
                     question,
                     questionNumber: room.questionNumber
                 });
                 
-                console.log(`📤 Question ${room.questionNumber} sent to room ${room.code}`);
-            } else {
-                socket.emit('error', { message: 'No more questions available' });
+                console.log(`📤 Question ${room.questionNumber} sent`);
             }
         } catch (error) {
             console.error('Error getting next question:', error);
-            socket.emit('error', { message: 'Failed to get next question' });
         }
     });
 
-    // End game
-    socket.on('end-game', () => {
-        try {
-            const room = Array.from(rooms.values()).find(r => r.host === socket.id);
-            
-            if (room) {
-                room.gameState = 'ended';
-                io.to(room.code).emit('game-ended');
-                console.log(`🏁 Game ended in room ${room.code}`);
-            }
-        } catch (error) {
-            console.error('Error ending game:', error);
-        }
-    });
-
-    // Handle disconnect
+    // Disconnect
     socket.on('disconnect', () => {
-        try {
-            console.log('👋 User disconnected:', socket.id);
-            
-            // Check if host
-            const room = Array.from(rooms.values()).find(r => r.host === socket.id);
-            if (room) {
-                console.log(`🏠 Room ${room.code} closed - host disconnected`);
-                io.to(room.code).emit('host-disconnected');
-                rooms.delete(room.code);
-                return;
+        console.log('👋 User disconnected:', socket.id);
+        
+        // Check if host
+        const room = Array.from(rooms.values()).find(r => r.host === socket.id);
+        if (room) {
+            console.log(`🏠 Room ${room.code} closed - host disconnected`);
+            io.to(room.code).emit('host-disconnected');
+            rooms.delete(room.code);
+            return;
+        }
+        
+        // Check if player
+        for (const [code, room] of rooms.entries()) {
+            const playerIndex = room.players.findIndex(p => p.id === socket.id);
+            if (playerIndex !== -1) {
+                const player = room.players[playerIndex];
+                room.players.splice(playerIndex, 1);
+                
+                io.to(code).emit('player-disconnected', {
+                    playerId: socket.id,
+                    playerName: player.name
+                });
+                
+                io.to(code).emit('players-updated', room.players);
+                console.log(`👤 ${player.name} left room ${code}`);
+                break;
             }
-            
-            // Check if player
-            for (const [code, room] of rooms.entries()) {
-                const playerIndex = room.players.findIndex(p => p.id === socket.id);
-                if (playerIndex !== -1) {
-                    const player = room.players[playerIndex];
-                    player.connected = false;
-                    
-                    io.to(code).emit('player-disconnected', {
-                        playerId: socket.id,
-                        playerName: player.name
-                    });
-                    
-                    io.to(code).emit('players-updated', room.players);
-                    console.log(`👤 ${player.name} disconnected from room ${code}`);
-                    break;
-                }
-            }
-        } catch (error) {
-            console.error('Error handling disconnect:', error);
         }
     });
 });
 
-// Helper function to get questions
+// Helper function for questions
 function getQuestion(game, intensity) {
     try {
-        // Try database first
         if (questionManager && questionManager.getRandomQuestion) {
-            const question = questionManager.getRandomQuestion(game, intensity, 'offline');
-            console.log(`📚 Got question from database: ${game}/${intensity}`);
-            return question;
+            return questionManager.getRandomQuestion(game, intensity, 'offline');
         }
     } catch (error) {
-        console.log(`⚠️ Database error for ${game}/${intensity}: ${error.message}`);
+        console.log(`⚠️ Using fallback for ${game}/${intensity}`);
     }
     
-    // Use fallback questions
     const gameQuestions = fallbackQuestions[game];
-    if (!gameQuestions) {
-        console.error(`❌ No fallback questions for game: ${game}`);
-        return { 
-            text: `Sample ${game} question for ${intensity} mode`, 
-            type: 'text' 
-        };
+    if (!gameQuestions || !gameQuestions[intensity]) {
+        return { text: `Sample ${game} question`, type: 'text' };
     }
     
-    const intensityQuestions = gameQuestions[intensity];
-    if (!intensityQuestions || intensityQuestions.length === 0) {
-        console.error(`❌ No fallback questions for ${game}/${intensity}`);
-        return { 
-            text: `Sample ${game} question for ${intensity} mode`, 
-            type: 'text' 
-        };
-    }
-    
-    const randomIndex = Math.floor(Math.random() * intensityQuestions.length);
-    const question = intensityQuestions[randomIndex];
-    
-    console.log(`💾 Using fallback question for ${game}/${intensity}`);
-    
-    // Format question based on game type
-    if (game === 'never_have_i_ever') {
-        return typeof question === 'string' 
-            ? { text: question, type: 'text' } 
-            : question;
-    } else if (game === 'fmk') {
-        return typeof question === 'string' 
-            ? { text: question, type: 'text' } 
-            : question;
-    } else if (game === 'would_you_rather') {
-        return question;
-    } else if (game === 'hot_takes') {
-        return typeof question === 'string' 
-            ? { text: question, type: 'text' } 
-            : question;
-    }
-    
-    return question;
+    const questions = gameQuestions[intensity];
+    return questions[Math.floor(Math.random() * questions.length)];
 }
 
 // Start server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
-    console.log(`
-╔════════════════════════════════════════╗
-║     🎮 DON'T DRINK! SERVER RUNNING     ║
-╠════════════════════════════════════════╣
-║  Port: ${PORT}                            ║
-║  URL: http://localhost:${PORT}            ║
-╠════════════════════════════════════════╣
-║  Pages:                                ║
-║  • /         → Landing page            ║
-║  • /host     → Host control panel      ║
-║  • /mobile   → Player mobile interface ║
-║  • /player   → Alternative player page ║
-╠════════════════════════════════════════╣
-║  Status: ${questionManager ? '✅ Questions loaded' : '⚠️  Using fallback'}        ║
-╚════════════════════════════════════════╝
-    `);
+    console.log(`🎮 Don't Drink! server running on port ${PORT}`);
+    console.log(`📱 Visit http://localhost:${PORT} to start!`);
 });
