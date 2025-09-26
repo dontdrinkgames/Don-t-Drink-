@@ -154,13 +154,43 @@ const fallbackQuestions = {
     }
 };
 
-// Serve static files
+// Serve static files from public folder
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
+// Specific routes for HTML pages
+app.get('/host', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'host.html'));
+});
+
+app.get('/mobile', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'mobile.html'));
+});
+
+app.get('/player', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'player.html'));
+});
+
+app.get('/play', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'play.html'));
+});
+
 // Health check for Render
 app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'OK', questions: questionManager ? 'loaded' : 'fallback' });
+    res.status(200).json({ 
+        status: 'OK', 
+        questions: questionManager ? 'loaded' : 'fallback',
+        rooms: rooms.size
+    });
+});
+
+// API endpoint for question stats
+app.get('/api/stats', (req, res) => {
+    if (questionManager) {
+        res.json(questionManager.getStats());
+    } else {
+        res.json({ error: 'Questions database not loaded' });
+    }
 });
 
 // Rooms storage
@@ -204,7 +234,7 @@ io.on('connection', (socket) => {
         console.log(`🎮 Join attempt - Room: ${code}, Player: ${playerName}`);
 
         if (!room) {
-            console.log(`⌠ Room ${code} not found`);
+            console.log(`❌ Room ${code} not found`);
             const error = { message: 'Room not found' };
             if (callback) callback(error);
             else socket.emit('join-error', error);
@@ -251,7 +281,7 @@ io.on('connection', (socket) => {
         const room = Array.from(rooms.values()).find(r => r.host === socket.id);
         
         if (!room) {
-            console.log('⌠ No room found for host:', socket.id);
+            console.log('❌ No room found for host:', socket.id);
             socket.emit('error', { message: 'You are not a host' });
             return;
         }
@@ -337,7 +367,7 @@ io.on('connection', (socket) => {
 
     // Handle disconnect
     socket.on('disconnect', () => {
-        console.log('🔌 User disconnected:', socket.id);
+        console.log('👋 User disconnected:', socket.id);
         
         // Check if host
         const room = Array.from(rooms.values()).find(r => r.host === socket.id);
@@ -361,7 +391,7 @@ io.on('connection', (socket) => {
                 });
                 
                 io.to(code).emit('players-updated', room.players);
-                console.log(`👋 ${player.name} disconnected from room ${code}`);
+                console.log(`👤 ${player.name} disconnected from room ${code}`);
                 break;
             }
         }
@@ -428,7 +458,20 @@ function getQuestion(game, intensity) {
 // Start server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
-    console.log(`🎮 Don't Drink! server running on port ${PORT}`);
-    console.log(`📱 Visit http://localhost:${PORT} to start!`);
-    console.log(`🌐 Socket.IO enabled for real-time gameplay`);
+    console.log(`
+╔════════════════════════════════════════╗
+║     🎮 DON'T DRINK! SERVER RUNNING     ║
+╠════════════════════════════════════════╣
+║  Port: ${PORT}                            ║
+║  URL: http://localhost:${PORT}            ║
+╠════════════════════════════════════════╣
+║  Pages:                                ║
+║  • /         → Landing page            ║
+║  • /host     → Host control panel      ║
+║  • /mobile   → Player mobile interface ║
+║  • /player   → Alternative player page ║
+╠════════════════════════════════════════╣
+║  Status: ${questionManager ? '✅ Questions loaded' : '⚠️  Using fallback'}        ║
+╚════════════════════════════════════════╝
+    `);
 });
