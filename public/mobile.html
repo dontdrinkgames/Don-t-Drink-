@@ -313,10 +313,15 @@
             }
         }
         
-        function initSocketConnection() {
-            socket = io({
-                transports: ['websocket', 'polling']
-            });
+       function initSocketConnection() {
+    // Auto-detect server URL
+    const socketUrl = window.location.hostname === 'localhost' 
+        ? 'http://localhost:3000' 
+        : window.location.origin;
+    
+    socket = io(socketUrl, {
+        transports: ['websocket', 'polling']
+    });
             
             socket.on('connect', () => {
                 console.log('Connected to server');
