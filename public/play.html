@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Playing - Don't Drink!</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <title>Don't Drink! - Play</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -16,213 +16,251 @@
             font-family: 'Poppins', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
-            color: white;
-            padding: 20px;
-        }
-        
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
-        
-        /* Header */
-        .game-header {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 20px;
-            padding: 20px 30px;
             display: flex;
-            justify-content: space-between;
+            flex-direction: column;
             align-items: center;
+            padding: 20px;
+            color: white;
+        }
+        
+        .game-header {
+            text-align: center;
             margin-bottom: 30px;
+            width: 100%;
+            max-width: 800px;
         }
         
         .game-title {
-            font-size: 2rem;
+            font-size: 3em;
             font-weight: 700;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            text-transform: uppercase;
+            text-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+            margin-bottom: 10px;
         }
         
-        .exit-btn {
-            background: #EF4444;
-            color: white;
-            border: none;
-            padding: 10px 25px;
-            border-radius: 10px;
-            font-size: 1rem;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-        
-        .exit-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(239, 68, 68, 0.4);
-        }
-        
-        /* Game Info */
         .game-info {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
-            border-radius: 15px;
-            padding: 15px 25px;
-            margin-bottom: 30px;
             display: flex;
-            gap: 30px;
-            align-items: center;
             justify-content: center;
+            gap: 30px;
             flex-wrap: wrap;
+            margin-top: 20px;
         }
         
         .info-item {
-            font-size: 0.95rem;
-            opacity: 0.9;
+            background: rgba(255,255,255,0.1);
+            backdrop-filter: blur(10px);
+            padding: 10px 20px;
+            border-radius: 15px;
         }
         
-        .info-item strong {
-            color: #FACC15;
-            font-weight: 600;
+        .mixmaster-indicator {
+            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #ffe66d);
+            color: white;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            animation: pulse 2s infinite;
+            margin-left: 10px;
+            display: inline-block;
         }
         
-        /* Question Card */
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
         .question-card {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(15px);
-            border-radius: 25px;
-            padding: 50px;
+            background: rgba(255,255,255,0.95);
+            border-radius: 30px;
+            padding: 40px;
+            max-width: 800px;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
             text-align: center;
-            margin-bottom: 40px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
         }
         
         .question-number {
-            font-size: 1.2rem;
-            color: #FACC15;
-            margin-bottom: 20px;
+            color: #667eea;
+            font-size: 1.2em;
             font-weight: 600;
+            margin-bottom: 20px;
         }
         
         .question-text {
-            font-size: 1.8rem;
+            color: #333;
+            font-size: 2em;
             font-weight: 600;
-            line-height: 1.4;
-            margin-bottom: 40px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin: 30px 0;
+            min-height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        .question-options {
-            display: grid;
-            gap: 15px;
-            margin-bottom: 30px;
+        .rating-section {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin: 30px 0;
+            padding: 20px 0;
+            border-top: 2px solid #f0f0f0;
         }
         
-        .option-card {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 20px;
-            border-radius: 15px;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
-        }
-        
-        .option-card:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.02);
-        }
-        
-        .control-btn {
-            background: #10B981;
-            color: white;
-            border: none;
-            padding: 15px 40px;
-            border-radius: 10px;
-            font-size: 1.1rem;
-            font-weight: 600;
+        .rating-btn {
+            background: white;
+            border: 3px solid #e0e0e0;
+            border-radius: 50%;
+            width: 60px;
+            height: 60px;
+            font-size: 1.8em;
             cursor: pointer;
-            transition: all 0.3s ease;
-            margin: 0 10px;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
-        .control-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+        .rating-btn:hover {
+            transform: scale(1.15);
         }
         
-        .control-btn:disabled {
+        .rating-btn.thumbs-up {
+            border-color: #4ade80;
+        }
+        
+        .rating-btn.thumbs-up:hover {
+            background: #4ade80;
+            border-color: #22c55e;
+        }
+        
+        .rating-btn.thumbs-down {
+            border-color: #f87171;
+        }
+        
+        .rating-btn.thumbs-down:hover {
+            background: #f87171;
+            border-color: #ef4444;
+        }
+        
+        .rating-btn.rated {
+            transform: scale(0.9);
             opacity: 0.5;
             cursor: not-allowed;
         }
         
-        /* Error Message */
-        .error-message {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            color: #FCA5A5;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
+        .rating-label {
+            color: #999;
+            font-size: 0.85em;
+            margin-top: 10px;
             text-align: center;
         }
         
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
+        .control-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 50px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin: 10px;
         }
         
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .control-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+        
+        .error-message {
+            background: #ff4444;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            max-width: 800px;
+            width: 100%;
+            text-align: center;
+        }
+        
+        .rating-feedback {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            color: #333;
+            padding: 20px 40px;
+            border-radius: 20px;
+            font-size: 1.2em;
+            font-weight: 600;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: fadeInOut 1s ease-in-out;
+        }
+        
+        @keyframes fadeInOut {
+            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <!-- Header -->
-        <div class="game-header">
-            <div class="game-title" id="gameTitle">Don't Drink!</div>
-            <button class="exit-btn" onclick="exitGame()">Exit Game</button>
-        </div>
-        
-        <!-- Game Info -->
+    <div class="game-header">
+        <h1 class="game-title" id="gameTitle">Loading...</h1>
         <div class="game-info">
-            <span class="info-item">Mode: <strong id="gameMode">offline</strong></span>
-            <span class="info-item">Intensity: <strong id="gameIntensity">medium</strong></span>
-            <span class="info-item">Players: <strong id="playerCount">0</strong></span>
-            <span class="info-item">Room: <strong id="roomCode">LOADING</strong></span>
+            <div class="info-item">Mode: <span id="gameMode">-</span></div>
+            <div class="info-item">
+                Intensity: <span id="gameIntensity">-</span>
+                <span id="mixmasterIndicator" class="mixmaster-indicator" style="display: none;">🎲 RANDOM</span>
+            </div>
+            <div class="info-item">Room: <span id="roomCode">-</span></div>
+        </div>
+    </div>
+    
+    <div class="error-message" id="errorMessage" style="display: none;"></div>
+    
+    <div class="question-card">
+        <div class="question-number" id="questionNumber">Question 1</div>
+        <div class="question-text" id="questionText">Loading question...</div>
+        
+        <div class="rating-section">
+            <div>
+                <button class="rating-btn thumbs-up" id="thumbsUp" onclick="rateQuestion('up')" title="Good question!">
+                    👍
+                </button>
+                <div class="rating-label">Good</div>
+            </div>
+            <div>
+                <button class="rating-btn thumbs-down" id="thumbsDown" onclick="rateQuestion('down')" title="Bad question">
+                    👎
+                </button>
+                <div class="rating-label">Bad</div>
+            </div>
         </div>
         
-        <!-- Error Message -->
-        <div class="error-message" id="errorMessage" style="display: none;"></div>
-        
-        <!-- Question Card -->
-        <div class="question-card">
-            <div class="question-number" id="questionNumber">Question 1 of ∞</div>
-            <div class="question-text" id="questionText">Loading question...</div>
-            
-            <div class="question-options" id="questionOptions"></div>
-            
-            <div>
-                <button class="control-btn" id="nextBtn" onclick="nextQuestion()">Next Question</button>
-            </div>
+        <div>
+            <button class="control-btn" id="nextBtn" onclick="nextQuestion()">Next Question</button>
         </div>
     </div>
     
     <script>
         // Game state
         let gameConfig = {};
-        let currentQuestionIndex = 1;
-        let questions = [];
-        let usedQuestions = [];
+        let currentQuestionIndex = 0;
+        let currentQuestionId = null;
+        let currentQuestionData = null;
+        let hasRatedCurrentQuestion = false;
         
-        // Game name mapping
-        const gameNameMap = {
-            'nhie': 'never_have_i_ever',
-            'fmk': 'fmk',
-            'wyr': 'would_you_rather',
-            'hottakes': 'hot_takes'
+        // Game title mapping
+        const gameTitleMap = {
+            'nhie': 'Never Have I Ever',
+            'fmk': 'Fuck, Marry, Kill',
+            'wyr': 'Would You Rather',
+            'hot': 'Hot Takes',
+            'hottakes': 'Hot Takes'
         };
         
         // Initialize when page loads
@@ -244,18 +282,11 @@
             const roomCode = urlParams.get('room') || gameConfig.roomCode || 'OFFLINE';
             const game = urlParams.get('game') || gameConfig.game || 'nhie';
             
-            // Fix intensity - "mixmaster" is not valid
-            let intensity = gameConfig.intensity || 'medium';
-            if (!['medium', 'spicy', 'cancelled'].includes(intensity)) {
-                console.warn(`Invalid intensity "${intensity}", defaulting to "medium"`);
-                intensity = 'medium';
-            }
-            
             gameConfig = {
                 ...gameConfig,
                 roomCode: roomCode,
                 game: game,
-                intensity: intensity,
+                intensity: gameConfig.intensity || 'medium',
                 mode: gameConfig.mode || 'offline'
             };
             
@@ -266,198 +297,170 @@
             // Update UI
             updateGameInfo();
             
-            // Load questions for offline mode
-            if (gameConfig.mode === 'offline') {
-                loadOfflineQuestions();
-            }
-            
             // Get first question
             loadNextQuestion();
         }
         
         function updateGameInfo() {
-            const gameTitle = gameNameMap[gameConfig.game] || gameConfig.game;
-            document.getElementById('gameTitle').textContent = gameTitle.replace(/_/g, ' ').toUpperCase();
+            const gameTitle = gameTitleMap[gameConfig.game] || gameConfig.game;
+            document.getElementById('gameTitle').textContent = gameTitle;
             document.getElementById('gameMode').textContent = gameConfig.mode || 'offline';
-            document.getElementById('gameIntensity').textContent = gameConfig.intensity || 'medium';
-            document.getElementById('playerCount').textContent = gameConfig.players?.length || '0';
+            
+            // Show base intensity
+            const displayIntensity = gameConfig.intensity === 'mixmaster' ? 'Mixmaster' : gameConfig.intensity;
+            document.getElementById('gameIntensity').textContent = displayIntensity;
+            
+            // Show mixmaster indicator if needed
+            if (gameConfig.intensity === 'mixmaster') {
+                document.getElementById('mixmasterIndicator').style.display = 'inline-block';
+            }
+            
             document.getElementById('roomCode').textContent = gameConfig.roomCode || 'OFFLINE';
         }
         
-        function loadOfflineQuestions() {
-            // Fallback questions for offline mode
-            const fallbackQuestions = {
-                never_have_i_ever: {
-                    medium: [
-                        "Never have I ever sung in the shower",
-                        "Never have I ever eaten a whole pizza by myself",
-                        "Never have I ever lied about my age",
-                        "Never have I ever stalked an ex on social media",
-                        "Never have I ever pretended to be sick to skip work"
-                    ],
-                    spicy: [
-                        "Never have I ever had a one night stand",
-                        "Never have I ever sent nudes",
-                        "Never have I ever hooked up with someone from work",
-                        "Never have I ever had sex in public",
-                        "Never have I ever used a dating app just for hookups"
-                    ],
-                    cancelled: [
-                        "Never have I ever cheated on someone",
-                        "Never have I ever stolen something worth over $100",
-                        "Never have I ever hooked up with a friend's ex",
-                        "Never have I ever lied about being on birth control",
-                        "Never have I ever had sex with someone whose name I didn't know"
-                    ]
-                },
-                fmk: {
-                    medium: [
-                        "Ryan Reynolds, Chris Evans, Tom Holland",
-                        "Emma Stone, Jennifer Lawrence, Scarlett Johansson",
-                        "Batman, Superman, Spider-Man"
-                    ],
-                    spicy: [
-                        "Your ex, your ex's best friend, your ex's sibling",
-                        "Your boss, your coworker, the janitor",
-                        "Three people in this room"
-                    ],
-                    cancelled: [
-                        "Your sibling's ex, your parent's friend, your cousin",
-                        "Your therapist, your doctor, your lawyer",
-                        "Someone for money, someone for revenge, someone for power"
-                    ]
-                },
-                would_you_rather: {
-                    medium: [
-                        { optionA: "Never use social media again", optionB: "Never watch TV again" },
-                        { optionA: "Be able to fly", optionB: "Be invisible" },
-                        { optionA: "Win the lottery", optionB: "Live twice as long" }
-                    ],
-                    spicy: [
-                        { optionA: "Have sex with lights always on", optionB: "Only in complete darkness" },
-                        { optionA: "Give up oral sex", optionB: "Give up penetrative sex" },
-                        { optionA: "Kiss your ex", optionB: "Kiss your enemy" }
-                    ],
-                    cancelled: [
-                        { optionA: "Sleep with your boss for a promotion", optionB: "Stay in your dead-end job forever" },
-                        { optionA: "Cheat and never get caught", optionB: "Be cheated on and know" },
-                        { optionA: "Have sex with your cousin", optionB: "Have sex with your step-sibling" }
-                    ]
-                },
-                hot_takes: {
-                    medium: [
-                        "Pineapple belongs on pizza",
-                        "The book is always better than the movie",
-                        "Social media does more harm than good"
-                    ],
-                    spicy: [
-                        "Open relationships are healthier than monogamy",
-                        "Body count matters in a relationship",
-                        "Size does matter"
-                    ],
-                    cancelled: [
-                        "Cheating can save a relationship",
-                        "Some people deserve to be ghosted",
-                        "Gold diggers provide a valuable service"
-                    ]
+        async function loadNextQuestion() {
+            try {
+                // Reset rating buttons
+                resetRatingButtons();
+                
+                // Call API endpoint
+                const response = await fetch(`/api/question/${gameConfig.game}/${gameConfig.intensity}`);
+                
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
                 }
-            };
-            
-            const dbGame = gameNameMap[gameConfig.game] || gameConfig.game;
-            const intensity = gameConfig.intensity || 'medium';
-            
-            questions = fallbackQuestions[dbGame]?.[intensity] || [
-                "Sample question - check your configuration"
-            ];
-            
-            console.log(`Loaded ${questions.length} offline questions for ${dbGame}/${intensity}`);
-        }
-        
-       async function loadNextQuestion() {
-    // Try API first
-    const dbGame = gameNameMap[gameConfig.game] || gameConfig.game;
-    const intensity = gameConfig.intensity || 'medium';
-    
-    try {
-        const response = await fetch(`/api/question/${dbGame}/${intensity}`);
-        if (response.ok) {
-            const data = await response.json();
-            if (data.question) {
-                displayQuestion(data.question);
-                return;
+                
+                const data = await response.json();
+                console.log('API response:', data);
+                
+                if (data.success && data.question) {
+                    currentQuestionId = data.questionId;
+                    currentQuestionData = data;
+                    displayQuestion(data.question);
+                    
+                    // Update mixmaster indicator if random intensity was used
+                    if (gameConfig.intensity === 'mixmaster' && data.intensity) {
+                        const intensityEmoji = {
+                            'medium': '😊',
+                            'spicy': '🌶️',
+                            'cancelled': '☠️'
+                        };
+                        document.getElementById('mixmasterIndicator').textContent = 
+                            `🎲 ${intensityEmoji[data.intensity]} ${data.intensity.toUpperCase()}`;
+                    }
+                } else {
+                    showError(`No questions available. Try a different intensity level.`);
+                }
+            } catch (error) {
+                console.error('Failed to fetch question:', error);
+                showError('Failed to load question. Please check your connection and try again.');
             }
         }
-    } catch (error) {
-        console.log('API failed, using fallback:', error);
-    }
-    
-    // Fallback to local questions
-    if (questions.length === 0) {
-        showError("No questions available. Check your game configuration.");
-        return;
-    }
-    
-    // Get a random question
-    let question;
-    if (usedQuestions.length >= questions.length) {
-        // Reset if all questions used
-        usedQuestions = [];
-    }
-    
-    do {
-        const randomIndex = Math.floor(Math.random() * questions.length);
-        question = questions[randomIndex];
-    } while (usedQuestions.includes(question) && questions.length > 1);
-    
-    usedQuestions.push(question);
-    displayQuestion(question);
-}
         
         function displayQuestion(question) {
-            document.getElementById('questionNumber').textContent = `Question ${currentQuestionIndex} of ∞`;
+            currentQuestionIndex++;
+            hasRatedCurrentQuestion = false;
             
-            const dbGame = gameNameMap[gameConfig.game] || gameConfig.game;
+            // Clear any errors
+            document.getElementById('errorMessage').style.display = 'none';
             
-            // Display based on game type
-            if (dbGame === 'would_you_rather' && typeof question === 'object') {
-                document.getElementById('questionText').textContent = "Would you rather...";
-                document.getElementById('questionOptions').innerHTML = `
-                    <div class="option-card">A: ${question.optionA}</div>
-                    <div class="option-card">B: ${question.optionB}</div>
-                `;
-            } else if (dbGame === 'fmk' && typeof question === 'string') {
-                const options = question.split(',').map(o => o.trim());
-                document.getElementById('questionText').textContent = "F***, Marry, Kill:";
-                document.getElementById('questionOptions').innerHTML = options.map(opt => 
-                    `<div class="option-card">${opt}</div>`
-                ).join('');
+            // Update question number
+            document.getElementById('questionNumber').textContent = `Question ${currentQuestionIndex}`;
+            
+            // Display question based on type
+            let questionText = '';
+            
+            if (typeof question === 'string') {
+                questionText = question;
+            } else if (question.text) {
+                questionText = question.text;
+            } else if (question.optionA && question.optionB) {
+                // Would You Rather format
+                questionText = `Would you rather ${question.optionA} OR ${question.optionB}?`;
+            } else if (Array.isArray(question)) {
+                // FMK format
+                questionText = `F*ck, Marry, Kill: ${question.join(', ')}`;
             } else {
-                // Simple text question
-                document.getElementById('questionText').textContent = 
-                    typeof question === 'object' ? question.text : question;
-                document.getElementById('questionOptions').innerHTML = '';
+                questionText = JSON.stringify(question);
             }
-        }
-        
-        async function nextQuestion() {
-    currentQuestionIndex++;
-    await loadNextQuestion();
-}
-        
-        function exitGame() {
-            if (confirm("Are you sure you want to exit the game?")) {
-                localStorage.removeItem('gameConfig');
-                window.location.href = '/host';
-            }
+            
+            document.getElementById('questionText').textContent = questionText;
         }
         
         function showError(message) {
             const errorEl = document.getElementById('errorMessage');
             errorEl.textContent = message;
             errorEl.style.display = 'block';
+        }
+        
+        function nextQuestion() {
+            loadNextQuestion();
+        }
+        
+        function resetRatingButtons() {
+            const thumbsUp = document.getElementById('thumbsUp');
+            const thumbsDown = document.getElementById('thumbsDown');
+            
+            thumbsUp.classList.remove('rated');
+            thumbsDown.classList.remove('rated');
+            thumbsUp.disabled = false;
+            thumbsDown.disabled = false;
+            thumbsUp.style.background = 'white';
+            thumbsDown.style.background = 'white';
+        }
+        
+        async function rateQuestion(rating) {
+            if (hasRatedCurrentQuestion) return;
+            
+            hasRatedCurrentQuestion = true;
+            
+            // Visual feedback
+            const button = rating === 'up' ? 
+                document.getElementById('thumbsUp') : 
+                document.getElementById('thumbsDown');
+            
+            button.classList.add('rated');
+            button.style.background = rating === 'up' ? '#4ade80' : '#f87171';
+            
+            // Disable both buttons
+            document.getElementById('thumbsUp').disabled = true;
+            document.getElementById('thumbsDown').disabled = true;
+            
+            // Show feedback
+            showRatingFeedback(rating === 'up' ? '👍 Thanks!' : '👎 Noted!');
+            
+            // Send rating to server
+            try {
+                const response = await fetch('/api/question/rate', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        questionId: currentQuestionId,
+                        rating: rating,
+                        game: currentQuestionData.game,
+                        intensity: currentQuestionData.intensity,
+                        questionText: document.getElementById('questionText').textContent
+                    })
+                });
+                
+                const result = await response.json();
+                console.log('Rating saved:', result);
+            } catch (error) {
+                console.error('Failed to save rating:', error);
+            }
+        }
+        
+        function showRatingFeedback(message) {
+            const feedback = document.createElement('div');
+            feedback.className = 'rating-feedback';
+            feedback.textContent = message;
+            document.body.appendChild(feedback);
+            
             setTimeout(() => {
-                errorEl.style.display = 'none';
-            }, 5000);
+                feedback.remove();
+            }, 1000);
         }
     </script>
 </body>

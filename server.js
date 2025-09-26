@@ -51,54 +51,126 @@ app.get('/play', (req, res) => {
 // API endpoint for questions (for offline mode)
 app.get('/api/question/:game/:intensity', (req, res) => {
     const { game, intensity } = req.params;
-    
+   
     console.log(`API Request: ${game}/${intensity}`);
-    
+   
     try {
         // Game name mapping
         const gameMapping = {
             'wyr': 'would_you_rather',
             'fmk': 'fmk',
             'nhie': 'never_have_i_ever',
-            'hottakes': 'hot_takes'
+            'hottakes': 'hot_takes',
+            'hot': 'hot_takes',
+            'hot_takes': 'hot_takes',
+            'would_you_rather': 'would_you_rather',
+            'never_have_i_ever': 'never_have_i_ever'
         };
-        
         const mappedGame = gameMapping[game] || game;
+       
+        // HANDLE MIXMASTER - choose random intensity
+        let actualIntensity = intensity;
+        if (intensity === 'mixmaster') {
+            const intensities = ['medium', 'spicy', 'cancelled'];
+            actualIntensity = intensities[Math.floor(Math.random() * intensities.length)];
+            console.log(`Mixmaster: Random intensity selected: ${actualIntensity}`);
+        }
+       
+        console.log(`Game mapping: ${game} → ${mappedGame}, Intensity: ${actualIntensity}`);
+       
         let question = null;
-        
+       
         // Try QuestionManager first
         if (QuestionManager && QuestionManager.getRandomQuestion) {
-            question = QuestionManager.getRandomQuestion(mappedGame, intensity, 'offline');
+            console.log(`Using QuestionManager for ${mappedGame}/${actualIntensity}`);
+            question = QuestionManager.getRandomQuestion(mappedGame, actualIntensity, 'offline');
         }
-        
+       
         // Fallback to direct database access
-        if (!question && questionsDatabase[mappedGame] && questionsDatabase[mappedGame][intensity]) {
-            const questions = questionsDatabase[mappedGame][intensity];
+        if (!question && questionsDatabase[mappedGame] && questionsDatabase[mappedGame][actualIntensity]) {
+            const questions = questionsDatabase[mappedGame][actualIntensity];
             if (questions && questions.length > 0) {
                 const randomIndex = Math.floor(Math.random() * questions.length);
                 question = questions[randomIndex];
+                console.log(`Got question from database: ${mappedGame}/${actualIntensity}`);
             }
         }
-        
+       
         // Last resort fallback
         if (!question) {
-            question = `Sample ${game} question for ${intensity} intensity`;
+            console.warn(`No questions found for ${mappedGame}/${actualIntensity}`);
+            question = null;
         }
-        
-        res.json({ 
-            success: true, 
+       
+        // Generate unique question ID if needed
+        const questionId = question ? `${mappedGame}_${actualIntensity}_${Date.now()}` : null;
+       
+        res.json({
+            success: !!question,
             question: question,
-            game: game,
-            intensity: intensity
+            questionId: questionId,
+            game: mappedGame,
+            intensity: actualIntensity,
+            originalIntensity: intensity // So frontend knows if mixmaster was used
         });
+       
     } catch (error) {
         console.error('Error getting question:', error);
-        res.json({ 
-            success: false, 
-            question: `Fallback ${game} question`,
-            error: error.message 
+        res.status(500).json({
+            success: false,
+            error: 'Failed to get question',
+            details: error.message
         });
     }
+});
+// Rating endpoint - add this new endpoint to server.js
+app.post('/api/question/rate', express.json(), (req, res) => {
+    const { questionId, rating, game, intensity, questionText } = req.body;
+   
+    console.log(`Rating received: ${rating} for question ${questionId}`);
+   
+    // Store rating (you can implement database storage later)
+    if (!global.questionRatings) {
+        global.questionRatings = {};
+    }
+   
+    if (!global.questionRatings[questionId]) {
+        global.questionRatings[questionId] = {
+            questionText: questionText,
+            game: game,
+            intensity: intensity,
+            thumbsUp: 0,
+            thumbsDown: 0,
+            totalScore: 0
+        };
+    }
+   
+    if (rating === 'up') {
+        global.questionRatings[questionId].thumbsUp++;
+        global.questionRatings[questionId].totalScore++;
+    } else if (rating === 'down') {
+        global.questionRatings[questionId].thumbsDown++;
+        global.questionRatings[questionId].totalScore--;
+    }
+   
+    console.log(`Question rating updated:`, global.questionRatings[questionId]);
+   
+    res.json({
+        success: true,
+        rating: global.questionRatings[questionId]
+    });
+});
+// Get ratings summary - add this endpoint too
+app.get('/api/question/ratings', (req, res) => {
+    const ratings = global.questionRatings || {};
+    const summary = Object.values(ratings).sort((a, b) => b.totalScore - a.totalScore);
+   
+    res.json({
+        totalRatings: Object.keys(ratings).length,
+        topRated: summary.slice(0, 10),
+        bottomRated: summary.slice(-10),
+        allRatings: summary
+    });
 });
 
 // Health check for Render
