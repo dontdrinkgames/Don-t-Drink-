@@ -1537,44 +1537,28 @@ class QuestionManager {
       hot_takes: { medium: [], spicy: [], cancelled: [] }
     };
 
- this.customQuestions = {
-    never_have_i_ever: {
+    this.customQuestions = {
+      never_have_i_ever: {
         medium: [],
         spicy: [],
         cancelled: []
-    },
-    fmk: {
+      },
+      fmk: {
         medium: [],
         spicy: [],
         cancelled: []
-    },
-    would_you_rather: {
+      },
+      would_you_rather: {
         medium: [],
         spicy: [],
         cancelled: []
-    },
-    hot_takes: {
+      },
+      hot_takes: {
         medium: [],
         spicy: [],
         cancelled: []
-    }
-};
-  fmk: {
-    medium: [],
-    spicy: [],
-    cancelled: []
-  },
-  would_you_rather: {
-    medium: [],
-    spicy: [],
-    cancelled: []
-  },
-  hot_takes: {
-    medium: [],
-    spicy: [],
-    cancelled: []
-  }
-};
+      }
+    };
 
     this.questionRatings = new Map();
     this.currentQuestionId = 0;
@@ -1607,35 +1591,15 @@ class QuestionManager {
   getRandomQuestion(game, intensity, mode = 'offline', questionNumber = 1) {
     this.ensureStructure(game, intensity);
 
-    // Sikkerhetssjekkelser først
-if (!questionsDatabase[game]) {
-  console.error(`Game "${game}" not found in database`);
-  return { text: `Sample ${game} question`, type: 'text' };
-}
+    // Get available default questions
+    const defaultQuestions = questionsDatabase[game] && questionsDatabase[game][intensity]
+      ? [...questionsDatabase[game][intensity]]
+      : [];
 
-if (!questionsDatabase[game][intensity]) {
-  console.error(`Intensity "${intensity}" not found for game "${game}"`);
-  return { text: `Sample ${game} ${intensity} question`, type: 'text' };
-}
-
-// Sjekk customQuestions også
-if (!this.customQuestions[game]) {
-  this.customQuestions[game] = {
-    medium: [],
-    spicy: [],
-    cancelled: []
-  };
-}
-
-if (!this.customQuestions[game][intensity]) {
-  this.customQuestions[game][intensity] = [];
-}
-
-// Nå kan vi trygt hente spørsmålene
-const defaultQuestions = [...questionsDatabase[game][intensity]];
-const customQuestions = (questionNumber <= 20)
-  ? [...this.customQuestions[game][intensity]]
-  : [];
+    // Include custom questions only in first 20 questions (regardless of mode)
+    const customQuestions = (questionNumber <= 20)
+      ? [...this.customQuestions[game][intensity]]
+      : [];
     
     // Combine all questions
     const allQuestions = [...defaultQuestions, ...customQuestions];
@@ -1693,72 +1657,27 @@ const customQuestions = (questionNumber <= 20)
 
   rateQuestion(questionId, isThumbsUp) {
     this.questionRatings.set(questionId, {
-      rating: isThumbsUp ? 'up' : 'down',
-      timestamp: new Date()
+      rating: isThumbsUp ? 1 : -1,
+      timestamp: Date.now()
     });
   }
 
-  getStats() {
-    const stats = {
-      totalQuestions: 0,
-      questionsByCategory: {},
-      customQuestionCount: 0,
-      ratings: { up: 0, down: 0 }
-    };
-
-    // Count default questions
-    for (const [game, intensities] of Object.entries(questionsDatabase)) {
-      stats.questionsByCategory[game] = {};
-      for (const [intensity, questions] of Object.entries(intensities)) {
-        const count = questions.length;
-        stats.questionsByCategory[game][intensity] = count;
-        stats.totalQuestions += count;
+  getQuestionStats() {
+    const stats = {};
+    for (const [id, data] of this.questionRatings.entries()) {
+      if (!stats[data.rating > 0 ? 'liked' : 'disliked']) {
+        stats[data.rating > 0 ? 'liked' : 'disliked'] = 0;
       }
+      stats[data.rating > 0 ? 'liked' : 'disliked']++;
     }
-
-    // Count custom questions
-    for (const [game, intensities] of Object.entries(this.customQuestions)) {
-      for (const [intensity, questions] of Object.entries(intensities)) {
-        stats.customQuestionCount += questions.length;
-      }
-    }
-
-    // Count ratings
-    for (const rating of this.questionRatings.values()) {
-      if (rating.rating === 'up') {
-        stats.ratings.up++;
-      } else {
-        stats.ratings.down++;
-      }
-    }
-
     return stats;
-  }
-
-  // Reset used questions for a specific category
-  resetUsedQuestions(game = null, intensity = null) {
-    if (game && intensity) {
-      this.ensureStructure(game, intensity);
-      this.usedQuestions[game][intensity] = [];
-    } else if (game) {
-      if (this.usedQuestions[game]) {
-        for (const intensity of Object.keys(this.usedQuestions[game])) {
-          this.usedQuestions[game][intensity] = [];
-        }
-      }
-    } else {
-      // Reset all
-      this.usedQuestions = {
-        never_have_i_ever: { medium: [], spicy: [], cancelled: [] },
-        fmk: { medium: [], spicy: [], cancelled: [] },
-        would_you_rather: { medium: [], spicy: [], cancelled: [] },
-        hot_takes: { medium: [], spicy: [], cancelled: [] }
-      };
-    }
   }
 }
 
-module.exports = {
-  questionsDatabase,
-  QuestionManager
-};
+// Export for Node.js
+if (typeof module !== 'undefined' && module.exports) {
+  module.exports = {
+    questionsDatabase,
+    QuestionManager
+  };
+}
