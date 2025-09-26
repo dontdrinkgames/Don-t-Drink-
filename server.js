@@ -11,9 +11,25 @@ const io = socketIo(server, {
         methods: ["GET", "POST"],
         credentials: true
     },
-    transports: ['websocket', 'polling'],
-    allowEIO3: true
+    transports: ['websocket', 'polling']
 });
+
+// Load questions database
+let questionsDatabase = {};
+let QuestionManager = null;
+
+try {
+    const questionsModule = require('./questions-database.js');
+    questionsDatabase = questionsModule.questionsDatabase;
+    QuestionManager = questionsModule.QuestionManager;
+    console.log('✅ Questions database loaded successfully');
+} catch (error) {
+    console.error('❌ Error loading questions database:', error.message);
+    console.log('📝 Server will run without questions database');
+}
+
+// Initialize Question Manager if available
+const questionManager = QuestionManager ? new QuestionManager() : null;
 
 // Static files
 app.use(express.static('public'));
@@ -42,7 +58,7 @@ app.get('/:roomCode', (req, res) => {
     const roomCode = req.params.roomCode.toUpperCase();
     
     if (roomCode.match(/^[A-Z0-9]{6}$/)) {
-        console.log(`Serving mobile.html for room code: ${roomCode}`);
+        console.log(`Serving mobile.html for room: ${roomCode}`);
         res.sendFile(path.join(__dirname, 'public', 'mobile.html'));
     } else {
         res.redirect('/');
@@ -51,7 +67,6 @@ app.get('/:roomCode', (req, res) => {
 
 // Game storage
 const rooms = new Map();
-const playerSockets = new Map();
 
 // Generate room code
 function generateRoomCode() {
@@ -63,9 +78,18 @@ function generateRoomCode() {
     return code;
 }
 
+// Game name mapping
+const gameNameMapping = {
+    'wyr': 'would_you_rather',
+    'fmk': 'fmk',
+    'nhie': 'never_have_i_ever',
+    'hot': 'hot_takes',
+    'mixmaster': 'mixmaster'
+};
+
 // Socket.IO connection handling
 io.on('connection', (socket) => {
-    console.log('New connection:', socket.id);
+    console.log('👤 New connection:', socket.id);
 
     // Host creates room
     socket.on('create-room', (data, callback) => {
@@ -73,17 +97,21 @@ io.on('connection', (socket) => {
         const room = {
             code: roomCode,
             host: socket.id,
-            players: new Map(),
+            players: [],
             gameState: null,
-            customQuestions: []
+            currentGame: null,
+            currentMode: null,
+            currentIntensity: null,
+            questionNumber: 0
         };
         
         rooms.set(roomCode, room);
         socket.join(roomCode);
+        socket.roomCode = roomCode;
         
-        console.log(`Room ${roomCode} created by host ${socket.id}`);
+        console.log(`🏠 Room ${roomCode} created by host`);
         
-        // Support both callback and emit patterns
+        // Send response
         if (callback && typeof callback === 'function') {
             callback({ success: true, roomCode });
         }
@@ -96,134 +124,162 @@ io.on('connection', (socket) => {
         const code = roomCode ? roomCode.toUpperCase() : '';
         const room = rooms.get(code);
 
-        console.log(`Join attempt - Room: ${code}, Player: ${playerName}, Avatar: ${avatar}`);
+        console.log(`🎮 Join attempt - Room: ${code}, Player: ${playerName}`);
 
         if (!room) {
-            console.log(`Room ${code} not found`);
+            console.log(`❌ Room ${code} not found`);
             socket.emit('join-error', { message: 'Room not found' });
             return;
         }
 
-        // Remove any existing player with same socket ID
-        if (room.players.has(socket.id)) {
-            room.players.delete(socket.id);
+        // Check if player already exists
+        const existingPlayerIndex = room.players.findIndex(p => p.name === playerName);
+        if (existingPlayerIndex !== -1) {
+            room.players[existingPlayerIndex] = {
+                id: socket.id,
+                name: playerName,
+                avatar: avatar || '😎',
+                ready: false,
+                connected: true
+            };
+        } else {
+            // Add new player
+            room.players.push({
+                id: socket.id,
+                name: playerName,
+                avatar: avatar || '😎',
+                ready: false,
+                connected: true
+            });
         }
 
-        // Add new player
-        const player = {
-            id: socket.id,
-            name: playerName || 'Anonymous',
-            avatar: avatar || '😎',
-            ready: false,
-            connected: true
-        };
-
-        room.players.set(socket.id, player);
-        playerSockets.set(socket.id, code);
         socket.join(code);
+        socket.roomCode = code;
+        socket.playerName = playerName;
 
-        console.log(`${playerName} successfully joined room ${code}. Total players: ${room.players.size}`);
+        console.log(`✅ ${playerName} joined room ${code}. Total: ${room.players.length} players`);
 
-        // Send success to the joining player
+        // Send success to joining player
         socket.emit('join-success', { 
             roomCode: code,
             playerId: socket.id,
             playerName: playerName
         });
         
-        // Notify host about new player
-        io.to(room.host).emit('player-joined', player);
+        // Update everyone
+        io.to(code).emit('players-updated', room.players);
         
-        // Update everyone with player list
-        const playersList = Array.from(room.players.values());
-        io.to(code).emit('players-updated', playersList);
-        
-        console.log('Sent players-updated event with:', playersList);
-    });
-
-    // Player ready status
-    socket.on('player-ready', (data) => {
-        const roomCode = playerSockets.get(socket.id);
-        if (!roomCode) return;
-        
-        const room = rooms.get(roomCode);
-        if (!room) return;
-        
-        const player = room.players.get(socket.id);
-        if (player) {
-            player.ready = data.ready || true;
-            io.to(roomCode).emit('players-updated', Array.from(room.players.values()));
-        }
+        // Notify host specifically
+        io.to(room.host).emit('player-joined', {
+            id: socket.id,
+            name: playerName,
+            avatar: avatar || '😎'
+        });
     });
 
     // Start game
     socket.on('start-game', (config) => {
-        console.log('Start game requested:', config);
         const room = Array.from(rooms.values()).find(r => r.host === socket.id);
         
-        if (room) {
-            room.gameState = {
-                ...config,
-                currentQuestion: 0,
-                started: true
-            };
+        if (!room) {
+            console.log('❌ No room found for host:', socket.id);
+            return;
+        }
+
+        console.log(`🎮 Starting game in room ${room.code}:`, config);
+        
+        room.currentGame = config.game;
+        room.currentMode = config.mode;
+        room.currentIntensity = config.intensity;
+        room.questionNumber = 0;
+        room.gameState = 'playing';
+
+        // Get first question if database is available
+        let firstQuestion = null;
+        if (questionManager && questionsDatabase) {
+            const dbGameName = gameNameMapping[config.game] || config.game;
+            try {
+                firstQuestion = questionManager.getRandomQuestion(
+                    dbGameName, 
+                    config.intensity || 'medium',
+                    config.mode || 'offline'
+                );
+                room.questionNumber = 1;
+            } catch (error) {
+                console.error('Error getting first question:', error);
+                firstQuestion = {
+                    text: "Welcome to Don't Drink! Get ready for some fun questions!",
+                    type: 'text'
+                };
+            }
+        }
+
+        // Send to all clients in room
+        io.to(room.code).emit('game-started', {
+            ...config,
+            question: firstQuestion,
+            questionNumber: room.questionNumber
+        });
+    });
+
+    // Next question
+    socket.on('next-question', () => {
+        const room = Array.from(rooms.values()).find(r => r.host === socket.id);
+        
+        if (!room || !questionManager || !questionsDatabase) {
+            socket.emit('question-error', { message: 'Cannot get next question' });
+            return;
+        }
+
+        room.questionNumber++;
+        
+        const dbGameName = gameNameMapping[room.currentGame] || room.currentGame;
+        try {
+            const question = questionManager.getRandomQuestion(
+                dbGameName,
+                room.currentIntensity || 'medium',
+                room.currentMode || 'offline'
+            );
             
-            console.log(`Game starting in room ${room.code} with config:`, config);
-            io.to(room.code).emit('game-started', config);
+            io.to(room.code).emit('new-question', {
+                question,
+                questionNumber: room.questionNumber
+            });
+        } catch (error) {
+            console.error('Error getting next question:', error);
+            socket.emit('question-error', { message: 'Error loading question' });
         }
     });
 
     // Handle disconnect
     socket.on('disconnect', () => {
-        console.log('User disconnected:', socket.id);
-        const roomCode = playerSockets.get(socket.id);
+        console.log('👋 User disconnected:', socket.id);
         
-        if (roomCode) {
-            const room = rooms.get(roomCode);
-            
-            if (room) {
-                if (room.host === socket.id) {
-                    // Host disconnected
-                    console.log(`Host disconnected from room ${roomCode}`);
-                    io.to(roomCode).emit('host-disconnected');
-                    
-                    // Clean up room
-                    rooms.delete(roomCode);
-                    
-                    // Clean up all players from this room
-                    for (const [playerId, playerRoom] of playerSockets.entries()) {
-                        if (playerRoom === roomCode) {
-                            playerSockets.delete(playerId);
-                        }
-                    }
-                } else {
-                    // Player disconnected
-                    const player = room.players.get(socket.id);
-                    if (player) {
-                        console.log(`Player ${player.name} disconnected from room ${roomCode}`);
-                        player.connected = false;
-                        
-                        // Notify others
-                        io.to(roomCode).emit('player-disconnected', {
-                            playerId: socket.id,
-                            playerName: player.name
-                        });
-                        
-                        // Update player list
-                        io.to(roomCode).emit('players-updated', Array.from(room.players.values()));
-                    }
-                }
-            }
-            
-            playerSockets.delete(socket.id);
+        // Check if host
+        const room = Array.from(rooms.values()).find(r => r.host === socket.id);
+        if (room) {
+            console.log(`🏠 Host left, closing room ${room.code}`);
+            io.to(room.code).emit('host-disconnected');
+            rooms.delete(room.code);
+            return;
         }
-    });
-
-    // Debug: List all rooms
-    socket.on('list-rooms', () => {
-        const roomList = Array.from(rooms.keys());
-        socket.emit('rooms-list', roomList);
-        console.log('Active rooms:', roomList);
+        
+        // Check if player
+        for (const [code, room] of rooms.entries()) {
+            const playerIndex = room.players.findIndex(p => p.id === socket.id);
+            if (playerIndex !== -1) {
+                const player = room.players[playerIndex];
+                player.connected = false;
+                
+                io.to(code).emit('player-disconnected', {
+                    playerId: socket.id,
+                    playerName: player.name
+                });
+                
+                io.to(code).emit('players-updated', room.players);
+                break;
+            }
+        }
     });
 });
 
@@ -231,5 +287,12 @@ io.on('connection', (socket) => {
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`🎮 Don't Drink! server running on port ${PORT}`);
-    console.log(`📱 Visit http://localhost:${PORT} to start hosting!`);
+    console.log(`📱 Visit http://localhost:${PORT} to start!`);
+    
+    if (questionManager) {
+        const stats = questionManager.getStats();
+        console.log(`📊 Questions loaded: ${stats.totalQuestions} total`);
+    } else {
+        console.log('⚠️ Running without questions database');
+    }
 });
