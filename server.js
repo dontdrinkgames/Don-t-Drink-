@@ -120,7 +120,7 @@ const rooms = new Map();
 io.on('connection', (socket) => {
     console.log('🔌 User connected:', socket.id);
 
-    // Create room
+    // Create room - FIXED to handle both callback and regular patterns
     socket.on('create-room', (data, callback) => {
         try {
             const roomCode = Math.floor(100000 + Math.random() * 900000).toString();
@@ -140,13 +140,13 @@ io.on('connection', (socket) => {
             socket.join(roomCode);
             console.log(`🏠 Room created: ${roomCode} by host ${socket.id}`);
             
-            // Send response
-            const response = { roomCode };
+            // FIXED: Support both callback and emit patterns
             if (typeof callback === 'function') {
-                callback(response);
-            } else {
-                socket.emit('room-created', response);
+                callback({ success: true, roomCode: roomCode });
             }
+            // Also emit for compatibility
+            socket.emit('room-created', { roomCode: roomCode });
+            
         } catch (error) {
             console.error('Error creating room:', error);
             if (typeof callback === 'function') {
@@ -157,7 +157,7 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Join room
+    // Join room - FIXED to properly send success response
     socket.on('join-room', (data, callback) => {
         try {
             const roomCode = data?.roomCode ? data.roomCode.toUpperCase() : '';
@@ -173,13 +173,12 @@ io.on('connection', (socket) => {
                 const error = { message: 'Room not found' };
                 if (typeof callback === 'function') {
                     callback(error);
-                } else {
-                    socket.emit('join-error', error);
                 }
+                socket.emit('join-error', error);
                 return;
             }
 
-            // Remove old connection if exists
+            // Remove old connection if exists (for re-joins)
             const existingIndex = room.players.findIndex(p => p.name === playerName);
             if (existingIndex !== -1) {
                 room.players.splice(existingIndex, 1);
@@ -200,25 +199,30 @@ io.on('connection', (socket) => {
 
             console.log(`✅ ${playerName} joined room ${roomCode}. Total: ${room.players.length} players`);
 
-            // Notify everyone
+            // FIXED: Always send join-success to the joining player
+            socket.emit('join-success', { 
+                roomCode, 
+                playerId: socket.id, 
+                playerName 
+            });
+
+            // Notify everyone about player update
             io.to(roomCode).emit('players-updated', room.players);
+            
+            // Notify host about new player
             io.to(room.host).emit('player-joined', player);
             
-            // Send success
-            const success = { roomCode, playerId: socket.id, playerName };
+            // If callback exists, also call it
             if (typeof callback === 'function') {
-                callback(null, success);
-            } else {
-                socket.emit('join-success', success);
+                callback(null, { success: true, roomCode, playerId: socket.id, playerName });
             }
             
         } catch (error) {
             console.error('Error joining room:', error);
             if (typeof callback === 'function') {
                 callback({ error: 'Failed to join room' });
-            } else {
-                socket.emit('join-error', { message: 'Failed to join room' });
             }
+            socket.emit('join-error', { message: 'Failed to join room' });
         }
     });
 

@@ -498,7 +498,8 @@
         <div id="errorMessage" class="message error-message hidden"></div>
     </div>
     
-    <script src="/socket.io/socket.io.js"></script>
+    <!-- Socket.IO from CDN first, fallback to server -->
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script>
         let socket;
         let gameState = {
@@ -511,15 +512,34 @@
         
         // Initialize Socket.IO
         function initializeSocket() {
+            // If Socket.IO fails from CDN, load from server
+            if (typeof io === 'undefined') {
+                const script = document.createElement('script');
+                script.src = '/socket.io/socket.io.js';
+                script.onload = () => createSocketConnection();
+                script.onerror = () => {
+                    showError('Failed to load connection library');
+                    document.getElementById('roomCodeDisplay').textContent = 'ERROR';
+                };
+                document.head.appendChild(script);
+            } else {
+                createSocketConnection();
+            }
+        }
+        
+        function createSocketConnection() {
             socket = io({
                 transports: ['websocket', 'polling']
             });
             
             socket.on('connect', () => {
                 console.log('Connected to server');
-                // Create room
+                // Create room using callback pattern for compatibility
                 socket.emit('create-room', {}, (response) => {
                     if (response && response.roomCode) {
+                        gameState.roomCode = response.roomCode;
+                        updateRoomCode(response.roomCode);
+                    } else if (response && response.success && response.roomCode) {
                         gameState.roomCode = response.roomCode;
                         updateRoomCode(response.roomCode);
                     }
@@ -527,17 +547,15 @@
             });
             
             socket.on('room-created', (data) => {
-                gameState.roomCode = data.roomCode;
-                updateRoomCode(data.roomCode);
+                if (data && data.roomCode) {
+                    gameState.roomCode = data.roomCode;
+                    updateRoomCode(data.roomCode);
+                }
             });
             
             socket.on('player-joined', (player) => {
                 console.log('Player joined:', player);
-                if (!players.find(p => p.id === player.id)) {
-                    players.push(player);
-                    updatePlayersDisplay();
-                    showSuccess(`${player.name} joined the game!`);
-                }
+                showSuccess(`${player.name} joined the game!`);
             });
             
             socket.on('players-updated', (updatedPlayers) => {
@@ -555,6 +573,11 @@
                 console.log('Disconnected from server');
                 showError('Lost connection to server');
             });
+            
+            socket.on('error', (error) => {
+                console.error('Socket error:', error);
+                showError(error.message || 'Connection error');
+            });
         }
         
         function updateRoomCode(roomCode) {
@@ -562,6 +585,31 @@
             const url = `${window.location.origin}/${roomCode}`;
             document.getElementById('urlField').value = url;
             generateQRCode(url);
+        }
+        
+        function generateQRCode(url) {
+            const qrContainer = document.getElementById('qrCode');
+            if (!qrContainer) return;
+            
+            qrContainer.innerHTML = '';
+            
+            if (typeof QRCode !== 'undefined') {
+                try {
+                    new QRCode(qrContainer, {
+                        text: url,
+                        width: 128,
+                        height: 128,
+                        colorDark: "#000000",
+                        colorLight: "#ffffff",
+                        correctLevel: QRCode.CorrectLevel.H
+                    });
+                } catch (error) {
+                    console.error('Error generating QR code:', error);
+                    qrContainer.innerHTML = '<div style="padding: 20px;">QR Code Error</div>';
+                }
+            } else {
+                qrContainer.innerHTML = '<div style="padding: 20px;">QR Loading...</div>';
+            }
         }
         
         function updatePlayersDisplay() {
@@ -623,7 +671,7 @@
         
         function updateStartButton() {
             const btn = document.getElementById('startLobbyBtn');
-            const hasPlayers = players.length >= 1; // Changed from 2 to 1 for testing
+            const hasPlayers = players.length >= 1;
             const hasSettings = gameState.selectedGame && gameState.selectedMode && gameState.selectedIntensity;
             
             // Special case for offline mode - no players required
@@ -680,27 +728,6 @@
                 window.location.href = `/play?room=${gameState.roomCode}&game=${config.game}`;
             }, 1000);
         });
-        
-        // QR Code generation
-        function generateQRCode(url) {
-            const qrContainer = document.getElementById('qrCode');
-            if (!qrContainer) return;
-            
-            qrContainer.innerHTML = '';
-            try {
-                new QRCode(qrContainer, {
-                    text: url,
-                    width: 128,
-                    height: 128,
-                    colorDark: "#000000",
-                    colorLight: "#ffffff",
-                    correctLevel: QRCode.CorrectLevel.H
-                });
-            } catch (error) {
-                console.error('Error generating QR code:', error);
-                qrContainer.innerHTML = '<div style="padding: 20px;">QR Code Error</div>';
-            }
-        }
         
         // Message functions
         function showSuccess(message) {

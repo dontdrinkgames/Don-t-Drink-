@@ -269,7 +269,8 @@
         </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
+    <!-- Socket.IO from CDN with fallback -->
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script>
         let socket;
         let selectedAvatar = '🍆';
@@ -299,6 +300,19 @@
         
         // Initialize Socket.IO
         function initSocket() {
+            // If Socket.IO fails to load from CDN, try loading from server
+            if (typeof io === 'undefined') {
+                const script = document.createElement('script');
+                script.src = '/socket.io/socket.io.js';
+                script.onload = () => initSocketConnection();
+                script.onerror = () => showError('Failed to load connection library');
+                document.head.appendChild(script);
+            } else {
+                initSocketConnection();
+            }
+        }
+        
+        function initSocketConnection() {
             socket = io({
                 transports: ['websocket', 'polling']
             });
@@ -307,6 +321,7 @@
                 console.log('Connected to server');
                 connected = true;
                 hideError();
+                document.getElementById('joinBtn').disabled = false;
             });
             
             socket.on('join-success', (data) => {
@@ -324,7 +339,10 @@
                 console.log('Game started:', data);
                 document.getElementById('gameStatus').textContent = 'Game is starting!';
                 document.getElementById('gameStatus').classList.remove('hidden');
-                // Here you would transition to the actual game screen
+                // Redirect to play page
+                setTimeout(() => {
+                    window.location.href = `/play?room=${roomCode}&game=${data.game}`;
+                }, 1000);
             });
             
             socket.on('players-updated', (players) => {
@@ -346,6 +364,12 @@
                 connected = false;
                 showError('Lost connection to server');
             });
+            
+            socket.on('connect_error', (error) => {
+                console.error('Connection error:', error);
+                connected = false;
+                showError('Cannot connect to game server');
+            });
         }
         
         // Avatar selection
@@ -357,7 +381,7 @@
             });
         });
         
-        // Join button
+        // Join button - Now properly waits for join-success
         document.getElementById('joinBtn').addEventListener('click', () => {
             const playerName = document.getElementById('playerName').value.trim();
             
@@ -373,11 +397,21 @@
             
             document.getElementById('joinBtn').disabled = true;
             
+            // Send join request
             socket.emit('join-room', {
                 roomCode: roomCode,
                 playerName: playerName,
                 avatar: selectedAvatar
             });
+            
+            // Set timeout in case server doesn't respond
+            setTimeout(() => {
+                if (!document.getElementById('waitingScreen').classList.contains('hidden')) {
+                    return; // Already on waiting screen
+                }
+                document.getElementById('joinBtn').disabled = false;
+                showError('Join timeout - please try again');
+            }, 5000);
         });
         
         // Enter key support
