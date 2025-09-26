@@ -7,24 +7,25 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: ["https://dontdrinkgames.com", "https://www.dontdrinkgames.com"],  // Specific domains for security
+    origin: ["https://dontdrinkgames.com", "https://www.dontdrinkgames.com"],
     methods: ["GET", "POST"],
     credentials: true
   }
 });
+
 // Import questions database
 let questionsDatabase = {};
-let QuestionManager = null;
+let questionManager = null;
 
 // Try to load questions database
 try {
     const questionsModule = require('./questions-database.js');
     questionsDatabase = questionsModule.questionsDatabase || {};
-    QuestionManager = questionsModule.QuestionManager;
+    const QuestionManagerClass = questionsModule.QuestionManager;
     
     // Initialize QuestionManager if class exists
-    if (QuestionManager && typeof QuestionManager === 'function') {
-        QuestionManager = new QuestionManager();
+    if (QuestionManagerClass && typeof QuestionManagerClass === 'function') {
+        questionManager = new QuestionManagerClass();
     }
     
     console.log('Questions database loaded successfully');
@@ -51,6 +52,18 @@ app.get('/host', (req, res) => {
 
 app.get('/play', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'play.html'));
+});
+
+// Route for anonymous custom question submission
+app.get('/add-question/:roomCode', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'add-question.html'));
+});
+
+// Dynamic room URL for mobile players
+app.get('/:roomCode', (req, res) => {
+    const roomCode = req.params.roomCode;
+    // For mobile players, always send to mobile.html
+    res.sendFile(path.join(__dirname, 'public', 'mobile.html'));
 });
 
 // API endpoint for questions (for offline mode)
@@ -81,14 +94,12 @@ app.get('/api/question/:game/:intensity', (req, res) => {
             console.log(`Mixmaster: Random intensity selected: ${actualIntensity}`);
         }
        
-        console.log(`Game mapping: ${game} → ${mappedGame}, Intensity: ${actualIntensity}`);
-       
         let question = null;
        
-        // Try QuestionManager first
-        if (QuestionManager && QuestionManager.getRandomQuestion) {
-            console.log(`Using QuestionManager for ${mappedGame}/${actualIntensity}`);
-            question = QuestionManager.getRandomQuestion(mappedGame, actualIntensity, 'offline');
+        // Try using QuestionManager (always offline mode for API)
+        if (questionManager && questionManager.getRandomQuestion) {
+            const result = questionManager.getRandomQuestion(mappedGame, actualIntensity, 'offline', null);
+            question = result ? result.text : null;
         }
        
         // Fallback to direct database access
@@ -97,100 +108,31 @@ app.get('/api/question/:game/:intensity', (req, res) => {
             if (questions && questions.length > 0) {
                 const randomIndex = Math.floor(Math.random() * questions.length);
                 question = questions[randomIndex];
-                console.log(`Got question from database: ${mappedGame}/${actualIntensity}`);
             }
         }
        
-        // Last resort fallback
         if (!question) {
-            console.warn(`No questions found for ${mappedGame}/${actualIntensity}`);
-            question = null;
+            console.log(`No ${actualIntensity} ${mappedGame} questions available`);
+            return res.json({ 
+                error: true,
+                message: `No ${actualIntensity} ${game} questions available`,
+                question: null
+            });
         }
        
-        // Generate unique question ID if needed
-        const questionId = question ? `${mappedGame}_${actualIntensity}_${Date.now()}` : null;
-       
         res.json({
-            success: !!question,
             question: question,
-            questionId: questionId,
             game: mappedGame,
-            intensity: actualIntensity,
-            originalIntensity: intensity // So frontend knows if mixmaster was used
+            intensity: actualIntensity
         });
        
     } catch (error) {
         console.error('Error getting question:', error);
-        res.status(500).json({
-            success: false,
-            error: 'Failed to get question',
-            details: error.message
+        res.status(500).json({ 
+            error: true,
+            message: 'Failed to get question' 
         });
     }
-});
-// Rating endpoint - add this new endpoint to server.js
-app.post('/api/question/rate', express.json(), (req, res) => {
-    const { questionId, rating, game, intensity, questionText } = req.body;
-   
-    console.log(`Rating received: ${rating} for question ${questionId}`);
-   
-    // Store rating (you can implement database storage later)
-    if (!global.questionRatings) {
-        global.questionRatings = {};
-    }
-   
-    if (!global.questionRatings[questionId]) {
-        global.questionRatings[questionId] = {
-            questionText: questionText,
-            game: game,
-            intensity: intensity,
-            thumbsUp: 0,
-            thumbsDown: 0,
-            totalScore: 0
-        };
-    }
-   
-    if (rating === 'up') {
-        global.questionRatings[questionId].thumbsUp++;
-        global.questionRatings[questionId].totalScore++;
-    } else if (rating === 'down') {
-        global.questionRatings[questionId].thumbsDown++;
-        global.questionRatings[questionId].totalScore--;
-    }
-   
-    console.log(`Question rating updated:`, global.questionRatings[questionId]);
-   
-    res.json({
-        success: true,
-        rating: global.questionRatings[questionId]
-    });
-});
-// Get ratings summary - add this endpoint too
-app.get('/api/question/ratings', (req, res) => {
-    const ratings = global.questionRatings || {};
-    const summary = Object.values(ratings).sort((a, b) => b.totalScore - a.totalScore);
-   
-    res.json({
-        totalRatings: Object.keys(ratings).length,
-        topRated: summary.slice(0, 10),
-        bottomRated: summary.slice(-10),
-        allRatings: summary
-    });
-});
-
-// Health check for Render
-app.get('/health', (req, res) => {
-    res.status(200).send('OK');
-});
-
-// Mobile player route
-app.get('/:roomCode([A-Z0-9]{6})', (req, res) => {
-    const roomCode = req.params.roomCode;
-    console.log(`Player trying to join room: ${roomCode}`);
-    
-    // For mobile players, always send to mobile.html
-    // Don't check if room exists to avoid race conditions
-    res.sendFile(path.join(__dirname, 'public', 'mobile.html'));
 });
 
 // Socket.IO
@@ -212,7 +154,9 @@ io.on('connection', (socket) => {
                 questionCount: 0,
                 usedQuestions: []
             },
-            customQuestions: []
+            customQuestions: [],
+            spotlightHistory: [],
+            lastSpotlightPlayer: null
         };
         
         socket.join(roomCode);
@@ -235,6 +179,11 @@ io.on('connection', (socket) => {
         }
         
         const roomCode = Object.keys(rooms).find(key => rooms[key] === room);
+        
+        // Reset question counter for new game
+        if (questionManager && questionManager.resetQuestionCount) {
+            questionManager.resetQuestionCount(roomCode);
+        }
         
         // Update room state
         room.gameState.currentGame = config.game;
@@ -263,50 +212,80 @@ io.on('connection', (socket) => {
         console.log(`🔄 Game name mapping: ${config.game} → ${dbGameName}`);
         
         try {
-            let question = null;
+            let questionData = null;
             
-            // Try QuestionManager first
-            if (QuestionManager && QuestionManager.getRandomQuestion) {
-                console.log(`🎯 Getting question for: ${dbGameName} ${config.intensity}`);
-                question = QuestionManager.getRandomQuestion(dbGameName, config.intensity, config.mode);
+            // Try QuestionManager first with mode parameter for custom questions logic
+            if (questionManager && questionManager.getRandomQuestion) {
+                console.log(`🎯 Getting question for: ${dbGameName} ${config.intensity} in ${config.mode} mode`);
+                questionData = questionManager.getRandomQuestion(dbGameName, config.intensity || 'medium', config.mode, roomCode);
             }
             
             // Fallback to direct database access
-            if (!question && questionsDatabase[dbGameName] && questionsDatabase[dbGameName][config.intensity]) {
+            if (!questionData && questionsDatabase[dbGameName] && questionsDatabase[dbGameName][config.intensity]) {
                 const questions = questionsDatabase[dbGameName][config.intensity];
                 if (questions && questions.length > 0) {
                     const randomIndex = Math.floor(Math.random() * questions.length);
-                    question = questions[randomIndex];
+                    questionData = { text: questions[randomIndex], questionNumber: 1 };
                 }
             }
             
             // Last resort fallback
-            if (!question) {
-                question = `Sample ${config.game} question for ${config.intensity}`;
+            if (!questionData) {
+                questionData = { 
+                    text: `Sample ${config.game} question for ${config.intensity}`, 
+                    questionNumber: 1 
+                };
             }
             
             console.log(`✅ Question retrieved successfully`);
             
-            room.gameState.currentQuestion = question;
+            room.gameState.currentQuestion = questionData.text;
             room.gameState.questionCount++;
-            room.gameState.usedQuestions.push(question);
+            room.gameState.usedQuestions.push(questionData.text);
             
-            // Send to all players in room
-            io.to(roomCode).emit('game-started', {
+            // Prepare data for mobile clients
+            let mobileData = {
                 game: config.game,
                 mode: config.mode,
                 intensity: config.intensity,
-                question: question,
-                questionNumber: room.gameState.questionCount
+                question: questionData.text,
+                questionNumber: questionData.questionNumber,
+                isCustom: questionData.isCustom,
+                author: questionData.author
+            };
+            
+            // Add options for specific games
+            if (config.game === 'fmk' && typeof questionData.text === 'string') {
+                mobileData.options = questionData.text.split(',').map(o => o.trim());
+            } else if (config.game === 'wyr' && questionData.text.includes(' or ')) {
+                const parts = questionData.text.toLowerCase()
+                    .replace('would you rather', '')
+                    .split(' or ');
+                if (parts.length === 2) {
+                    mobileData.options = parts.map(p => p.trim());
+                }
+            }
+            
+            // Send to all players in room
+            io.to(roomCode).emit('game-started', mobileData);
+            
+            // Also send new-question event to mobile players
+            room.players.forEach(player => {
+                io.to(player.id).emit('new-question', mobileData);
             });
             
-            // Also send specifically to host
-            socket.emit('new-question', {
-                question: question,
-                questionNumber: room.gameState.questionCount
-            });
+            // Send to host
+            socket.emit('new-question', questionData);
             
             console.log(`📤 Question sent successfully`);
+            
+            // If custom question, announce the author
+            if (questionData.isCustom) {
+                io.to(roomCode).emit('custom-question-announcement', {
+                    author: questionData.author,
+                    questionNumber: questionData.questionNumber
+                });
+            }
             
         } catch (error) {
             console.error('Error starting game:', error);
@@ -335,96 +314,93 @@ io.on('connection', (socket) => {
             
             const dbGameName = gameMapping[room.gameState.currentGame] || room.gameState.currentGame;
             
-            let question = null;
+            let questionData = null;
             
-            // Try QuestionManager
-            if (QuestionManager && QuestionManager.getRandomQuestion) {
-                question = QuestionManager.getRandomQuestion(
+            // Try QuestionManager with mode and roomCode for custom questions
+            if (questionManager && questionManager.getRandomQuestion) {
+                questionData = questionManager.getRandomQuestion(
                     dbGameName, 
                     room.gameState.currentIntensity, 
-                    room.gameState.currentMode
+                    room.gameState.currentMode,  // Include mode for custom questions logic
+                    roomCode  // Include roomCode for tracking question numbers
                 );
             }
             
             // Fallback to direct database
-            if (!question && questionsDatabase[dbGameName] && questionsDatabase[dbGameName][room.gameState.currentIntensity]) {
+            if (!questionData && questionsDatabase[dbGameName] && questionsDatabase[dbGameName][room.gameState.currentIntensity]) {
                 const questions = questionsDatabase[dbGameName][room.gameState.currentIntensity];
                 const availableQuestions = questions.filter(q => !room.gameState.usedQuestions.includes(q));
                 
                 if (availableQuestions.length > 0) {
                     const randomIndex = Math.floor(Math.random() * availableQuestions.length);
-                    question = availableQuestions[randomIndex];
+                    questionData = { 
+                        text: availableQuestions[randomIndex], 
+                        questionNumber: room.gameState.questionCount + 1 
+                    };
                 } else {
                     // All questions used, reset
                     room.gameState.usedQuestions = [];
                     const randomIndex = Math.floor(Math.random() * questions.length);
-                    question = questions[randomIndex];
+                    questionData = { 
+                        text: questions[randomIndex], 
+                        questionNumber: 1 
+                    };
                 }
             }
             
-            if (!question) {
-                question = `Sample question ${room.gameState.questionCount + 1}`;
+            if (!questionData) {
+                questionData = { 
+                    text: `Sample question ${room.gameState.questionCount + 1}`,
+                    questionNumber: room.gameState.questionCount + 1
+                };
             }
             
-            room.gameState.currentQuestion = question;
+            room.gameState.currentQuestion = questionData.text;
             room.gameState.questionCount++;
-            room.gameState.usedQuestions.push(question);
+            room.gameState.usedQuestions.push(questionData.text);
+            
+            // Prepare data for mobile clients
+            let mobileData = {
+                question: questionData.text,
+                game: room.gameState.currentGame,
+                mode: room.gameState.currentMode,
+                questionNumber: questionData.questionNumber,
+                isCustom: questionData.isCustom,
+                author: questionData.author
+            };
+            
+            // Add options for specific games
+            if (room.gameState.currentGame === 'fmk' && typeof questionData.text === 'string') {
+                mobileData.options = questionData.text.split(',').map(o => o.trim());
+            } else if (room.gameState.currentGame === 'wyr' && questionData.text.includes(' or ')) {
+                const parts = questionData.text.toLowerCase()
+                    .replace('would you rather', '')
+                    .split(' or ');
+                if (parts.length === 2) {
+                    mobileData.options = parts.map(p => p.trim());
+                }
+            }
             
             // Send to all in room
-            io.to(roomCode).emit('new-question', {
-                question: question,
-                questionNumber: room.gameState.questionCount
+            io.to(roomCode).emit('new-question', mobileData);
+            
+            // Send to all mobile players with proper format
+            room.players.forEach(player => {
+                io.to(player.id).emit('new-question', mobileData);
             });
+            
+            // If custom question, announce the author
+            if (questionData.isCustom) {
+                io.to(roomCode).emit('custom-question-announcement', {
+                    author: questionData.author,
+                    questionNumber: questionData.questionNumber
+                });
+            }
             
             console.log(`Question ${room.gameState.questionCount} sent`);
             
         } catch (error) {
             console.error('Error getting next question:', error);
-            socket.emit('error', { message: 'Failed to get question' });
-        }
-    });
-    
-    // Get question (for play.html)
-    socket.on('get-question', (data) => {
-        const { roomCode, game, intensity } = data;
-        
-        console.log(`Get question request: ${game}/${intensity}`);
-        
-        try {
-            const gameMapping = {
-                'wyr': 'would_you_rather',
-                'fmk': 'fmk',
-                'nhie': 'never_have_i_ever',
-                'hottakes': 'hot_takes'
-            };
-            
-            const dbGameName = gameMapping[game] || game;
-            
-            let question = null;
-            
-            if (QuestionManager && QuestionManager.getRandomQuestion) {
-                question = QuestionManager.getRandomQuestion(dbGameName, intensity, 'offline');
-            }
-            
-            if (!question && questionsDatabase[dbGameName] && questionsDatabase[dbGameName][intensity]) {
-                const questions = questionsDatabase[dbGameName][intensity];
-                if (questions && questions.length > 0) {
-                    const randomIndex = Math.floor(Math.random() * questions.length);
-                    question = questions[randomIndex];
-                }
-            }
-            
-            if (!question) {
-                question = `Sample ${game} question`;
-            }
-            
-            socket.emit('new-question', {
-                question: question,
-                questionNumber: 1
-            });
-            
-        } catch (error) {
-            console.error('Error getting question:', error);
             socket.emit('error', { message: 'Failed to get question' });
         }
     });
@@ -467,17 +443,45 @@ io.on('connection', (socket) => {
     
     // Add custom question
     socket.on('add-custom-question', (data) => {
-        const { roomCode, question, author } = data;
+        const { roomCode, question, author, game, intensity } = data;
         
-        if (rooms[roomCode]) {
-            rooms[roomCode].customQuestions.push({
-                question: question,
+        const room = rooms[roomCode];
+        
+        if (room) {
+            // Add custom question to room
+            if (!room.customQuestions) {
+                room.customQuestions = [];
+            }
+            
+            room.customQuestions.push({
+                text: question,
                 author: author || 'Anonymous',
-                timestamp: Date.now()
+                game: game,
+                intensity: intensity,
+                timestamp: Date.now(),
+                isCustom: true
             });
             
-            console.log(`Custom question added to room ${roomCode}`);
+            console.log(`Custom question added to room ${roomCode}: "${question}" by ${author}`);
+            
+            // Emit confirmation to the player
             socket.emit('custom-question-added', { success: true });
+        }
+    });
+    
+    // Submit answer (for mobile voting)
+    socket.on('submit-answer', (data) => {
+        const { roomCode, answer, playerId } = data;
+        
+        console.log(`Answer submitted in room ${roomCode} by ${playerId}: ${JSON.stringify(answer)}`);
+        
+        // Store answer and notify host
+        if (rooms[roomCode]) {
+            // You can store answers here if needed
+            io.to(rooms[roomCode].hostId).emit('answer-received', {
+                playerId: playerId,
+                answer: answer
+            });
         }
     });
     
@@ -510,10 +514,112 @@ io.on('connection', (socket) => {
     });
 });
 
+// QuestionManager class with custom questions in first 20
+class QuestionManager {
+    constructor() {
+        this.questions = questionsDatabase;
+        this.usedQuestions = {};
+        this.customQuestions = {};
+        this.questionCount = {}; // Track question number per room
+    }
+    
+    getRandomQuestion(game, intensity, mode, roomCode) {
+        // If no roomCode provided, use standard logic
+        if (!roomCode || !rooms[roomCode]) {
+            return this.getStandardQuestion(game, intensity);
+        }
+        
+        const room = rooms[roomCode];
+        
+        // Initialize question counter for room
+        if (!this.questionCount[roomCode]) {
+            this.questionCount[roomCode] = 0;
+        }
+        
+        // Increment question count
+        this.questionCount[roomCode]++;
+        const currentQuestionNumber = this.questionCount[roomCode];
+        
+        // Only include custom questions in first 20 questions and only in mobile/spotlight modes
+        if (currentQuestionNumber <= 20 && 
+            (mode === 'mobile' || mode === 'spotlight' || mode === 'mixmaster') && 
+            room.customQuestions && 
+            room.customQuestions.length > 0) {
+            
+            // 30% chance to show a custom question (if available)
+            if (Math.random() < 0.3) {
+                const customQuestion = room.customQuestions.shift(); // Remove and return first custom question
+                
+                console.log(`🎭 Using custom question #${currentQuestionNumber}: "${customQuestion.text}"`);
+                
+                return {
+                    text: customQuestion.text,
+                    isCustom: true,
+                    author: customQuestion.author,
+                    questionNumber: currentQuestionNumber
+                };
+            }
+        }
+        
+        // Otherwise return standard question
+        return this.getStandardQuestion(game, intensity, currentQuestionNumber);
+    }
+    
+    getStandardQuestion(game, intensity, questionNumber) {
+        // Map game names
+        const gameMapping = {
+            'wyr': 'would_you_rather',
+            'fmk': 'fmk', 
+            'nhie': 'never_have_i_ever',
+            'hot': 'hot_takes',
+            'hottakes': 'hot_takes'
+        };
+        
+        const dbGame = gameMapping[game] || game;
+        
+        // Safety checks
+        if (!this.questions[dbGame]) {
+            console.error(`Game not found: ${dbGame}`);
+            return { text: `No questions available for ${game}`, questionNumber };
+        }
+        
+        if (!this.questions[dbGame][intensity]) {
+            console.error(`Intensity not found: ${intensity} for game ${dbGame}`);
+            return { text: `No ${intensity} questions available for ${game}`, questionNumber };
+        }
+        
+        const availableQuestions = this.questions[dbGame][intensity];
+        
+        if (!availableQuestions || availableQuestions.length === 0) {
+            return { text: `No questions available`, questionNumber };
+        }
+        
+        // Get random question
+        const randomIndex = Math.floor(Math.random() * availableQuestions.length);
+        const question = availableQuestions[randomIndex];
+        
+        return {
+            text: question,
+            isCustom: false,
+            questionNumber: questionNumber || 1
+        };
+    }
+    
+    resetQuestionCount(roomCode) {
+        this.questionCount[roomCode] = 0;
+    }
+}
+
+// If QuestionManager wasn't loaded from file, use the built-in one
+if (!questionManager) {
+    questionManager = new QuestionManager();
+}
+
 // Start server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`🎉 Don't Drink! server running on port ${PORT}`);
-    console.log(`📱 Visit http://localhost:${PORT} to start hosting!`);
+    console.log(`🔗 Visit http://localhost:${PORT} to start hosting!`);
     console.log(`🎮 Host interface: http://localhost:${PORT}/host`);
+    console.log(`📋 Question database status: ${Object.keys(questionsDatabase).length > 0 ? 'Loaded' : 'Not loaded'}`);
 });

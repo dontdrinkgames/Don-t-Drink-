@@ -3,233 +3,352 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Join Game - Don't Drink!</title>
+    <title>Don't Drink! - Mobile</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-       
+        
         body {
-            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: white;
             padding: 20px;
+            color: white;
         }
-       
+        
         .container {
             width: 100%;
             max-width: 400px;
         }
-       
+        
         .card {
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border-radius: 20px;
             padding: 30px;
             box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
         }
-       
+        
+        .hidden {
+            display: none !important;
+        }
+        
         .logo {
             font-size: 2rem;
-            font-weight: 700;
+            font-weight: bold;
             text-align: center;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+            background: linear-gradient(45deg, #FACC15, #FB923C);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.2);
         }
-       
+        
+        /* Join Screen Styles */
         .room-code-display {
             text-align: center;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
-            margin-bottom: 20px;
+            margin-bottom: 30px;
         }
-       
+        
         .room-code-label {
-            font-size: 0.8rem;
-            opacity: 0.9;
+            font-size: 0.9rem;
+            opacity: 0.8;
             margin-bottom: 5px;
         }
-       
+        
         .room-code-value {
-            font-size: 1.8rem;
-            font-weight: 700;
+            font-size: 2.5rem;
+            font-weight: bold;
             letter-spacing: 3px;
             color: #FACC15;
         }
-       
+        
         .input-group {
-            margin-bottom: 20px;
+            margin-bottom: 25px;
         }
-       
+        
         .input-label {
-            font-size: 0.9rem;
-            margin-bottom: 8px;
             display: block;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
         }
-       
+        
         .input-field {
             width: 100%;
-            padding: 12px;
+            padding: 12px 15px;
             background: rgba(255, 255, 255, 0.2);
             border: 2px solid rgba(255, 255, 255, 0.3);
             border-radius: 10px;
             color: white;
             font-size: 1rem;
-            transition: all 0.3s ease;
         }
-       
+        
         .input-field::placeholder {
-            color: rgba(255, 255, 255, 0.7);
+            color: rgba(255, 255, 255, 0.6);
         }
-       
-        .input-field:focus {
-            outline: none;
-            border-color: rgba(255, 255, 255, 0.6);
-            background: rgba(255, 255, 255, 0.3);
-        }
-       
+        
         .avatar-section {
             margin-bottom: 25px;
         }
-       
+        
         .avatar-label {
-            font-size: 0.9rem;
-            margin-bottom: 12px;
             display: block;
+            margin-bottom: 12px;
+            font-size: 0.9rem;
         }
-       
+        
         .avatar-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 10px;
         }
-       
+        
         .avatar-option {
+            width: 100%;
+            aspect-ratio: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
             font-size: 1.8rem;
-            padding: 10px;
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.1);
             border: 2px solid transparent;
             border-radius: 10px;
             cursor: pointer;
             transition: all 0.3s ease;
-            text-align: center;
         }
-       
-        .avatar-option:hover {
-            background: rgba(255, 255, 255, 0.25);
-            transform: scale(1.1);
-        }
-       
+        
         .avatar-option.selected {
+            background: rgba(250, 204, 21, 0.3);
             border-color: #FACC15;
-            background: rgba(250, 204, 21, 0.2);
-            box-shadow: 0 0 20px rgba(250, 204, 21, 0.4);
         }
-       
+        
         .join-btn {
             width: 100%;
             padding: 15px;
-            background: linear-gradient(135deg, #10B981, #059669);
-            color: white;
+            background: linear-gradient(45deg, #FACC15, #FB923C);
             border: none;
             border-radius: 10px;
+            color: #1a1a1a;
             font-size: 1.1rem;
-            font-weight: 700;
+            font-weight: bold;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            transition: transform 0.2s;
         }
-       
-        .join-btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
+        
+        .join-btn:active {
+            transform: scale(0.98);
         }
-       
-        .join-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
-        }
-       
-        .error-message {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            color: #FCA5A5;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 0.9rem;
-            text-align: center;
-        }
-       
-        .hidden {
-            display: none !important;
-        }
-       
+        
         /* Waiting Screen */
-        .player-name-display {
+        #waitingScreen {
             text-align: center;
-            margin-bottom: 30px;
-            font-size: 1.2rem;
         }
-       
+        
+        .player-name-display {
+            font-size: 1.5rem;
+            margin-bottom: 30px;
+        }
+        
         #playerAvatar {
             font-size: 2rem;
             margin-right: 10px;
         }
-       
+        
         .spinner {
             width: 50px;
             height: 50px;
-            border: 4px solid rgba(255, 255, 255, 0.2);
-            border-top: 4px solid #FACC15;
+            border: 4px solid rgba(255, 255, 255, 0.3);
+            border-top-color: #FACC15;
             border-radius: 50%;
-            animation: spin 1s linear infinite;
             margin: 30px auto;
+            animation: spin 1s linear infinite;
         }
-       
+        
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
-       
+        
         .waiting-message {
-            text-align: center;
-            font-size: 1rem;
-            opacity: 0.9;
-            margin-top: 20px;
+            font-size: 1.1rem;
+            opacity: 0.8;
+            animation: pulse 2s ease-in-out infinite;
         }
-       
-        .status-message {
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 0.8; }
+            50% { opacity: 0.4; }
+        }
+        
+        /* Custom Question Input */
+        .custom-question-section {
+            margin: 20px 0;
+            padding: 20px;
             background: rgba(255, 255, 255, 0.1);
+            border-radius: 15px;
+        }
+        
+        .custom-question-title {
+            font-size: 1rem;
+            margin-bottom: 10px;
+            color: #FACC15;
+        }
+        
+        .custom-question-input {
+            width: 100%;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            color: white;
+            margin-bottom: 10px;
+        }
+        
+        .submit-custom-btn {
+            padding: 8px 20px;
+            background: #FACC15;
+            border: none;
+            border-radius: 8px;
+            color: #1a1a1a;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        /* Game Screen */
+        .voting-section {
+            padding: 20px;
+        }
+        
+        #questionText {
+            font-size: 1.3rem;
+            margin-bottom: 25px;
+            text-align: center;
+            line-height: 1.5;
+        }
+        
+        #answerOptions {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+        
+        .answer-btn {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 15px;
+            color: white;
+            font-size: 1.2rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .answer-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .answer-btn:active {
+            transform: translateY(0);
+        }
+        
+        .answer-btn.selected {
+            background: rgba(250, 204, 21, 0.3);
+            border-color: #FACC15;
+        }
+        
+        /* FMK Drag and Drop */
+        .fmk-container {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .fmk-options {
+            display: flex;
+            gap: 10px;
+            justify-content: center;
+            flex-wrap: wrap;
+            min-height: 60px;
+        }
+        
+        .fmk-option {
+            padding: 10px 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            cursor: grab;
+            transition: all 0.3s ease;
+        }
+        
+        .fmk-option.dragging {
+            opacity: 0.5;
+            cursor: grabbing;
+        }
+        
+        .fmk-zones {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        
+        .fmk-zone {
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            text-align: center;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        .fmk-zone.drag-over {
+            background: rgba(250, 204, 21, 0.2);
+            border-color: #FACC15;
+        }
+        
+        .fmk-zone-label {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+        
+        .fmk-zone-item {
+            padding: 8px 12px;
+            background: rgba(250, 204, 21, 0.3);
+            border-radius: 8px;
+            margin-top: 10px;
+        }
+        
+        .submit-fmk-btn {
+            margin-top: 20px;
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #FACC15, #FB923C);
+            border: none;
+            border-radius: 10px;
+            color: #1a1a1a;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+        }
+        
+        .error-message {
+            background: rgba(239, 68, 68, 0.2);
+            border: 1px solid rgba(239, 68, 68, 0.5);
             padding: 10px;
             border-radius: 8px;
             text-align: center;
             margin-top: 15px;
-        }
-       
-        /* Voting Styles */
-        #answerOptions button, #answerOptions div {
-            font-size: 1.5rem;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.3);
-            border-radius: 10px;
-            cursor: pointer;
-            margin: 5px;
-            width: 100%;
-        }
-        #answerOptions button:hover {
-            background: rgba(255, 255, 255, 0.3);
         }
     </style>
 </head>
@@ -238,40 +357,51 @@
         <!-- Join Screen -->
         <div id="joinScreen" class="card">
             <h1 class="logo">Don't Drink!</h1>
-           
+            
             <div class="room-code-display">
                 <div class="room-code-label">Joining Room</div>
                 <div class="room-code-value" id="roomCodeDisplay">LOADING</div>
             </div>
-           
+            
             <div id="errorMessage" class="error-message hidden"></div>
-           
+            
             <div class="input-group">
                 <label class="input-label">Your Name</label>
                 <input type="text" id="playerName" class="input-field" placeholder="Enter your name" maxlength="20" autocomplete="off">
             </div>
-           
+            
             <div class="avatar-section">
                 <label class="avatar-label">Choose Your Avatar</label>
                 <div class="avatar-grid">
                     <div class="avatar-option selected" data-avatar="🍆">🍆</div>
                     <div class="avatar-option" data-avatar="🍑">🍑</div>
-                    <div class="avatar-option" data-avatar="👅">👅</div>
-                    <div class="avatar-option" data-avatar="💦">💦</div>
-                    <div class="avatar-option" data-avatar="🔥">🔥</div>
+                    <div class="avatar-option" data-avatar="💋">💋</div>
                     <div class="avatar-option" data-avatar="😈">😈</div>
-                    <div class="avatar-option" data-avatar="🥵">🥵</div>
-                    <div class="avatar-option" data-avatar="🍌">🍌</div>
-                    <div class="avatar-option" data-avatar="🍒">🍒</div>
+                    <div class="avatar-option" data-avatar="🔥">🔥</div>
+                    <div class="avatar-option" data-avatar="💦">💦</div>
                     <div class="avatar-option" data-avatar="🌶️">🌶️</div>
-                    <div class="avatar-option" data-avatar="🥒">🥒</div>
-                    <div class="avatar-option" data-avatar="🍾">🍾</div>
+                    <div class="avatar-option" data-avatar="🌮">🌮</div>
+                    <div class="avatar-option" data-avatar="🥵">🥵</div>
+                    <div class="avatar-option" data-avatar="😏">😏</div>
+                    <div class="avatar-option" data-avatar="🕺">🕺</div>
+                    <div class="avatar-option" data-avatar="💃">💃</div>
+                    <div class="avatar-option" data-avatar="👅">👅</div>
+                    <div class="avatar-option" data-avatar="🤤">🤤</div>
+                    <div class="avatar-option" data-avatar="🍯">🍯</div>
+                    <div class="avatar-option" data-avatar="😎">😎</div>
                 </div>
             </div>
-           
+            
+            <!-- Custom Question Input (vises når spilleren joiner) -->
+            <div class="custom-question-section">
+                <div class="custom-question-title">🎭 Add Your Anonymous Question</div>
+                <input type="text" id="customQuestionInput" class="custom-question-input" placeholder="Make it spicy...">
+                <button id="submitCustomBtn" class="submit-custom-btn">Submit Question</button>
+            </div>
+            
             <button id="joinBtn" class="join-btn">Join Game</button>
         </div>
-       
+        
         <!-- Waiting Screen -->
         <div id="waitingScreen" class="card hidden">
             <h1 class="logo">Don't Drink!</h1>
@@ -283,208 +413,306 @@
             <div class="waiting-message">Waiting for host to start the game...</div>
             <div id="gameStatus" class="status-message hidden"></div>
         </div>
-       
+        
         <!-- Voting Screen -->
-        <div class="voting-section card hidden" style="display: none;">
-            <div id="questionText" style="font-size: 1.2rem; margin-bottom: 20px; text-align: center;"></div>
-            <div id="answerOptions" style="display: grid; gap: 10px;"></div>
+        <div id="votingScreen" class="voting-section card hidden">
+            <div id="questionText"></div>
+            <div id="answerOptions"></div>
         </div>
     </div>
-    <!-- Socket.IO from CDN with fallback -->
+
+    <!-- Socket.IO from CDN -->
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script>
         let socket = null;
         let selectedAvatar = '🍆';
         let roomCode = '';
         let connected = false;
-       
+        let playerName = '';
+        let currentGame = '';
+        let currentMode = '';
+        
         // Get room code from URL
         function getRoomCodeFromURL() {
             const path = window.location.pathname;
             const code = path.substring(1);
             return code.length === 6 ? code.toUpperCase() : null;
         }
-       
+        
         // Initialize
         window.addEventListener('load', () => {
             roomCode = getRoomCodeFromURL();
-           
+            
             if (!roomCode) {
                 showError('Invalid room code. Please use a valid game link.');
-                document.getElementById('joinBtn').disabled = true;
                 return;
             }
-           
+            
             document.getElementById('roomCodeDisplay').textContent = roomCode;
-            initSocket();
-        });
-       
-        // Initialize Socket.IO
-        function initSocket() {
-            // If Socket.IO fails to load from CDN, try loading from server
-            if (typeof io === 'undefined') {
-                const script = document.createElement('script');
-                script.src = '/socket.io/socket.io.js';
-                script.onload = () => initSocketConnection();
-                script.onerror = () => showError('Failed to load connection library');
-                document.head.appendChild(script);
-            } else {
-                initSocketConnection();
-            }
-        }
-       
-        function initSocketConnection() {
-            // Auto-detect server URL
-            const socketUrl = window.location.hostname === 'localhost'
-                ? 'http://localhost:3000'
-                : window.location.origin;
-          
-            socket = io(socketUrl, {
-                transports: ['polling', 'websocket'], // Polling først for bedre mobil-støtte
-                reconnection: true,                    // Enable auto-reconnect
-                reconnectionAttempts: Infinity,        // Keep trying forever
-                reconnectionDelay: 1000,               // Start with 1s delay
-                reconnectionDelayMax: 5000,            // Max delay 5s
-                randomizationFactor: 0.5               // Add randomness to delays
-            });
-                   
+            
+            // Initialize Socket.IO connection
+            socket = io();
+            
             socket.on('connect', () => {
                 console.log('Connected to server');
                 connected = true;
-                hideError();
-                document.getElementById('joinBtn').disabled = false;
             });
-           
-            // CRITICAL: Listen for join-success event
-            socket.on('join-success', (data) => {
-                console.log('Successfully joined room:', data);
-                showWaitingScreen();
+            
+            socket.on('disconnect', () => {
+                console.log('Disconnected from server');
+                connected = false;
+                showError('Lost connection to server');
             });
-           
-            socket.on('join-error', (error) => {
-                console.log('Join error:', error);
-                showError(error.message || 'Failed to join room');
-                document.getElementById('joinBtn').disabled = false;
+            
+            // Listen for game events
+            socket.on('game-started', (config) => {
+                console.log('Game started:', config);
+                currentGame = config.game;
+                currentMode = config.mode;
+                document.getElementById('waitingScreen').classList.add('hidden');
+                // Game will start when first question arrives
             });
-           
-            socket.on('game-started', (data) => {
-                console.log('Game started:', data);
-                document.getElementById('gameStatus').textContent = 'Game is starting!';
-                document.getElementById('gameStatus').classList.remove('hidden');
-                // Redirect to play page - commented for testing
-                // setTimeout(() => {
-                //     window.location.href = `/play?room=${roomCode}&game=${data.game}`;
-                // }, 1000);
-            });
-            // Legg til denne nye handleren her
+            
+            // Handle new questions
             socket.on('new-question', (data) => {
-                console.log('New question received:', data); // Debug log
-                const { question, game, mode } = data; // Anta server sender game og mode med spørsmålet
-               
-                // Vis spørsmålet
-                document.getElementById('questionText').textContent = question || 'No question text';
-               
-                // Fjern loading/waiting og vis answer-section
-                document.getElementById('waitingScreen').style.display = 'none';
-                document.querySelector('.voting-section').style.display = 'block';
-               
-                const optionsDiv = document.getElementById('answerOptions');
-                optionsDiv.innerHTML = '';
-               
-                let answer = null; // For å lagre spillerens valg
-               
-                if (game === 'would_you_rather') {
-                    // WYR: To knapper for A/B
-                    const btnA = document.createElement('button');
-                    btnA.textContent = 'A';
-                    btnA.onclick = () => { answer = 'A'; submitAnswer(); };
-                    const btnB = document.createElement('button');
-                    btnB.textContent = 'B';
-                    btnB.onclick = () => { answer = 'B'; submitAnswer(); };
-                    optionsDiv.appendChild(btnA);
-                    optionsDiv.appendChild(btnB);
-                } else if (game === 'fmk') {
-                    // FMK: Drag-and-drop for tre alternativer (anta question er array ['Person1', 'Person2', 'Person3'])
-                    const options = question.split(', '); // Split hvis string, eller bruk question hvis array
-                    const dropZones = ['F', 'M', 'K'].map(label => {
-                        const zone = document.createElement('div');
-                        zone.textContent = label;
-                        zone.ondrop = (ev) => { /* handle drop */ answer[label] = ev.dataTransfer.getData('text'); };
-                        zone.ondragover = (ev) => ev.preventDefault();
-                        return zone;
-                    });
-                    options.forEach(opt => {
-                        const draggable = document.createElement('div');
-                        draggable.textContent = opt;
-                        draggable.draggable = true;
-                        draggable.ondragstart = (ev) => ev.dataTransfer.setData('text', opt);
-                        optionsDiv.appendChild(draggable);
-                    });
-                    dropZones.forEach(zone => optionsDiv.appendChild(zone));
-                    // Submit-knapp for FMK
-                    const submitBtn = document.createElement('button');
-                    submitBtn.textContent = 'Submit';
-                    submitBtn.onclick = submitAnswer;
-                    optionsDiv.appendChild(submitBtn);
-                } else if (game === 'never_have_i_ever') {
-                    // NHIE: To knapper
-                    const btnHave = document.createElement('button');
-                    btnHave.textContent = 'I Have';
-                    btnHave.onclick = () => { answer = 'have'; submitAnswer(); };
-                    const btnNever = document.createElement('button');
-                    btnNever.textContent = 'Never';
-                    btnNever.onclick = () => { answer = 'never'; submitAnswer(); };
-                    optionsDiv.appendChild(btnHave);
-                    optionsDiv.appendChild(btnNever);
-                } else if (game === 'hot_takes') {
-                    // Hot Takes: To knapper
-                    const btnAgree = document.createElement('button');
-                    btnAgree.textContent = 'Agree 👍';
-                    btnAgree.onclick = () => { answer = 'agree'; submitAnswer(); };
-                    const btnDisagree = document.createElement('button');
-                    btnDisagree.textContent = 'Disagree 👎';
-                    btnDisagree.onclick = () => { answer = 'disagree'; submitAnswer(); };
-                    optionsDiv.appendChild(btnAgree);
-                    optionsDiv.appendChild(btnDisagree);
-                } else {
-                    console.log('Unknown game type:', game); // Debug if game not recognized
-                }
-               
-                // Funksjon for å sende svar
-                function submitAnswer() {
-                    console.log('Submitting answer:', answer); // Debug log
-                    socket.emit('submit-answer', { roomCode: getRoomCodeFromURL(), answer });
-                }
+                console.log('New question received:', data);
+                displayQuestion(data);
             });
-                   
+            
+            socket.on('reveal-answers', (data) => {
+                console.log('Answers revealed:', data);
+                // Handle answer reveal
+            });
+            
             socket.on('players-updated', (players) => {
                 console.log('Players updated:', players);
                 const status = `${players.length} player${players.length !== 1 ? 's' : ''} in room`;
                 document.getElementById('gameStatus').textContent = status;
                 document.getElementById('gameStatus').classList.remove('hidden');
             });
-           
+            
             socket.on('host-disconnected', () => {
                 showError('Host has left the game');
-                // Comment redirect for testing
-                // setTimeout(() => {
-                //     window.location.href = '/';
-                // }, 3000);
             });
-           
-            socket.on('disconnect', () => {
-                console.log('Disconnected from server');
-                connected = false;
-                showError('Lost connection to server');
-            });
-           
-            socket.on('connect_error', (error) => {
-                console.error('Connection error:', error);
-                connected = false;
-                showError('Cannot connect to game server');
-            });
+        });
+        
+        // Display question based on game type
+        function displayQuestion(data) {
+            const { question, game, mode, options } = data;
+            
+            document.getElementById('waitingScreen').classList.add('hidden');
+            document.getElementById('votingScreen').classList.remove('hidden');
+            document.getElementById('questionText').textContent = question;
+            
+            const answerDiv = document.getElementById('answerOptions');
+            answerDiv.innerHTML = '';
+            
+            // Determine game type
+            const gameType = game || currentGame;
+            
+            if (gameType === 'would_you_rather' || gameType === 'wyr') {
+                // Would You Rather - Two buttons
+                if (options && options.length === 2) {
+                    options.forEach((option, index) => {
+                        const btn = document.createElement('button');
+                        btn.className = 'answer-btn';
+                        btn.textContent = `${index === 0 ? 'A' : 'B'}: ${option}`;
+                        btn.onclick = () => submitAnswer(index === 0 ? 'A' : 'B');
+                        answerDiv.appendChild(btn);
+                    });
+                } else {
+                    // Fallback for A/B without options
+                    ['A', 'B'].forEach(option => {
+                        const btn = document.createElement('button');
+                        btn.className = 'answer-btn';
+                        btn.textContent = `Option ${option}`;
+                        btn.onclick = () => submitAnswer(option);
+                        answerDiv.appendChild(btn);
+                    });
+                }
+            } else if (gameType === 'fmk') {
+                // F*ck, Marry, Kill - Drag and Drop
+                createFMKInterface(options || ['Option 1', 'Option 2', 'Option 3']);
+            } else if (gameType === 'never_have_i_ever' || gameType === 'nhie') {
+                // Never Have I Ever - Two buttons
+                const btnHave = document.createElement('button');
+                btnHave.className = 'answer-btn';
+                btnHave.innerHTML = '👍 I Have';
+                btnHave.onclick = () => submitAnswer('have');
+                
+                const btnNever = document.createElement('button');
+                btnNever.className = 'answer-btn';
+                btnNever.innerHTML = '👎 Never';
+                btnNever.onclick = () => submitAnswer('never');
+                
+                answerDiv.appendChild(btnHave);
+                answerDiv.appendChild(btnNever);
+            } else if (gameType === 'hot_takes' || gameType === 'hottakes' || gameType === 'hot') {
+                // Hot Takes - Agree/Disagree
+                const btnAgree = document.createElement('button');
+                btnAgree.className = 'answer-btn';
+                btnAgree.innerHTML = '👍 Agree';
+                btnAgree.onclick = () => submitAnswer('agree');
+                
+                const btnDisagree = document.createElement('button');
+                btnDisagree.className = 'answer-btn';
+                btnDisagree.innerHTML = '👎 Disagree';
+                btnDisagree.onclick = () => submitAnswer('disagree');
+                
+                answerDiv.appendChild(btnAgree);
+                answerDiv.appendChild(btnDisagree);
+            }
         }
-       
+        
+        // Create FMK drag-and-drop interface
+        function createFMKInterface(options) {
+            const answerDiv = document.getElementById('answerOptions');
+            
+            const container = document.createElement('div');
+            container.className = 'fmk-container';
+            
+            // Options to drag
+            const optionsDiv = document.createElement('div');
+            optionsDiv.className = 'fmk-options';
+            
+            options.forEach((option, index) => {
+                const optionEl = document.createElement('div');
+                optionEl.className = 'fmk-option';
+                optionEl.textContent = option;
+                optionEl.draggable = true;
+                optionEl.dataset.value = option;
+                
+                optionEl.ondragstart = (e) => {
+                    e.dataTransfer.setData('text/plain', option);
+                    optionEl.classList.add('dragging');
+                };
+                
+                optionEl.ondragend = () => {
+                    optionEl.classList.remove('dragging');
+                };
+                
+                // Touch support for mobile
+                optionEl.onclick = () => {
+                    // Simple click to assign for mobile
+                    const nextZone = document.querySelector('.fmk-zone:not(.filled)');
+                    if (nextZone) {
+                        assignToZone(nextZone, option);
+                        optionEl.style.display = 'none';
+                    }
+                };
+                
+                optionsDiv.appendChild(optionEl);
+            });
+            
+            container.appendChild(optionsDiv);
+            
+            // Drop zones
+            const zonesDiv = document.createElement('div');
+            zonesDiv.className = 'fmk-zones';
+            
+            ['F*ck', 'Marry', 'Kill'].forEach(label => {
+                const zone = document.createElement('div');
+                zone.className = 'fmk-zone';
+                zone.dataset.zone = label.charAt(0);
+                
+                const zoneLabel = document.createElement('div');
+                zoneLabel.className = 'fmk-zone-label';
+                zoneLabel.textContent = label;
+                zone.appendChild(zoneLabel);
+                
+                zone.ondragover = (e) => {
+                    e.preventDefault();
+                    zone.classList.add('drag-over');
+                };
+                
+                zone.ondragleave = () => {
+                    zone.classList.remove('drag-over');
+                };
+                
+                zone.ondrop = (e) => {
+                    e.preventDefault();
+                    const data = e.dataTransfer.getData('text/plain');
+                    assignToZone(zone, data);
+                    zone.classList.remove('drag-over');
+                };
+                
+                zonesDiv.appendChild(zone);
+            });
+            
+            container.appendChild(zonesDiv);
+            
+            // Submit button
+            const submitBtn = document.createElement('button');
+            submitBtn.className = 'submit-fmk-btn';
+            submitBtn.textContent = 'Submit Answer';
+            submitBtn.onclick = submitFMKAnswer;
+            container.appendChild(submitBtn);
+            
+            answerDiv.appendChild(container);
+        }
+        
+        // Assign option to FMK zone
+        function assignToZone(zone, value) {
+            // Clear existing item if any
+            const existingItem = zone.querySelector('.fmk-zone-item');
+            if (existingItem) {
+                // Return the previous item to options
+                const option = document.querySelector(`.fmk-option[data-value="${existingItem.dataset.value}"]`);
+                if (option) option.style.display = 'block';
+                existingItem.remove();
+            }
+            
+            // Add new item
+            const item = document.createElement('div');
+            item.className = 'fmk-zone-item';
+            item.textContent = value;
+            item.dataset.value = value;
+            zone.appendChild(item);
+            zone.classList.add('filled');
+            
+            // Hide the dragged option
+            const option = document.querySelector(`.fmk-option[data-value="${value}"]`);
+            if (option) option.style.display = 'none';
+        }
+        
+        // Submit FMK answer
+        function submitFMKAnswer() {
+            const zones = document.querySelectorAll('.fmk-zone');
+            const answer = {};
+            
+            zones.forEach(zone => {
+                const item = zone.querySelector('.fmk-zone-item');
+                if (item) {
+                    answer[zone.dataset.zone] = item.dataset.value;
+                }
+            });
+            
+            if (Object.keys(answer).length === 3) {
+                submitAnswer(answer);
+            } else {
+                alert('Please assign all three options!');
+            }
+        }
+        
+        // Submit answer to server
+        function submitAnswer(answer) {
+            console.log('Submitting answer:', answer);
+            socket.emit('submit-answer', { 
+                roomCode: roomCode, 
+                answer: answer,
+                playerId: socket.id
+            });
+            
+            // Show feedback
+            document.getElementById('votingScreen').innerHTML = `
+                <div class="card">
+                    <h2 style="text-align: center; margin-bottom: 20px;">Answer Submitted!</h2>
+                    <div class="spinner"></div>
+                    <div style="text-align: center; opacity: 0.8;">Waiting for others...</div>
+                </div>
+            `;
+        }
+        
         // Avatar selection
         document.querySelectorAll('.avatar-option').forEach(option => {
             option.addEventListener('click', () => {
@@ -493,64 +721,59 @@
                 selectedAvatar = option.dataset.avatar;
             });
         });
-       
-        // Join button
+        
+        // Custom question submission
+        document.getElementById('submitCustomBtn').addEventListener('click', () => {
+            const customQuestion = document.getElementById('customQuestionInput').value.trim();
+            if (customQuestion && socket) {
+                socket.emit('add-custom-question', {
+                    roomCode: roomCode,
+                    question: customQuestion,
+                    author: playerName
+                });
+                document.getElementById('customQuestionInput').value = '';
+                document.querySelector('.custom-question-section').innerHTML = '<div style="text-align: center; color: #FACC15;">✅ Question submitted!</div>';
+            }
+        });
+        
+        // Join game button
         document.getElementById('joinBtn').addEventListener('click', () => {
-            const playerName = document.getElementById('playerName').value.trim();
-           
+            playerName = document.getElementById('playerName').value.trim();
+            
             if (!playerName) {
                 showError('Please enter your name');
                 return;
             }
-           
+            
             if (!connected) {
-                showError('Connecting to server...');
+                showError('Not connected to server. Please refresh.');
                 return;
             }
-           
-            document.getElementById('joinBtn').disabled = true;
-           
-            // Send join request
+            
+            // Join room
             socket.emit('join-room', {
                 roomCode: roomCode,
                 playerName: playerName,
                 avatar: selectedAvatar
             });
-           
-            // Set timeout in case server doesn't respond
-            setTimeout(() => {
-                if (!document.getElementById('waitingScreen').classList.contains('hidden')) {
-                    return; // Already on waiting screen
-                }
-                document.getElementById('joinBtn').disabled = false;
-                showError('Join timeout - please try again');
-            }, 5000);
-        });
-       
-        // Enter key support
-        document.getElementById('playerName').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                document.getElementById('joinBtn').click();
-            }
-        });
-       
-        function showWaitingScreen() {
-            const playerName = document.getElementById('playerName').value.trim();
+            
+            // Update display
             document.getElementById('playerNameDisplay').textContent = playerName;
             document.getElementById('playerAvatar').textContent = selectedAvatar;
-           
+            
+            // Switch to waiting screen
             document.getElementById('joinScreen').classList.add('hidden');
             document.getElementById('waitingScreen').classList.remove('hidden');
-        }
-       
+        });
+        
+        // Error display
         function showError(message) {
             const errorEl = document.getElementById('errorMessage');
             errorEl.textContent = message;
             errorEl.classList.remove('hidden');
-        }
-       
-        function hideError() {
-            document.getElementById('errorMessage').classList.add('hidden');
+            setTimeout(() => {
+                errorEl.classList.add('hidden');
+            }, 5000);
         }
     </script>
 </body>

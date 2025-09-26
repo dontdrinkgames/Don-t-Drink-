@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Add Anonymous Question - Don't Drink!</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 20px;
+            color: white;
+        }
+        
+        .container {
+            width: 100%;
+            max-width: 400px;
+        }
+        
+        .card {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        }
+        
+        .logo {
+            font-size: 2rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            background: linear-gradient(45deg, #FACC15, #FB923C);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .title {
+            text-align: center;
+            font-size: 1.2rem;
+            margin-bottom: 10px;
+            color: #FACC15;
+        }
+        
+        .subtitle {
+            text-align: center;
+            opacity: 0.8;
+            margin-bottom: 30px;
+            font-size: 0.95rem;
+        }
+        
+        .game-selector {
+            margin-bottom: 20px;
+        }
+        
+        .game-label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .game-buttons {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .game-btn {
+            padding: 12px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        .game-btn.selected {
+            background: rgba(250, 204, 21, 0.3);
+            border-color: #FACC15;
+        }
+        
+        .intensity-selector {
+            margin-bottom: 20px;
+        }
+        
+        .intensity-label {
+            display: block;
+            margin-bottom: 10px;
+            font-size: 0.9rem;
+            opacity: 0.9;
+        }
+        
+        .intensity-buttons {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .intensity-btn {
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            color: white;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 0.9rem;
+            text-align: center;
+        }
+        
+        .intensity-btn.selected {
+            background: rgba(250, 204, 21, 0.3);
+            border-color: #FACC15;
+        }
+        
+        .question-input {
+            width: 100%;
+            min-height: 100px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            color: white;
+            font-size: 1rem;
+            resize: vertical;
+            margin-bottom: 20px;
+        }
+        
+        .question-input::placeholder {
+            color: rgba(255, 255, 255, 0.6);
+        }
+        
+        .submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(45deg, #FACC15, #FB923C);
+            border: none;
+            border-radius: 10px;
+            color: #1a1a1a;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: transform 0.2s;
+        }
+        
+        .submit-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .success-message {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.5);
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            display: none;
+        }
+        
+        .success-message.show {
+            display: block;
+        }
+        
+        .examples {
+            background: rgba(255, 255, 255, 0.05);
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .examples-title {
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            opacity: 0.9;
+        }
+        
+        .example {
+            font-size: 0.85rem;
+            opacity: 0.7;
+            margin-bottom: 5px;
+            padding-left: 10px;
+        }
+        
+        .room-info {
+            text-align: center;
+            padding: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            margin-bottom: 20px;
+        }
+        
+        .room-code {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #FACC15;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="card">
+            <h1 class="logo">Don't Drink!</h1>
+            
+            <div class="room-info">
+                Room Code: <span class="room-code" id="roomCode">LOADING</span>
+            </div>
+            
+            <div class="title">🎭 Add Your Anonymous Question</div>
+            <div class="subtitle">Make it spicy, make it memorable!</div>
+            
+            <div class="success-message" id="successMessage">
+                ✅ Question submitted successfully!
+            </div>
+            
+            <!-- Game Type Selector -->
+            <div class="game-selector">
+                <label class="game-label">Choose Game Type:</label>
+                <div class="game-buttons">
+                    <button class="game-btn selected" data-game="wyr">Would You Rather</button>
+                    <button class="game-btn" data-game="fmk">F*ck, Marry, Kill</button>
+                    <button class="game-btn" data-game="nhie">Never Have I Ever</button>
+                    <button class="game-btn" data-game="hot">Hot Takes</button>
+                </div>
+            </div>
+            
+            <!-- Intensity Selector -->
+            <div class="intensity-selector">
+                <label class="intensity-label">Choose Intensity:</label>
+                <div class="intensity-buttons">
+                    <button class="intensity-btn" data-intensity="medium">🌶️ Medium</button>
+                    <button class="intensity-btn selected" data-intensity="spicy">🔥 Spicy</button>
+                    <button class="intensity-btn" data-intensity="cancelled">☠️ Cancelled</button>
+                </div>
+            </div>
+            
+            <!-- Examples -->
+            <div class="examples" id="examples">
+                <div class="examples-title">Examples:</div>
+                <div class="example">• Would you rather have your browser history made public or never use the internet again?</div>
+                <div class="example">• Would you rather accidentally send a nude to your boss or your parents?</div>
+            </div>
+            
+            <!-- Question Input -->
+            <textarea 
+                id="questionInput" 
+                class="question-input" 
+                placeholder="Type your question here..."
+                maxlength="300"
+            ></textarea>
+            
+            <button id="submitBtn" class="submit-btn">Submit Question</button>
+        </div>
+    </div>
+
+    <!-- Socket.IO -->
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
+    <script>
+        let socket = null;
+        let selectedGame = 'wyr';
+        let selectedIntensity = 'spicy';
+        let roomCode = '';
+        
+        // Examples for each game type
+        const examples = {
+            wyr: [
+                "Would you rather have your browser history made public or never use the internet again?",
+                "Would you rather accidentally send a nude to your boss or your parents?"
+            ],
+            fmk: [
+                "Ryan Gosling, Ryan Reynolds, Ryan Seacrest",
+                "Your ex, Your boss, Your best friend's partner"
+            ],
+            nhie: [
+                "Never have I ever faked an orgasm",
+                "Never have I ever stalked an ex on social media while drunk"
+            ],
+            hot: [
+                "People who don't return shopping carts are fundamentally bad people",
+                "Pineapple on pizza is actually delicious and haters are just followers"
+            ]
+        };
+        
+        // Get room code from URL
+        function getRoomCodeFromURL() {
+            const path = window.location.pathname;
+            const parts = path.split('/');
+            const codeIndex = parts.indexOf('add-question') + 1;
+            if (codeIndex < parts.length) {
+                return parts[codeIndex].toUpperCase();
+            }
+            return null;
+        }
+        
+        // Initialize
+        window.addEventListener('load', () => {
+            roomCode = getRoomCodeFromURL();
+            
+            if (!roomCode) {
+                document.getElementById('roomCode').textContent = 'ERROR';
+                alert('Invalid room code');
+                return;
+            }
+            
+            document.getElementById('roomCode').textContent = roomCode;
+            
+            // Connect to server
+            socket = io();
+            
+            socket.on('connect', () => {
+                console.log('Connected to server');
+            });
+            
+            // Update examples when game type changes
+            updateExamples();
+        });
+        
+        // Game type selection
+        document.querySelectorAll('.game-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.game-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedGame = btn.dataset.game;
+                updateExamples();
+            });
+        });
+        
+        // Intensity selection
+        document.querySelectorAll('.intensity-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                document.querySelectorAll('.intensity-btn').forEach(b => b.classList.remove('selected'));
+                btn.classList.add('selected');
+                selectedIntensity = btn.dataset.intensity;
+            });
+        });
+        
+        // Update examples
+        function updateExamples() {
+            const examplesDiv = document.getElementById('examples');
+            const gameExamples = examples[selectedGame];
+            
+            let html = '<div class="examples-title">Examples:</div>';
+            gameExamples.forEach(example => {
+                html += `<div class="example">• ${example}</div>`;
+            });
+            
+            examplesDiv.innerHTML = html;
+        }
+        
+        // Submit question
+        document.getElementById('submitBtn').addEventListener('click', () => {
+            const question = document.getElementById('questionInput').value.trim();
+            
+            if (!question) {
+                alert('Please enter a question');
+                return;
+            }
+            
+            if (!socket || !socket.connected) {
+                alert('Not connected to server. Please refresh and try again.');
+                return;
+            }
+            
+            // Format question based on game type
+            let formattedQuestion = question;
+            
+            if (selectedGame === 'wyr' && !question.toLowerCase().startsWith('would you rather')) {
+                formattedQuestion = 'Would you rather ' + question;
+            } else if (selectedGame === 'nhie' && !question.toLowerCase().startsWith('never have i ever')) {
+                formattedQuestion = 'Never have I ever ' + question;
+            }
+            
+            // Send to server
+            socket.emit('add-custom-question', {
+                roomCode: roomCode,
+                question: formattedQuestion,
+                game: selectedGame,
+                intensity: selectedIntensity,
+                author: 'Anonymous'
+            });
+            
+            // Clear input and show success
+            document.getElementById('questionInput').value = '';
+            showSuccess();
+        });
+        
+        // Show success message
+        function showSuccess() {
+            const successMsg = document.getElementById('successMessage');
+            successMsg.classList.add('show');
+            
+            setTimeout(() => {
+                successMsg.classList.remove('show');
+            }, 3000);
+        }
+        
+        // Listen for confirmation
+        socket?.on('custom-question-added', (data) => {
+            if (data.success) {
+                showSuccess();
+            }
+        });
+    </script>
+</body>
+</html>
