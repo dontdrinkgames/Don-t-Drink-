@@ -5,8 +5,13 @@ const path = require('path');
 
 const app = express();
 const server = http.createServer(app);
-const io = socketIo(server);
-
+const io = socketIo(server, {
+  cors: {
+    origin: "*",  // Allow all origins for now (or replace "*" with your domain, e.g., "https://dontdrinkgames.com")
+    methods: ["GET", "POST"],
+    credentials: true
+  }
+});
 // Import questions database
 let questionsDatabase = {};
 let QuestionManager = null;
