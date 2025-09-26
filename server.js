@@ -200,200 +200,252 @@ const rooms = new Map();
 io.on('connection', (socket) => {
     console.log('🔌 User connected:', socket.id);
 
-    // Create room
+    // Create room - FIXED to handle both callback and non-callback cases
     socket.on('create-room', (callback) => {
-        const roomCode = Math.floor(100000 + Math.random() * 900000).toString();
-        
-        rooms.set(roomCode, {
-            code: roomCode,
-            host: socket.id,
-            players: [],
-            currentGame: null,
-            currentMode: null,
-            currentIntensity: null,
-            questionNumber: 0,
-            gameState: 'waiting',
-            usedQuestions: []
-        });
+        try {
+            const roomCode = Math.floor(100000 + Math.random() * 900000).toString();
+            
+            rooms.set(roomCode, {
+                code: roomCode,
+                host: socket.id,
+                players: [],
+                currentGame: null,
+                currentMode: null,
+                currentIntensity: null,
+                questionNumber: 0,
+                gameState: 'waiting',
+                usedQuestions: []
+            });
 
-        socket.join(roomCode);
-        console.log(`🏠 Room created: ${roomCode} by host ${socket.id}`);
-        
-        if (callback) {
-            callback({ roomCode });
-        } else {
-            socket.emit('room-created', { roomCode });
+            socket.join(roomCode);
+            console.log(`🏠 Room created: ${roomCode} by host ${socket.id}`);
+            
+            // Handle both callback and emit patterns
+            const responseData = { roomCode };
+            
+            if (typeof callback === 'function') {
+                // If callback is provided, use it
+                callback(responseData);
+            } else {
+                // Otherwise, emit an event
+                socket.emit('room-created', responseData);
+            }
+        } catch (error) {
+            console.error('Error creating room:', error);
+            if (typeof callback === 'function') {
+                callback({ error: 'Failed to create room' });
+            } else {
+                socket.emit('room-creation-error', { message: 'Failed to create room' });
+            }
         }
     });
 
-    // Join room
-    socket.on('join-room', ({ roomCode, playerName, avatar }, callback) => {
-        const code = roomCode ? roomCode.toUpperCase() : '';
-        const room = rooms.get(code);
+    // Join room - ALSO FIXED for safety
+    socket.on('join-room', (data, callback) => {
+        try {
+            // Handle different data formats
+            const roomCode = data?.roomCode ? data.roomCode.toUpperCase() : '';
+            const playerName = data?.playerName || 'Anonymous';
+            const avatar = data?.avatar || '😎';
+            
+            const room = rooms.get(roomCode);
 
-        console.log(`🎮 Join attempt - Room: ${code}, Player: ${playerName}`);
+            console.log(`🎮 Join attempt - Room: ${roomCode}, Player: ${playerName}`);
 
-        if (!room) {
-            console.log(`❌ Room ${code} not found`);
-            const error = { message: 'Room not found' };
-            if (callback) callback(error);
-            else socket.emit('join-error', error);
-            return;
+            if (!room) {
+                console.log(`❌ Room ${roomCode} not found`);
+                const error = { message: 'Room not found' };
+                
+                if (typeof callback === 'function') {
+                    callback(error);
+                } else {
+                    socket.emit('join-error', error);
+                }
+                return;
+            }
+
+            // Add or update player
+            const existingPlayerIndex = room.players.findIndex(p => p.name === playerName);
+            const player = {
+                id: socket.id,
+                name: playerName,
+                avatar: avatar,
+                ready: false,
+                connected: true
+            };
+
+            if (existingPlayerIndex !== -1) {
+                room.players[existingPlayerIndex] = player;
+            } else {
+                room.players.push(player);
+            }
+
+            socket.join(roomCode);
+            socket.roomCode = roomCode;
+            socket.playerName = playerName;
+
+            console.log(`✅ ${playerName} joined room ${roomCode}. Total: ${room.players.length} players`);
+
+            // Notify everyone
+            io.to(roomCode).emit('players-updated', room.players);
+            
+            // Handle response
+            const successData = { roomCode, playerId: socket.id };
+            
+            if (typeof callback === 'function') {
+                callback(null, successData);
+            } else {
+                socket.emit('join-success', successData);
+            }
+            
+            // Notify host
+            io.to(room.host).emit('player-joined', player);
+        } catch (error) {
+            console.error('Error joining room:', error);
+            if (typeof callback === 'function') {
+                callback({ error: 'Failed to join room' });
+            } else {
+                socket.emit('join-error', { message: 'Failed to join room' });
+            }
         }
-
-        // Add or update player
-        const existingPlayerIndex = room.players.findIndex(p => p.name === playerName);
-        const player = {
-            id: socket.id,
-            name: playerName,
-            avatar: avatar || '😎',
-            ready: false,
-            connected: true
-        };
-
-        if (existingPlayerIndex !== -1) {
-            room.players[existingPlayerIndex] = player;
-        } else {
-            room.players.push(player);
-        }
-
-        socket.join(code);
-        socket.roomCode = code;
-        socket.playerName = playerName;
-
-        console.log(`✅ ${playerName} joined room ${code}. Total: ${room.players.length} players`);
-
-        // Notify everyone
-        io.to(code).emit('players-updated', room.players);
-        
-        if (callback) {
-            callback(null, { roomCode: code, playerId: socket.id });
-        } else {
-            socket.emit('join-success', { roomCode: code, playerId: socket.id });
-        }
-        
-        // Notify host
-        io.to(room.host).emit('player-joined', player);
     });
 
     // Start game
     socket.on('start-game', (config) => {
-        const room = Array.from(rooms.values()).find(r => r.host === socket.id);
-        
-        if (!room) {
-            console.log('❌ No room found for host:', socket.id);
-            socket.emit('error', { message: 'You are not a host' });
-            return;
-        }
-
-        // Convert game name to lowercase for mapping
-        const gameName = config.game ? config.game.toLowerCase() : '';
-        const dbGameName = gameNameMapping[gameName] || gameName;
-        
-        console.log(`🎮 Starting game in room ${room.code}:`);
-        console.log(`  Original game: ${config.game}`);
-        console.log(`  Converted to: ${gameName}`);
-        console.log(`  Database name: ${dbGameName}`);
-        console.log(`  Mode: ${config.mode}`);
-        console.log(`  Intensity: ${config.intensity}`);
-        console.log(`  Players: ${room.players.length}`);
-        
-        room.currentGame = dbGameName;
-        room.currentMode = config.mode;
-        room.currentIntensity = config.intensity;
-        room.questionNumber = 0;
-        room.gameState = 'playing';
-
-        // Get first question
-        let firstQuestion = getQuestion(dbGameName, config.intensity);
-        
-        if (firstQuestion) {
-            room.questionNumber = 1;
-            room.usedQuestions.push(firstQuestion);
+        try {
+            const room = Array.from(rooms.values()).find(r => r.host === socket.id);
             
-            // Send to all clients
-            io.to(room.code).emit('game-started', {
-                game: config.game,  // Send back original game name
-                mode: config.mode,
-                intensity: config.intensity,
-                question: firstQuestion,
-                questionNumber: 1
-            });
+            if (!room) {
+                console.log('❌ No room found for host:', socket.id);
+                socket.emit('error', { message: 'You are not a host' });
+                return;
+            }
+
+            // Convert game name to lowercase for mapping
+            const gameName = config?.game ? config.game.toLowerCase() : '';
+            const dbGameName = gameNameMapping[gameName] || gameName;
             
-            console.log('✅ Game started successfully');
-            console.log('📤 Sent question:', JSON.stringify(firstQuestion).substring(0, 100));
-        } else {
-            console.error('❌ Failed to get first question');
-            socket.emit('error', { message: 'Failed to load questions' });
+            console.log(`🎮 Starting game in room ${room.code}:`);
+            console.log(`  Original game: ${config?.game}`);
+            console.log(`  Converted to: ${gameName}`);
+            console.log(`  Database name: ${dbGameName}`);
+            console.log(`  Mode: ${config?.mode}`);
+            console.log(`  Intensity: ${config?.intensity}`);
+            console.log(`  Players: ${room.players.length}`);
+            
+            room.currentGame = dbGameName;
+            room.currentMode = config?.mode || 'offline';
+            room.currentIntensity = config?.intensity || 'medium';
+            room.questionNumber = 0;
+            room.gameState = 'playing';
+
+            // Get first question
+            let firstQuestion = getQuestion(dbGameName, room.currentIntensity);
+            
+            if (firstQuestion) {
+                room.questionNumber = 1;
+                room.usedQuestions.push(firstQuestion);
+                
+                // Send to all clients
+                io.to(room.code).emit('game-started', {
+                    game: config?.game,  // Send back original game name
+                    mode: room.currentMode,
+                    intensity: room.currentIntensity,
+                    question: firstQuestion,
+                    questionNumber: 1
+                });
+                
+                console.log('✅ Game started successfully');
+                console.log('📤 Sent question:', JSON.stringify(firstQuestion).substring(0, 100));
+            } else {
+                console.error('❌ Failed to get first question');
+                socket.emit('error', { message: 'Failed to load questions' });
+            }
+        } catch (error) {
+            console.error('Error starting game:', error);
+            socket.emit('error', { message: 'Failed to start game' });
         }
     });
 
     // Next question
     socket.on('next-question', () => {
-        const room = Array.from(rooms.values()).find(r => r.host === socket.id);
-        
-        if (!room || room.gameState !== 'playing') {
-            socket.emit('error', { message: 'No active game' });
-            return;
-        }
+        try {
+            const room = Array.from(rooms.values()).find(r => r.host === socket.id);
+            
+            if (!room || room.gameState !== 'playing') {
+                socket.emit('error', { message: 'No active game' });
+                return;
+            }
 
-        room.questionNumber++;
-        const question = getQuestion(room.currentGame, room.currentIntensity);
-        
-        if (question) {
-            room.usedQuestions.push(question);
+            room.questionNumber++;
+            const question = getQuestion(room.currentGame, room.currentIntensity);
             
-            io.to(room.code).emit('new-question', {
-                question,
-                questionNumber: room.questionNumber
-            });
-            
-            console.log(`📤 Question ${room.questionNumber} sent to room ${room.code}`);
-        } else {
-            socket.emit('error', { message: 'No more questions available' });
+            if (question) {
+                room.usedQuestions.push(question);
+                
+                io.to(room.code).emit('new-question', {
+                    question,
+                    questionNumber: room.questionNumber
+                });
+                
+                console.log(`📤 Question ${room.questionNumber} sent to room ${room.code}`);
+            } else {
+                socket.emit('error', { message: 'No more questions available' });
+            }
+        } catch (error) {
+            console.error('Error getting next question:', error);
+            socket.emit('error', { message: 'Failed to get next question' });
         }
     });
 
     // End game
     socket.on('end-game', () => {
-        const room = Array.from(rooms.values()).find(r => r.host === socket.id);
-        
-        if (room) {
-            room.gameState = 'ended';
-            io.to(room.code).emit('game-ended');
-            console.log(`🏁 Game ended in room ${room.code}`);
+        try {
+            const room = Array.from(rooms.values()).find(r => r.host === socket.id);
+            
+            if (room) {
+                room.gameState = 'ended';
+                io.to(room.code).emit('game-ended');
+                console.log(`🏁 Game ended in room ${room.code}`);
+            }
+        } catch (error) {
+            console.error('Error ending game:', error);
         }
     });
 
     // Handle disconnect
     socket.on('disconnect', () => {
-        console.log('👋 User disconnected:', socket.id);
-        
-        // Check if host
-        const room = Array.from(rooms.values()).find(r => r.host === socket.id);
-        if (room) {
-            console.log(`🏠 Room ${room.code} closed - host disconnected`);
-            io.to(room.code).emit('host-disconnected');
-            rooms.delete(room.code);
-            return;
-        }
-        
-        // Check if player
-        for (const [code, room] of rooms.entries()) {
-            const playerIndex = room.players.findIndex(p => p.id === socket.id);
-            if (playerIndex !== -1) {
-                const player = room.players[playerIndex];
-                player.connected = false;
-                
-                io.to(code).emit('player-disconnected', {
-                    playerId: socket.id,
-                    playerName: player.name
-                });
-                
-                io.to(code).emit('players-updated', room.players);
-                console.log(`👤 ${player.name} disconnected from room ${code}`);
-                break;
+        try {
+            console.log('👋 User disconnected:', socket.id);
+            
+            // Check if host
+            const room = Array.from(rooms.values()).find(r => r.host === socket.id);
+            if (room) {
+                console.log(`🏠 Room ${room.code} closed - host disconnected`);
+                io.to(room.code).emit('host-disconnected');
+                rooms.delete(room.code);
+                return;
             }
+            
+            // Check if player
+            for (const [code, room] of rooms.entries()) {
+                const playerIndex = room.players.findIndex(p => p.id === socket.id);
+                if (playerIndex !== -1) {
+                    const player = room.players[playerIndex];
+                    player.connected = false;
+                    
+                    io.to(code).emit('player-disconnected', {
+                        playerId: socket.id,
+                        playerName: player.name
+                    });
+                    
+                    io.to(code).emit('players-updated', room.players);
+                    console.log(`👤 ${player.name} disconnected from room ${code}`);
+                    break;
+                }
+            }
+        } catch (error) {
+            console.error('Error handling disconnect:', error);
         }
     });
 });
