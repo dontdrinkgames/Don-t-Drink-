@@ -217,7 +217,7 @@
             margin-top: 15px;
         }
        
-        /* New Voting Styles */
+        /* Voting Styles */
         #answerOptions button, #answerOptions div {
             font-size: 1.5rem;
             padding: 15px;
@@ -227,13 +227,9 @@
             cursor: pointer;
             margin: 5px;
             width: 100%;
-            text-align: center;
         }
         #answerOptions button:hover {
             background: rgba(255, 255, 255, 0.3);
-        }
-        .voting-section {
-            text-align: center;
         }
     </style>
 </head>
@@ -344,7 +340,12 @@
                 : window.location.origin;
           
             socket = io(socketUrl, {
-                transports: ['polling', 'websocket'] // Polling først for bedre mobil-støtte
+                transports: ['polling', 'websocket'], // Polling først for bedre mobil-støtte
+                reconnection: true,                    // Enable auto-reconnect
+                reconnectionAttempts: Infinity,        // Keep trying forever
+                reconnectionDelay: 1000,               // Start with 1s delay
+                reconnectionDelayMax: 5000,            // Max delay 5s
+                randomizationFactor: 0.5               // Add randomness to delays
             });
                    
             socket.on('connect', () => {
@@ -377,10 +378,11 @@
             });
             // Legg til denne nye handleren her
             socket.on('new-question', (data) => {
+                console.log('New question received:', data); // Debug log
                 const { question, game, mode } = data; // Anta server sender game og mode med spørsmålet
                
                 // Vis spørsmålet
-                document.getElementById('questionText').textContent = question;
+                document.getElementById('questionText').textContent = question || 'No question text';
                
                 // Fjern loading/waiting og vis answer-section
                 document.getElementById('waitingScreen').style.display = 'none';
@@ -444,10 +446,13 @@
                     btnDisagree.onclick = () => { answer = 'disagree'; submitAnswer(); };
                     optionsDiv.appendChild(btnAgree);
                     optionsDiv.appendChild(btnDisagree);
+                } else {
+                    console.log('Unknown game type:', game); // Debug if game not recognized
                 }
                
                 // Funksjon for å sende svar
                 function submitAnswer() {
+                    console.log('Submitting answer:', answer); // Debug log
                     socket.emit('submit-answer', { roomCode: getRoomCodeFromURL(), answer });
                 }
             });
@@ -461,9 +466,10 @@
            
             socket.on('host-disconnected', () => {
                 showError('Host has left the game');
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 3000);
+                // Comment redirect for testing
+                // setTimeout(() => {
+                //     window.location.href = '/';
+                // }, 3000);
             });
            
             socket.on('disconnect', () => {
