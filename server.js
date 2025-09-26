@@ -7,7 +7,7 @@ const app = express();
 const server = http.createServer(app);
 const io = socketIo(server, {
   cors: {
-    origin: "*",  // Allow all origins for now (or replace "*" with your domain, e.g., "https://dontdrinkgames.com")
+    origin: ["https://dontdrinkgames.com", "https://www.dontdrinkgames.com"],  // Specific domains for security
     methods: ["GET", "POST"],
     credentials: true
   }
