@@ -404,16 +404,16 @@
                     <div class="form-group">
                         <label class="form-label">Choose Avatar</label>
                         <div class="avatar-grid">
-                            <button type="button" class="avatar-btn" data-avatar="😎">😎</button>
-                            <button type="button" class="avatar-btn" data-avatar="🎭">🎭</button>
-                            <button type="button" class="avatar-btn" data-avatar="🚀">🚀</button>
-                            <button type="button" class="avatar-btn" data-avatar="🎮">🎮</button>
-                            <button type="button" class="avatar-btn" data-avatar="🔥">🔥</button>
-                            <button type="button" class="avatar-btn" data-avatar="⭐">⭐</button>
-                            <button type="button" class="avatar-btn" data-avatar="🌟">🌟</button>
-                            <button type="button" class="avatar-btn" data-avatar="💫">💫</button>
-                            <button type="button" class="avatar-btn" data-avatar="🎯">🎯</button>
-                            <button type="button" class="avatar-btn" data-avatar="🎪">🎪</button>
+                            <button type="button" class="avatar-btn" data-avatar="ðŸ˜Ž">ðŸ˜Ž</button>
+                            <button type="button" class="avatar-btn" data-avatar="ðŸŽ­">ðŸŽ­</button>
+                            <button type="button" class="avatar-btn" data-avatar="ðŸš€">ðŸš€</button>
+                            <button type="button" class="avatar-btn" data-avatar="ðŸŽ®">ðŸŽ®</button>
+                            <button type="button" class="avatar-btn" data-avatar="ðŸ”¥">ðŸ”¥</button>
+                            <button type="button" class="avatar-btn" data-avatar="â­">â­</button>
+                            <button type="button" class="avatar-btn" data-avatar="ðŸŒŸ">ðŸŒŸ</button>
+                            <button type="button" class="avatar-btn" data-avatar="ðŸ’«">ðŸ’«</button>
+                            <button type="button" class="avatar-btn" data-avatar="ðŸŽ¯">ðŸŽ¯</button>
+                            <button type="button" class="avatar-btn" data-avatar="ðŸŽª">ðŸŽª</button>
                         </div>
                     </div>
                     
@@ -428,7 +428,7 @@
         <div class="waiting-screen" id="waitingScreen">
             <div class="waiting-card">
                 <div class="player-info">
-                    <div class="player-avatar" id="waitingAvatar">😎</div>
+                    <div class="player-avatar" id="waitingAvatar">ðŸ˜Ž</div>
                     <div class="player-name" id="waitingName">Player Name</div>
                 </div>
                 
@@ -446,13 +446,13 @@
         <div class="game-screen" id="gameScreen">
             <div class="status-bar">
                 <div class="game-info">
-                    <span class="mode-indicator" id="gameModeDisplay">Mobile Voting</span> • 
+                    <span class="mode-indicator" id="gameModeDisplay">Mobile Voting</span> â€¢ 
                     Question <span id="questionNumber">1</span> of <span id="totalQuestions">10</span>
                 </div>
             </div>
             
             <div class="question-card">
-                <div class="question-emoji" id="gameQuestionEmoji">🤔</div>
+                <div class="question-emoji" id="gameQuestionEmoji">ðŸ¤”</div>
                 <div class="question-text" id="gameQuestionText">
                     Would you rather always know when someone is lying or always get away with lying?
                 </div>
@@ -466,7 +466,7 @@
         <!-- Spotlight Screen -->
         <div class="spotlight-screen" id="spotlightScreen">
             <div class="spotlight-card">
-                <div class="spotlight-title">🔦 You're in the Spotlight!</div>
+                <div class="spotlight-title">ðŸ”¦ You're in the Spotlight!</div>
                 <div class="spotlight-text" id="spotlightText">
                     Everyone is watching you answer this question. Choose wisely!
                 </div>
@@ -582,7 +582,7 @@
             
             // Load first question (mock)
             loadQuestion({
-                emoji: '🤔',
+                emoji: 'ðŸ¤”',
                 text: 'Would you rather always know when someone is lying or always get away with lying?',
                 type: 'would_you_rather',
                 options: ['Always know when someone is lying', 'Always get away with lying']
@@ -638,7 +638,7 @@
             // Mock: Load next question after 2 seconds
             setTimeout(() => {
                 const nextQuestion = {
-                    emoji: '🍻',
+                    emoji: 'ðŸ»',
                     text: 'Never have I ever kissed someone on the first date',
                     type: 'never_have_i_ever'
                 };

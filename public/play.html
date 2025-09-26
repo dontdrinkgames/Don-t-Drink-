@@ -53,22 +53,6 @@
             border-radius: 15px;
         }
         
-        .mixmaster-indicator {
-            background: linear-gradient(45deg, #ff6b6b, #4ecdc4, #ffe66d);
-            color: white;
-            padding: 5px 15px;
-            border-radius: 20px;
-            font-size: 0.9em;
-            animation: pulse 2s infinite;
-            margin-left: 10px;
-            display: inline-block;
-        }
-        
-        @keyframes pulse {
-            0%, 100% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-        }
-        
         .question-card {
             background: rgba(255,255,255,0.95);
             border-radius: 30px;
@@ -88,22 +72,60 @@
         
         .question-text {
             color: #333;
-            font-size: 2em;
+            font-size: 1.8em;
             font-weight: 600;
             margin: 30px 0;
             min-height: 100px;
             display: flex;
+            flex-direction: column;
             align-items: center;
             justify-content: center;
+        }
+        
+        .option-card {
+            background: rgba(102, 126, 234, 0.1);
+            border: 2px solid #667eea;
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+            color: #333;
+            font-size: 1.1em;
+        }
+        
+        .fmk-grid {
+            display: grid;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .fmk-person {
+            background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7));
+            border-radius: 15px;
+            padding: 25px;
+            font-size: 1.4em;
+            font-weight: 600;
+            color: #333;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: transform 0.3s;
+        }
+        
+        .fmk-person:hover {
+            transform: scale(1.05);
         }
         
         .rating-section {
             display: flex;
             justify-content: center;
-            gap: 20px;
+            gap: 40px;
             margin: 30px 0;
             padding: 20px 0;
             border-top: 2px solid #f0f0f0;
+        }
+        
+        .rating-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
         
         .rating-btn {
@@ -115,47 +137,34 @@
             font-size: 1.8em;
             cursor: pointer;
             transition: all 0.3s;
-            display: flex;
-            align-items: center;
-            justify-content: center;
         }
         
-        .rating-btn:hover {
+        .rating-btn:hover:not(:disabled) {
             transform: scale(1.15);
         }
         
-        .rating-btn.thumbs-up {
-            border-color: #4ade80;
-        }
-        
-        .rating-btn.thumbs-up:hover {
+        .rating-btn.good:hover:not(:disabled) {
             background: #4ade80;
             border-color: #22c55e;
         }
         
-        .rating-btn.thumbs-down {
-            border-color: #f87171;
-        }
-        
-        .rating-btn.thumbs-down:hover {
+        .rating-btn.bad:hover:not(:disabled) {
             background: #f87171;
             border-color: #ef4444;
         }
         
-        .rating-btn.rated {
-            transform: scale(0.9);
+        .rating-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
         
         .rating-label {
             color: #999;
-            font-size: 0.85em;
-            margin-top: 10px;
-            text-align: center;
+            font-size: 0.9em;
+            margin-top: 8px;
         }
         
-        .control-btn {
+        .next-btn {
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
@@ -165,10 +174,10 @@
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s;
-            margin: 10px;
+            margin-top: 20px;
         }
         
-        .control-btn:hover {
+        .next-btn:hover {
             transform: scale(1.05);
             box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
@@ -179,31 +188,7 @@
             padding: 15px;
             border-radius: 10px;
             margin-bottom: 20px;
-            max-width: 800px;
-            width: 100%;
-            text-align: center;
-        }
-        
-        .rating-feedback {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: white;
-            color: #333;
-            padding: 20px 40px;
-            border-radius: 20px;
-            font-size: 1.2em;
-            font-weight: 600;
-            box-shadow: 0 10px 40px rgba(0,0,0,0.3);
-            z-index: 1000;
-            animation: fadeInOut 1s ease-in-out;
-        }
-        
-        @keyframes fadeInOut {
-            0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-            50% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
-            100% { opacity: 0; transform: translate(-50%, -50%) scale(1); }
+            display: none;
         }
     </style>
 </head>
@@ -211,256 +196,177 @@
     <div class="game-header">
         <h1 class="game-title" id="gameTitle">Loading...</h1>
         <div class="game-info">
-            <div class="info-item">Mode: <span id="gameMode">-</span></div>
-            <div class="info-item">
-                Intensity: <span id="gameIntensity">-</span>
-                <span id="mixmasterIndicator" class="mixmaster-indicator" style="display: none;">🎲 RANDOM</span>
-            </div>
+            <div class="info-item">Mode: <span id="gameMode">offline</span></div>
+            <div class="info-item">Intensity: <span id="gameIntensity">-</span></div>
             <div class="info-item">Room: <span id="roomCode">-</span></div>
         </div>
     </div>
     
-    <div class="error-message" id="errorMessage" style="display: none;"></div>
+    <div class="error-message" id="errorMessage"></div>
     
     <div class="question-card">
         <div class="question-number" id="questionNumber">Question 1</div>
         <div class="question-text" id="questionText">Loading question...</div>
+        <div id="questionOptions"></div>
         
         <div class="rating-section">
-            <div>
-                <button class="rating-btn thumbs-up" id="thumbsUp" onclick="rateQuestion('up')" title="Good question!">
-                    👍
-                </button>
+            <div class="rating-container">
+                <button class="rating-btn good" id="thumbsUp">👍</button>
                 <div class="rating-label">Good</div>
             </div>
-            <div>
-                <button class="rating-btn thumbs-down" id="thumbsDown" onclick="rateQuestion('down')" title="Bad question">
-                    👎
-                </button>
+            <div class="rating-container">
+                <button class="rating-btn bad" id="thumbsDown">👎</button>
                 <div class="rating-label">Bad</div>
             </div>
         </div>
         
-        <div>
-            <button class="control-btn" id="nextBtn" onclick="nextQuestion()">Next Question</button>
-        </div>
+        <button class="next-btn" id="nextBtn">Next Question</button>
     </div>
     
     <script>
-        // Game state
-        let gameConfig = {};
-        let currentQuestionIndex = 0;
-        let currentQuestionId = null;
-        let currentQuestionData = null;
-        let hasRatedCurrentQuestion = false;
-        
-        // Game title mapping
-        const gameTitleMap = {
-            'nhie': 'Never Have I Ever',
-            'fmk': 'Fuck, Marry, Kill',
-            'wyr': 'Would You Rather',
-            'hot': 'Hot Takes',
-            'hottakes': 'Hot Takes'
+        // Configuration
+        const urlParams = new URLSearchParams(window.location.search);
+        const gameConfig = {
+            game: urlParams.get('game') || localStorage.getItem('gameType') || 'nhie',
+            intensity: urlParams.get('intensity') || localStorage.getItem('gameIntensity') || 'medium',
+            mode: urlParams.get('mode') || 'offline',
+            roomCode: urlParams.get('room') || 'OFFLINE'
         };
         
-        // Initialize when page loads
-        window.addEventListener('DOMContentLoaded', function() {
-            loadGameConfig();
-            initializeGame();
-        });
+        let questionCounter = 0;
+        let currentQuestion = null;
         
-        function loadGameConfig() {
-            // Get config from localStorage
-            const storedConfig = localStorage.getItem('gameConfig');
-            if (storedConfig) {
-                gameConfig = JSON.parse(storedConfig);
-                console.log('Loaded config:', gameConfig);
-            }
+        // Title mappings
+        const titles = {
+            'nhie': 'Never Have I Ever',
+            'never_have_i_ever': 'Never Have I Ever',
+            'fmk': 'Fuck, Marry, Kill',
+            'wyr': 'Would You Rather',
+            'would_you_rather': 'Would You Rather',
+            'hottakes': 'Hot Takes',
+            'hot_takes': 'Hot Takes',
+            'hot': 'Hot Takes'
+        };
+        
+        // Initialize
+        function init() {
+            // Update UI
+            document.getElementById('gameTitle').textContent = titles[gameConfig.game] || gameConfig.game.toUpperCase();
+            document.getElementById('gameMode').textContent = gameConfig.mode;
+            document.getElementById('gameIntensity').textContent = gameConfig.intensity;
+            document.getElementById('roomCode').textContent = gameConfig.roomCode;
             
-            // Get params from URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const roomCode = urlParams.get('room') || gameConfig.roomCode || 'OFFLINE';
-            const game = urlParams.get('game') || gameConfig.game || 'nhie';
+            // Event listeners
+            document.getElementById('nextBtn').onclick = loadQuestion;
+            document.getElementById('thumbsUp').onclick = () => rate('up');
+            document.getElementById('thumbsDown').onclick = () => rate('down');
             
-            gameConfig = {
-                ...gameConfig,
-                roomCode: roomCode,
-                game: game,
-                intensity: gameConfig.intensity || 'medium',
-                mode: gameConfig.mode || 'offline'
+            // Load first question
+            loadQuestion();
+        }
+        
+        // Load question from API
+        function loadQuestion() {
+            // Map game names
+            const gameMap = {
+                'nhie': 'never_have_i_ever',
+                'wyr': 'would_you_rather',
+                'hottakes': 'hot_takes',
+                'hot': 'hot_takes'
             };
             
-            console.log('Final config:', gameConfig);
-        }
-        
-        function initializeGame() {
-            // Update UI
-            updateGameInfo();
+            const game = gameMap[gameConfig.game] || gameConfig.game;
+            const url = `/api/question/${game}/${gameConfig.intensity}`;
             
-            // Get first question
-            loadNextQuestion();
-        }
-        
-        function updateGameInfo() {
-            const gameTitle = gameTitleMap[gameConfig.game] || gameConfig.game;
-            document.getElementById('gameTitle').textContent = gameTitle;
-            document.getElementById('gameMode').textContent = gameConfig.mode || 'offline';
-            
-            // Show base intensity
-            const displayIntensity = gameConfig.intensity === 'mixmaster' ? 'Mixmaster' : gameConfig.intensity;
-            document.getElementById('gameIntensity').textContent = displayIntensity;
-            
-            // Show mixmaster indicator if needed
-            if (gameConfig.intensity === 'mixmaster') {
-                document.getElementById('mixmasterIndicator').style.display = 'inline-block';
-            }
-            
-            document.getElementById('roomCode').textContent = gameConfig.roomCode || 'OFFLINE';
-        }
-        
-        async function loadNextQuestion() {
-            try {
-                // Reset rating buttons
-                resetRatingButtons();
-                
-                // Call API endpoint
-                const response = await fetch(`/api/question/${gameConfig.game}/${gameConfig.intensity}`);
-                
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
-                
-                const data = await response.json();
-                console.log('API response:', data);
-                
-                if (data.success && data.question) {
-                    currentQuestionId = data.questionId;
-                    currentQuestionData = data;
-                    displayQuestion(data.question);
-                    
-                    // Update mixmaster indicator if random intensity was used
-                    if (gameConfig.intensity === 'mixmaster' && data.intensity) {
-                        const intensityEmoji = {
-                            'medium': '😊',
-                            'spicy': '🌶️',
-                            'cancelled': '☠️'
-                        };
-                        document.getElementById('mixmasterIndicator').textContent = 
-                            `🎲 ${intensityEmoji[data.intensity]} ${data.intensity.toUpperCase()}`;
+            fetch(url)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.question) {
+                        questionCounter++;
+                        currentQuestion = data;
+                        showQuestion(data.question, data.game || game);
+                    } else if (data.error) {
+                        showError(data.message || 'No questions available');
                     }
-                } else {
-                    showError(`No questions available. Try a different intensity level.`);
-                }
-            } catch (error) {
-                console.error('Failed to fetch question:', error);
-                showError('Failed to load question. Please check your connection and try again.');
-            }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    showError('Failed to load question');
+                });
         }
         
-        function displayQuestion(question) {
-            currentQuestionIndex++;
-            hasRatedCurrentQuestion = false;
-            
-            // Clear any errors
+        // Display question
+        function showQuestion(question, gameType) {
+            document.getElementById('questionNumber').textContent = `Question ${questionCounter}`;
             document.getElementById('errorMessage').style.display = 'none';
             
-            // Update question number
-            document.getElementById('questionNumber').textContent = `Question ${currentQuestionIndex}`;
+            const textEl = document.getElementById('questionText');
+            const optionsEl = document.getElementById('questionOptions');
             
-            // Display question based on type
-            let questionText = '';
+            // Clear previous
+            textEl.textContent = '';
+            optionsEl.innerHTML = '';
             
-            if (typeof question === 'string') {
-                questionText = question;
-            } else if (question.text) {
-                questionText = question.text;
-            } else if (question.optionA && question.optionB) {
-                // Would You Rather format
-                questionText = `Would you rather ${question.optionA} OR ${question.optionB}?`;
-            } else if (Array.isArray(question)) {
-                // FMK format
-                questionText = `F*ck, Marry, Kill: ${question.join(', ')}`;
+            // Reset rating buttons
+            document.getElementById('thumbsUp').disabled = false;
+            document.getElementById('thumbsDown').disabled = false;
+            document.getElementById('thumbsUp').style.background = 'white';
+            document.getElementById('thumbsDown').style.background = 'white';
+            
+            // Display based on type
+            if (gameType === 'would_you_rather' && typeof question === 'object' && question.optionA) {
+                textEl.textContent = 'Would you rather...';
+                optionsEl.innerHTML = `
+                    <div class="option-card">
+                        <strong>Option A:</strong> ${question.optionA}
+                    </div>
+                    <div class="option-card">
+                        <strong>Option B:</strong> ${question.optionB}
+                    </div>
+                `;
+            } else if ((gameType === 'fmk' || gameConfig.game === 'fmk') && typeof question === 'string' && question.includes(',')) {
+                textEl.textContent = 'Choose wisely...';
+                const people = question.split(',').map(p => p.trim());
+                optionsEl.innerHTML = `
+                    <div class="fmk-grid">
+                        ${people.map(person => `<div class="fmk-person">${person}</div>`).join('')}
+                    </div>
+                `;
             } else {
-                questionText = JSON.stringify(question);
+                // Default text display
+                textEl.textContent = typeof question === 'string' ? question : 
+                                     question.text || JSON.stringify(question);
             }
-            
-            document.getElementById('questionText').textContent = questionText;
         }
         
-        function showError(message) {
+        // Show error
+        function showError(msg) {
             const errorEl = document.getElementById('errorMessage');
-            errorEl.textContent = message;
+            errorEl.textContent = msg;
             errorEl.style.display = 'block';
         }
         
-        function nextQuestion() {
-            loadNextQuestion();
-        }
-        
-        function resetRatingButtons() {
-            const thumbsUp = document.getElementById('thumbsUp');
-            const thumbsDown = document.getElementById('thumbsDown');
+        // Rate question
+        function rate(type) {
+            const upBtn = document.getElementById('thumbsUp');
+            const downBtn = document.getElementById('thumbsDown');
             
-            thumbsUp.classList.remove('rated');
-            thumbsDown.classList.remove('rated');
-            thumbsUp.disabled = false;
-            thumbsDown.disabled = false;
-            thumbsUp.style.background = 'white';
-            thumbsDown.style.background = 'white';
-        }
-        
-        async function rateQuestion(rating) {
-            if (hasRatedCurrentQuestion) return;
-            
-            hasRatedCurrentQuestion = true;
-            
-            // Visual feedback
-            const button = rating === 'up' ? 
-                document.getElementById('thumbsUp') : 
-                document.getElementById('thumbsDown');
-            
-            button.classList.add('rated');
-            button.style.background = rating === 'up' ? '#4ade80' : '#f87171';
-            
-            // Disable both buttons
-            document.getElementById('thumbsUp').disabled = true;
-            document.getElementById('thumbsDown').disabled = true;
-            
-            // Show feedback
-            showRatingFeedback(rating === 'up' ? '👍 Thanks!' : '👎 Noted!');
-            
-            // Send rating to server
-            try {
-                const response = await fetch('/api/question/rate', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify({
-                        questionId: currentQuestionId,
-                        rating: rating,
-                        game: currentQuestionData.game,
-                        intensity: currentQuestionData.intensity,
-                        questionText: document.getElementById('questionText').textContent
-                    })
-                });
-                
-                const result = await response.json();
-                console.log('Rating saved:', result);
-            } catch (error) {
-                console.error('Failed to save rating:', error);
+            if (type === 'up') {
+                upBtn.style.background = '#4ade80';
+                upBtn.disabled = true;
+                downBtn.disabled = true;
+            } else {
+                downBtn.style.background = '#f87171';
+                upBtn.disabled = true;
+                downBtn.disabled = true;
             }
         }
         
-        function showRatingFeedback(message) {
-            const feedback = document.createElement('div');
-            feedback.className = 'rating-feedback';
-            feedback.textContent = message;
-            document.body.appendChild(feedback);
-            
-            setTimeout(() => {
-                feedback.remove();
-            }, 1000);
+        // Start when ready
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', init);
+        } else {
+            init();
         }
     </script>
 </body>
