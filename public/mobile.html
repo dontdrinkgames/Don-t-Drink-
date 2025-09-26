@@ -216,6 +216,25 @@
             text-align: center;
             margin-top: 15px;
         }
+       
+        /* New Voting Styles */
+        #answerOptions button, #answerOptions div {
+            font-size: 1.5rem;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 2px solid rgba(255, 255, 255, 0.3);
+            border-radius: 10px;
+            cursor: pointer;
+            margin: 5px;
+            width: 100%;
+            text-align: center;
+        }
+        #answerOptions button:hover {
+            background: rgba(255, 255, 255, 0.3);
+        }
+        .voting-section {
+            text-align: center;
+        }
     </style>
 </head>
 <body>
@@ -318,16 +337,16 @@
             }
         }
        
-       function initSocketConnection() {
-    // Auto-detect server URL
-   const socketUrl = window.location.hostname === 'localhost'
-        ? 'http://localhost:3000'
-        : window.location.origin;
-  
-    socket = io(socketUrl, {
-        transports: ['polling', 'websocket'] // Endret rekkefølge: polling først for bedre mobil-støtte
-    });
-           
+        function initSocketConnection() {
+            // Auto-detect server URL
+            const socketUrl = window.location.hostname === 'localhost'
+                ? 'http://localhost:3000'
+                : window.location.origin;
+          
+            socket = io(socketUrl, {
+                transports: ['polling', 'websocket'] // Polling først for bedre mobil-støtte
+            });
+                   
             socket.on('connect', () => {
                 console.log('Connected to server');
                 connected = true;
@@ -348,91 +367,91 @@
             });
            
             socket.on('game-started', (data) => {
-    console.log('Game started:', data);
-    document.getElementById('gameStatus').textContent = 'Game is starting!';
-    document.getElementById('gameStatus').classList.remove('hidden');
-    // Redirect to play page
-    setTimeout(() => {
-        window.location.href = `/play?room=${roomCode}&game=${data.game}`;
-    }, 1000);
-});
-// Legg til denne nye handleren her
-socket.on('new-question', (data) => {
-    const { question, game, mode } = data; // Anta server sender game og mode med spørsmålet
-   
-    // Vis spørsmålet
-    document.getElementById('questionText').textContent = question;
-   
-    // Fjern loading/waiting og vis answer-section
-    document.querySelector('.waiting-section').style.display = 'none';
-    document.querySelector('.voting-section').style.display = 'block';
-   
-    const optionsDiv = document.getElementById('answerOptions');
-    optionsDiv.innerHTML = '';
-   
-    let answer = null; // For å lagre spillerens valg
-   
-    if (game === 'would_you_rather') {
-        // WYR: To knapper for A/B
-        const btnA = document.createElement('button');
-        btnA.textContent = 'A';
-        btnA.onclick = () => { answer = 'A'; submitAnswer(); };
-        const btnB = document.createElement('button');
-        btnB.textContent = 'B';
-        btnB.onclick = () => { answer = 'B'; submitAnswer(); };
-        optionsDiv.appendChild(btnA);
-        optionsDiv.appendChild(btnB);
-    } else if (game === 'fmk') {
-        // FMK: Drag-and-drop for tre alternativer (anta question er array ['Person1', 'Person2', 'Person3'])
-        const options = question.split(', '); // Split hvis string, eller bruk question hvis array
-        const dropZones = ['F', 'M', 'K'].map(label => {
-            const zone = document.createElement('div');
-            zone.textContent = label;
-            zone.ondrop = (ev) => { /* handle drop */ answer[label] = ev.dataTransfer.getData('text'); };
-            zone.ondragover = (ev) => ev.preventDefault();
-            return zone;
-        });
-        options.forEach(opt => {
-            const draggable = document.createElement('div');
-            draggable.textContent = opt;
-            draggable.draggable = true;
-            draggable.ondragstart = (ev) => ev.dataTransfer.setData('text', opt);
-            optionsDiv.appendChild(draggable);
-        });
-        dropZones.forEach(zone => optionsDiv.appendChild(zone));
-        // Submit-knapp for FMK
-        const submitBtn = document.createElement('button');
-        submitBtn.textContent = 'Submit';
-        submitBtn.onclick = submitAnswer;
-        optionsDiv.appendChild(submitBtn);
-    } else if (game === 'never_have_i_ever') {
-        // NHIE: To knapper
-        const btnHave = document.createElement('button');
-        btnHave.textContent = 'I Have';
-        btnHave.onclick = () => { answer = 'have'; submitAnswer(); };
-        const btnNever = document.createElement('button');
-        btnNever.textContent = 'Never';
-        btnNever.onclick = () => { answer = 'never'; submitAnswer(); };
-        optionsDiv.appendChild(btnHave);
-        optionsDiv.appendChild(btnNever);
-    } else if (game === 'hot_takes') {
-        // Hot Takes: To knapper
-        const btnAgree = document.createElement('button');
-        btnAgree.textContent = 'Agree 👍';
-        btnAgree.onclick = () => { answer = 'agree'; submitAnswer(); };
-        const btnDisagree = document.createElement('button');
-        btnDisagree.textContent = 'Disagree 👎';
-        btnDisagree.onclick = () => { answer = 'disagree'; submitAnswer(); };
-        optionsDiv.appendChild(btnAgree);
-        optionsDiv.appendChild(btnDisagree);
-    }
-   
-    // Funksjon for å sende svar (tilpass hvis du har egen)
-    function submitAnswer() {
-        socket.emit('submit-answer', { roomCode: getRoomCodeFromUrl(), answer }); // Anta getRoomCodeFromUrl() finnes
-    }
-});
-           
+                console.log('Game started:', data);
+                document.getElementById('gameStatus').textContent = 'Game is starting!';
+                document.getElementById('gameStatus').classList.remove('hidden');
+                // Redirect to play page - commented for testing
+                // setTimeout(() => {
+                //     window.location.href = `/play?room=${roomCode}&game=${data.game}`;
+                // }, 1000);
+            });
+            // Legg til denne nye handleren her
+            socket.on('new-question', (data) => {
+                const { question, game, mode } = data; // Anta server sender game og mode med spørsmålet
+               
+                // Vis spørsmålet
+                document.getElementById('questionText').textContent = question;
+               
+                // Fjern loading/waiting og vis answer-section
+                document.getElementById('waitingScreen').style.display = 'none';
+                document.querySelector('.voting-section').style.display = 'block';
+               
+                const optionsDiv = document.getElementById('answerOptions');
+                optionsDiv.innerHTML = '';
+               
+                let answer = null; // For å lagre spillerens valg
+               
+                if (game === 'would_you_rather') {
+                    // WYR: To knapper for A/B
+                    const btnA = document.createElement('button');
+                    btnA.textContent = 'A';
+                    btnA.onclick = () => { answer = 'A'; submitAnswer(); };
+                    const btnB = document.createElement('button');
+                    btnB.textContent = 'B';
+                    btnB.onclick = () => { answer = 'B'; submitAnswer(); };
+                    optionsDiv.appendChild(btnA);
+                    optionsDiv.appendChild(btnB);
+                } else if (game === 'fmk') {
+                    // FMK: Drag-and-drop for tre alternativer (anta question er array ['Person1', 'Person2', 'Person3'])
+                    const options = question.split(', '); // Split hvis string, eller bruk question hvis array
+                    const dropZones = ['F', 'M', 'K'].map(label => {
+                        const zone = document.createElement('div');
+                        zone.textContent = label;
+                        zone.ondrop = (ev) => { /* handle drop */ answer[label] = ev.dataTransfer.getData('text'); };
+                        zone.ondragover = (ev) => ev.preventDefault();
+                        return zone;
+                    });
+                    options.forEach(opt => {
+                        const draggable = document.createElement('div');
+                        draggable.textContent = opt;
+                        draggable.draggable = true;
+                        draggable.ondragstart = (ev) => ev.dataTransfer.setData('text', opt);
+                        optionsDiv.appendChild(draggable);
+                    });
+                    dropZones.forEach(zone => optionsDiv.appendChild(zone));
+                    // Submit-knapp for FMK
+                    const submitBtn = document.createElement('button');
+                    submitBtn.textContent = 'Submit';
+                    submitBtn.onclick = submitAnswer;
+                    optionsDiv.appendChild(submitBtn);
+                } else if (game === 'never_have_i_ever') {
+                    // NHIE: To knapper
+                    const btnHave = document.createElement('button');
+                    btnHave.textContent = 'I Have';
+                    btnHave.onclick = () => { answer = 'have'; submitAnswer(); };
+                    const btnNever = document.createElement('button');
+                    btnNever.textContent = 'Never';
+                    btnNever.onclick = () => { answer = 'never'; submitAnswer(); };
+                    optionsDiv.appendChild(btnHave);
+                    optionsDiv.appendChild(btnNever);
+                } else if (game === 'hot_takes') {
+                    // Hot Takes: To knapper
+                    const btnAgree = document.createElement('button');
+                    btnAgree.textContent = 'Agree 👍';
+                    btnAgree.onclick = () => { answer = 'agree'; submitAnswer(); };
+                    const btnDisagree = document.createElement('button');
+                    btnDisagree.textContent = 'Disagree 👎';
+                    btnDisagree.onclick = () => { answer = 'disagree'; submitAnswer(); };
+                    optionsDiv.appendChild(btnAgree);
+                    optionsDiv.appendChild(btnDisagree);
+                }
+               
+                // Funksjon for å sende svar
+                function submitAnswer() {
+                    socket.emit('submit-answer', { roomCode: getRoomCodeFromURL(), answer });
+                }
+            });
+                   
             socket.on('players-updated', (players) => {
                 console.log('Players updated:', players);
                 const status = `${players.length} player${players.length !== 1 ? 's' : ''} in room`;
