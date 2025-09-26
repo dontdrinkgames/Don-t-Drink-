@@ -23,6 +23,7 @@ const gameNameMapping = {
     'nhie': 'never_have_i_ever',
     'NHIE': 'never_have_i_ever',
     'hottakes': 'hot_takes',
+    'hot': 'hot_takes',
     'HOTTAKES': 'hot_takes',
     'hot_takes': 'hot_takes'
 };
@@ -76,12 +77,16 @@ const fallbackQuestions = {
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.json());
 
-// Health check
+// Health check for Render
 app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'OK' });
+    res.status(200).json({ status: 'OK', rooms: rooms.size });
 });
 
-// Specific HTML routes
+// Specific HTML routes (MUST be before /:roomCode)
+app.get('/', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
 app.get('/host', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'host.html'));
 });
@@ -95,20 +100,24 @@ app.get('/player', (req, res) => {
 });
 
 app.get('/play', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'play.html'));
+    const playFile = path.join(__dirname, 'public', 'play.html');
+    const fs = require('fs');
+    if (fs.existsSync(playFile)) {
+        res.sendFile(playFile);
+    } else {
+        res.send('<h1>Game Screen - Coming Soon</h1>');
+    }
 });
 
-// VIKTIG: Room code routing - MÅ være etter andre routes
+// Room code routing - MUST be last route
 app.get('/:roomCode', (req, res) => {
     const roomCode = req.params.roomCode;
     
-    // Sjekk om det er en gyldig room code (6 tegn, alfanumerisk)
+    // Check if valid room code format (6 characters, alphanumeric)
     if (roomCode && roomCode.match(/^[A-Z0-9]{6}$/i)) {
         console.log(`📱 Mobile player accessing room: ${roomCode}`);
-        // Send til mobile.html, som vil håndtere room code via JavaScript
         res.sendFile(path.join(__dirname, 'public', 'mobile.html'));
     } else {
-        // Ikke en gyldig room code, redirect til forsiden
         res.redirect('/');
     }
 });
@@ -120,12 +129,15 @@ const rooms = new Map();
 io.on('connection', (socket) => {
     console.log('🔌 User connected:', socket.id);
 
-    // Create room - FIXED to handle both callback and regular patterns
+    // Create room handler
     socket.on('create-room', (data, callback) => {
         try {
-            const roomCode = Math.floor(100000 + Math.random() * 900000).toString();
+            let roomCode;
+            do {
+                roomCode = Math.floor(100000 + Math.random() * 900000).toString();
+            } while (rooms.has(roomCode));
             
-            rooms.set(roomCode, {
+            const room = {
                 code: roomCode,
                 host: socket.id,
                 players: [],
@@ -135,98 +147,109 @@ io.on('connection', (socket) => {
                 questionNumber: 0,
                 gameState: 'waiting',
                 usedQuestions: []
-            });
-
+            };
+            
+            rooms.set(roomCode, room);
             socket.join(roomCode);
+            socket.roomCode = roomCode;
+            
             console.log(`🏠 Room created: ${roomCode} by host ${socket.id}`);
             
-            // FIXED: Support both callback and emit patterns
+            // Send response via callback if provided
             if (typeof callback === 'function') {
                 callback({ success: true, roomCode: roomCode });
             }
-            // Also emit for compatibility
+            
+            // Also emit for backwards compatibility
             socket.emit('room-created', { roomCode: roomCode });
             
         } catch (error) {
-            console.error('Error creating room:', error);
+            console.error('❌ Error creating room:', error);
             if (typeof callback === 'function') {
                 callback({ error: 'Failed to create room' });
-            } else {
-                socket.emit('error', { message: 'Failed to create room' });
             }
+            socket.emit('error', { message: 'Failed to create room' });
         }
     });
 
-    // Join room - FIXED to properly send success response
+    // Join room handler
     socket.on('join-room', (data, callback) => {
         try {
             const roomCode = data?.roomCode ? data.roomCode.toUpperCase() : '';
             const playerName = data?.playerName || 'Anonymous';
             const avatar = data?.avatar || '😎';
             
+            console.log(`🎮 Join attempt - Room: ${roomCode}, Player: ${playerName}, Avatar: ${avatar}`);
+
             const room = rooms.get(roomCode);
-
-            console.log(`🎮 Join attempt - Room: ${roomCode}, Player: ${playerName}`);
-
             if (!room) {
                 console.log(`❌ Room ${roomCode} not found`);
-                const error = { message: 'Room not found' };
+                const errorMsg = 'Room not found. Please check the code and try again.';
+                
                 if (typeof callback === 'function') {
-                    callback(error);
+                    callback({ error: errorMsg });
                 }
-                socket.emit('join-error', error);
+                socket.emit('join-error', { message: errorMsg });
                 return;
             }
 
-            // Remove old connection if exists (for re-joins)
+            // Remove duplicate if exists
             const existingIndex = room.players.findIndex(p => p.name === playerName);
             if (existingIndex !== -1) {
+                console.log(`♻️ Removing duplicate player: ${playerName}`);
                 room.players.splice(existingIndex, 1);
             }
 
-            // Add player
             const player = {
                 id: socket.id,
                 name: playerName,
                 avatar: avatar,
                 ready: false,
-                connected: true
+                connected: true,
+                joinedAt: Date.now()
             };
             
             room.players.push(player);
             socket.join(roomCode);
             socket.roomCode = roomCode;
+            socket.playerName = playerName;
 
-            console.log(`✅ ${playerName} joined room ${roomCode}. Total: ${room.players.length} players`);
+            console.log(`✅ ${playerName} joined room ${roomCode}. Total players: ${room.players.length}`);
 
-            // FIXED: Always send join-success to the joining player
-            socket.emit('join-success', { 
-                roomCode, 
+            // CRITICAL: Always emit join-success to ensure waiting screen shows
+            const successData = { 
+                success: true,
+                roomCode: roomCode, 
                 playerId: socket.id, 
-                playerName 
-            });
+                playerName: playerName 
+            };
+            
+            socket.emit('join-success', successData);
+            
+            if (typeof callback === 'function') {
+                callback(null, successData);
+            }
 
-            // Notify everyone about player update
+            // Update everyone
             io.to(roomCode).emit('players-updated', room.players);
             
-            // Notify host about new player
-            io.to(room.host).emit('player-joined', player);
-            
-            // If callback exists, also call it
-            if (typeof callback === 'function') {
-                callback(null, { success: true, roomCode, playerId: socket.id, playerName });
+            // Notify host
+            if (room.host) {
+                io.to(room.host).emit('player-joined', player);
             }
             
         } catch (error) {
-            console.error('Error joining room:', error);
+            console.error('❌ Error joining room:', error);
+            const errorMsg = 'Failed to join room. Please try again.';
+            
             if (typeof callback === 'function') {
-                callback({ error: 'Failed to join room' });
+                callback({ error: errorMsg });
             }
-            socket.emit('join-error', { message: 'Failed to join room' });
+            socket.emit('join-error', { message: errorMsg });
         }
     });
 
-    // Start game
+    // Start game handler
     socket.on('start-game', (config) => {
         try {
             const room = Array.from(rooms.values()).find(r => r.host === socket.id);
@@ -237,11 +260,13 @@ io.on('connection', (socket) => {
                 return;
             }
 
-            const gameName = config?.game ? config.game.toLowerCase() : '';
+            const gameName = config?.game ? config.game.toLowerCase() : 'wyr';
             const dbGameName = gameNameMapping[gameName] || gameName;
             
             console.log(`🎮 Starting game in room ${room.code}:`);
-            console.log(`  Game: ${dbGameName}, Mode: ${config?.mode}, Intensity: ${config?.intensity}`);
+            console.log(`  Game: ${gameName} -> ${dbGameName}`);
+            console.log(`  Mode: ${config?.mode || 'offline'}`);
+            console.log(`  Intensity: ${config?.intensity || 'medium'}`);
             
             room.currentGame = dbGameName;
             room.currentMode = config?.mode || 'offline';
@@ -249,15 +274,13 @@ io.on('connection', (socket) => {
             room.questionNumber = 0;
             room.gameState = 'playing';
 
-            // Get first question
-            let firstQuestion = getQuestion(dbGameName, room.currentIntensity);
+            const firstQuestion = getQuestion(dbGameName, room.currentIntensity);
             
             if (firstQuestion) {
                 room.questionNumber = 1;
                 
-                // Send to all clients
                 io.to(room.code).emit('game-started', {
-                    game: config?.game,
+                    game: config?.game || gameName,
                     mode: room.currentMode,
                     intensity: room.currentIntensity,
                     question: firstQuestion,
@@ -270,12 +293,12 @@ io.on('connection', (socket) => {
                 socket.emit('error', { message: 'Failed to load questions' });
             }
         } catch (error) {
-            console.error('Error starting game:', error);
+            console.error('❌ Error starting game:', error);
             socket.emit('error', { message: 'Failed to start game' });
         }
     });
 
-    // Next question
+    // Next question handler
     socket.on('next-question', () => {
         try {
             const room = Array.from(rooms.values()).find(r => r.host === socket.id);
@@ -290,67 +313,77 @@ io.on('connection', (socket) => {
             
             if (question) {
                 io.to(room.code).emit('new-question', {
-                    question,
+                    question: question,
                     questionNumber: room.questionNumber
                 });
                 
-                console.log(`📤 Question ${room.questionNumber} sent`);
+                console.log(`📤 Question ${room.questionNumber} sent to room ${room.code}`);
             }
         } catch (error) {
-            console.error('Error getting next question:', error);
+            console.error('❌ Error getting next question:', error);
+            socket.emit('error', { message: 'Failed to get next question' });
         }
     });
 
-    // Disconnect
+    // Disconnect handler
     socket.on('disconnect', () => {
         console.log('👋 User disconnected:', socket.id);
         
-        // Check if host
-        const room = Array.from(rooms.values()).find(r => r.host === socket.id);
-        if (room) {
-            console.log(`🏠 Room ${room.code} closed - host disconnected`);
-            io.to(room.code).emit('host-disconnected');
-            rooms.delete(room.code);
-            return;
+        for (const [code, room] of rooms.entries()) {
+            if (room.host === socket.id) {
+                console.log(`🏠 Room ${code} closed - host disconnected`);
+                io.to(code).emit('host-disconnected');
+                rooms.delete(code);
+                return;
+            }
         }
         
-        // Check if player
-        for (const [code, room] of rooms.entries()) {
-            const playerIndex = room.players.findIndex(p => p.id === socket.id);
-            if (playerIndex !== -1) {
-                const player = room.players[playerIndex];
-                room.players.splice(playerIndex, 1);
-                
-                io.to(code).emit('player-disconnected', {
-                    playerId: socket.id,
-                    playerName: player.name
-                });
-                
-                io.to(code).emit('players-updated', room.players);
-                console.log(`👤 ${player.name} left room ${code}`);
-                break;
+        if (socket.roomCode) {
+            const room = rooms.get(socket.roomCode);
+            if (room) {
+                const playerIndex = room.players.findIndex(p => p.id === socket.id);
+                if (playerIndex !== -1) {
+                    const player = room.players[playerIndex];
+                    room.players.splice(playerIndex, 1);
+                    
+                    console.log(`👤 ${player.name} left room ${socket.roomCode}. Remaining: ${room.players.length}`);
+                    
+                    io.to(socket.roomCode).emit('player-disconnected', {
+                        playerId: socket.id,
+                        playerName: player.name
+                    });
+                    
+                    io.to(socket.roomCode).emit('players-updated', room.players);
+                }
             }
         }
     });
 });
 
-// Helper function for questions
+// Helper function to get questions
 function getQuestion(game, intensity) {
     try {
-        if (questionManager && questionManager.getRandomQuestion) {
-            return questionManager.getRandomQuestion(game, intensity, 'offline');
+        if (questionManager && typeof questionManager.getRandomQuestion === 'function') {
+            const question = questionManager.getRandomQuestion(game, intensity, 'offline');
+            if (question) return question;
         }
     } catch (error) {
-        console.log(`⚠️ Using fallback for ${game}/${intensity}`);
+        console.log(`⚠️ QuestionManager error, using fallback for ${game}/${intensity}`);
     }
     
     const gameQuestions = fallbackQuestions[game];
     if (!gameQuestions || !gameQuestions[intensity]) {
-        return { text: `Sample ${game} question`, type: 'text' };
+        return { 
+            text: `Sample ${game} question for ${intensity} intensity`,
+            type: 'text',
+            game: game,
+            intensity: intensity
+        };
     }
     
     const questions = gameQuestions[intensity];
-    return questions[Math.floor(Math.random() * questions.length)];
+    const randomIndex = Math.floor(Math.random() * questions.length);
+    return questions[randomIndex];
 }
 
 // Start server
@@ -358,4 +391,5 @@ const PORT = process.env.PORT || 3000;
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`🎮 Don't Drink! server running on port ${PORT}`);
     console.log(`📱 Visit http://localhost:${PORT} to start!`);
+    console.log(`🏠 Host interface: http://localhost:${PORT}/host`);
 });

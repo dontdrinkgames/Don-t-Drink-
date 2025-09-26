@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Host Control - Don't Drink!</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
@@ -534,7 +535,7 @@
             
             socket.on('connect', () => {
                 console.log('Connected to server');
-                // Create room using callback pattern for compatibility
+                // Create room - handle both callback patterns
                 socket.emit('create-room', {}, (response) => {
                     if (response && response.roomCode) {
                         gameState.roomCode = response.roomCode;
@@ -674,7 +675,6 @@
             const hasPlayers = players.length >= 1;
             const hasSettings = gameState.selectedGame && gameState.selectedMode && gameState.selectedIntensity;
             
-            // Special case for offline mode - no players required
             const isOfflineMode = gameState.selectedMode === 'offline';
             const canStart = hasSettings && (isOfflineMode || hasPlayers);
             
@@ -722,7 +722,6 @@
             
             showSuccess(`Starting ${config.game} game!`);
             
-            // Store config and navigate to play page
             localStorage.setItem('gameConfig', JSON.stringify(config));
             setTimeout(() => {
                 window.location.href = `/play?room=${gameState.roomCode}&game=${config.game}`;

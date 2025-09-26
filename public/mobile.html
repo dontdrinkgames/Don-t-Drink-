@@ -3,6 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
     <title>Join Game - Don't Drink!</title>
     <style>
         * {
@@ -272,7 +273,7 @@
     <!-- Socket.IO from CDN with fallback -->
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script>
-        let socket;
+        let socket = null;
         let selectedAvatar = '🍆';
         let roomCode = '';
         let connected = false;
@@ -280,7 +281,7 @@
         // Get room code from URL
         function getRoomCodeFromURL() {
             const path = window.location.pathname;
-            const code = path.substring(1); // Remove leading slash
+            const code = path.substring(1);
             return code.length === 6 ? code.toUpperCase() : null;
         }
         
@@ -324,6 +325,7 @@
                 document.getElementById('joinBtn').disabled = false;
             });
             
+            // CRITICAL: Listen for join-success event
             socket.on('join-success', (data) => {
                 console.log('Successfully joined room:', data);
                 showWaitingScreen();
@@ -381,7 +383,7 @@
             });
         });
         
-        // Join button - Now properly waits for join-success
+        // Join button
         document.getElementById('joinBtn').addEventListener('click', () => {
             const playerName = document.getElementById('playerName').value.trim();
             
