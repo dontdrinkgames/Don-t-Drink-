@@ -65,382 +65,432 @@
             background: rgba(255, 255, 255, 0.1);
             backdrop-filter: blur(10px);
             border-radius: 15px;
-            padding: 15px 25px;
-            margin-bottom: 30px;
+            padding: 15px 20px;
+            margin-bottom: 20px;
             display: flex;
-            gap: 30px;
+            justify-content: space-between;
             align-items: center;
-            justify-content: center;
-            flex-wrap: wrap;
         }
         
-        .info-item {
-            font-size: 0.95rem;
-            opacity: 0.9;
-        }
-        
-        .info-item strong {
-            color: #FACC15;
+        .room-code {
+            font-size: 1.2rem;
             font-weight: 600;
         }
         
-        /* Question Card */
-        .question-card {
-            background: rgba(255, 255, 255, 0.15);
-            backdrop-filter: blur(15px);
-            border-radius: 25px;
-            padding: 50px;
-            text-align: center;
-            margin-bottom: 40px;
-            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+        .game-type {
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Main Content */
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+        }
+        
+        /* Question Section */
+        .question-section {
+            background: white;
+            color: #333;
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
         }
         
         .question-number {
-            font-size: 1.2rem;
-            color: #FACC15;
+            color: #764ba2;
+            font-size: 0.9rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
             margin-bottom: 20px;
-            font-weight: 600;
         }
         
         .question-text {
-            font-size: 1.8rem;
-            font-weight: 600;
+            font-size: 2.5rem;
+            font-weight: 700;
             line-height: 1.4;
-            margin-bottom: 40px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
-        }
-        
-        .question-options {
-            display: grid;
-            gap: 15px;
             margin-bottom: 30px;
+            min-height: 150px;
         }
         
-        .option-card {
-            background: rgba(255, 255, 255, 0.2);
-            padding: 20px;
-            border-radius: 15px;
-            font-size: 1.1rem;
-            transition: all 0.3s ease;
+        .question-controls {
+            display: flex;
+            gap: 15px;
         }
         
-        .option-card:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.02);
-        }
-        
-        .control-btn {
-            background: #10B981;
-            color: white;
+        .btn {
+            flex: 1;
+            padding: 15px 30px;
             border: none;
-            padding: 15px 40px;
             border-radius: 10px;
             font-size: 1.1rem;
             font-weight: 600;
             cursor: pointer;
             transition: all 0.3s ease;
-            margin: 0 10px;
         }
         
-        .control-btn:hover {
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
             transform: translateY(-2px);
-            box-shadow: 0 5px 15px rgba(16, 185, 129, 0.4);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
         }
         
-        .control-btn:disabled {
-            opacity: 0.5;
-            cursor: not-allowed;
+        .btn-secondary {
+            background: rgba(0, 0, 0, 0.1);
+            color: #333;
         }
         
-        /* Error Message */
-        .error-message {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            color: #FCA5A5;
-            padding: 15px;
-            border-radius: 10px;
+        .btn-secondary:hover {
+            background: rgba(0, 0, 0, 0.15);
+        }
+        
+        /* Scoreboard */
+        .scoreboard {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 25px;
+        }
+        
+        .scoreboard h3 {
+            font-size: 1.3rem;
             margin-bottom: 20px;
             text-align: center;
         }
         
-        .loading {
-            display: inline-block;
-            width: 20px;
-            height: 20px;
-            border: 3px solid rgba(255, 255, 255, 0.3);
-            border-radius: 50%;
-            border-top-color: white;
-            animation: spin 1s ease-in-out infinite;
+        .players-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
         }
         
-        @keyframes spin {
-            to { transform: rotate(360deg); }
+        .player-item {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 15px;
+            border-radius: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .player-avatar {
+            font-size: 1.5rem;
+        }
+        
+        .player-name {
+            font-weight: 600;
+        }
+        
+        .player-score {
+            background: rgba(255, 255, 255, 0.2);
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-weight: 600;
+        }
+        
+        /* Hide scoreboard in offline mode */
+        .offline-mode .scoreboard {
+            display: none;
+        }
+        
+        .offline-mode .main-content {
+            grid-template-columns: 1fr;
+        }
+        
+        /* Loading state */
+        .loading {
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        
+        /* Mobile responsive */
+        @media (max-width: 768px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+            
+            .scoreboard {
+                order: 2;
+            }
+            
+            .question-text {
+                font-size: 1.8rem;
+            }
+            
+            .game-header {
+                flex-direction: column;
+                gap: 15px;
+                text-align: center;
+            }
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <!-- Header -->
+        <!-- Game Header -->
         <div class="game-header">
-            <div class="game-title" id="gameTitle">Don't Drink!</div>
-            <button class="exit-btn" onclick="exitGame()">Exit Game</button>
+            <h1 class="game-title">Don't Drink!</h1>
+            <button class="exit-btn" id="exitBtn">Exit Game</button>
         </div>
         
-        <!-- Game Info -->
+        <!-- Game Info Bar -->
         <div class="game-info">
-            <span class="info-item">Mode: <strong id="gameMode">offline</strong></span>
-            <span class="info-item">Intensity: <strong id="gameIntensity">medium</strong></span>
-            <span class="info-item">Players: <strong id="playerCount">0</strong></span>
-            <span class="info-item">Room: <strong id="roomCode">LOADING</strong></span>
+            <div class="room-code">Room: <span id="roomCode">Loading...</span></div>
+            <div class="game-type" id="gameType">Loading...</div>
         </div>
         
-        <!-- Error Message -->
-        <div class="error-message" id="errorMessage" style="display: none;"></div>
-        
-        <!-- Question Card -->
-        <div class="question-card">
-            <div class="question-number" id="questionNumber">Question 1 of ∞</div>
-            <div class="question-text" id="questionText">Loading question...</div>
+        <!-- Main Content -->
+        <div class="main-content" id="mainContent">
+            <!-- Question Section -->
+            <div class="question-section">
+                <div class="question-number" id="questionNumber">Question 1 of ∞</div>
+                <div class="question-text" id="questionText">Loading question...</div>
+                <div class="question-controls">
+                    <button class="btn btn-primary" id="nextBtn">Next Question</button>
+                </div>
+            </div>
             
-            <div class="question-options" id="questionOptions"></div>
-            
-            <div>
-                <button class="control-btn" id="nextBtn" onclick="nextQuestion()">Next Question</button>
+            <!-- Scoreboard -->
+            <div class="scoreboard" id="scoreboard">
+                <h3>Players</h3>
+                <div class="players-list" id="playersList">
+                    <!-- Players will be added here dynamically -->
+                </div>
             </div>
         </div>
     </div>
     
+    <!-- Socket.IO Script -->
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script>
-        // Game state
+        let socket = null;
+        let currentQuestion = 0;
         let gameConfig = {};
-        let currentQuestionIndex = 1;
-        let questions = [];
-        let usedQuestions = [];
+        let isOfflineMode = true;
         
-        // Game name mapping
-        const gameNameMap = {
-            'nhie': 'never_have_i_ever',
-            'fmk': 'fmk',
-            'wyr': 'would_you_rather',
-            'hottakes': 'hot_takes'
-        };
-        
-        // Initialize when page loads
-        window.addEventListener('DOMContentLoaded', function() {
-            loadGameConfig();
-            initializeGame();
-        });
-        
-        function loadGameConfig() {
-            // Get config from localStorage
-            const storedConfig = localStorage.getItem('gameConfig');
-            if (storedConfig) {
-                gameConfig = JSON.parse(storedConfig);
-                console.log('Loaded config:', gameConfig);
-            }
-            
-            // Get params from URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const roomCode = urlParams.get('room') || gameConfig.roomCode || 'OFFLINE';
-            const game = urlParams.get('game') || gameConfig.game || 'nhie';
-            
-            // Fix intensity - "mixmaster" is not valid
-            let intensity = gameConfig.intensity || 'medium';
-            if (!['medium', 'spicy', 'cancelled'].includes(intensity)) {
-                console.warn(`Invalid intensity "${intensity}", defaulting to "medium"`);
-                intensity = 'medium';
-            }
-            
-            gameConfig = {
-                ...gameConfig,
-                roomCode: roomCode,
-                game: game,
-                intensity: intensity,
-                mode: gameConfig.mode || 'offline'
+        // Parse URL parameters
+        function getUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            return {
+                room: params.get('room') || 'OFFLINE',
+                game: params.get('game') || 'nhie',
+                intensity: params.get('intensity') || 'medium',
+                mode: params.get('mode') || 'offline'
             };
-            
-            console.log('Final config:', gameConfig);
         }
         
-        function initializeGame() {
+        // Initialize game
+        function initGame() {
+            gameConfig = getUrlParams();
+            
             // Update UI
-            updateGameInfo();
+            document.getElementById('roomCode').textContent = gameConfig.room;
+            document.getElementById('gameType').textContent = `${gameConfig.game.toUpperCase()} - ${gameConfig.intensity}`;
             
-            // Load questions for offline mode
-            if (gameConfig.mode === 'offline') {
-                loadOfflineQuestions();
+            // Check if offline mode
+            isOfflineMode = (gameConfig.mode === 'offline' || gameConfig.room === 'OFFLINE');
+            
+            if (isOfflineMode) {
+                // Add offline mode class to hide scoreboard
+                document.getElementById('mainContent').classList.add('offline-mode');
+                // Use API for offline mode
+                loadQuestionViaAPI();
+            } else {
+                // Try Socket.IO for online modes
+                trySocketConnection();
             }
-            
-            // Get first question
-            loadNextQuestion();
         }
         
-        function updateGameInfo() {
-            const gameTitle = gameNameMap[gameConfig.game] || gameConfig.game;
-            document.getElementById('gameTitle').textContent = gameTitle.replace(/_/g, ' ').toUpperCase();
-            document.getElementById('gameMode').textContent = gameConfig.mode || 'offline';
-            document.getElementById('gameIntensity').textContent = gameConfig.intensity || 'medium';
-            document.getElementById('playerCount').textContent = gameConfig.players?.length || '0';
-            document.getElementById('roomCode').textContent = gameConfig.roomCode || 'OFFLINE';
-        }
-        
-        function loadOfflineQuestions() {
-            // Fallback questions for offline mode
-            const fallbackQuestions = {
-                never_have_i_ever: {
-                    medium: [
-                        "Never have I ever sung in the shower",
-                        "Never have I ever eaten a whole pizza by myself",
-                        "Never have I ever lied about my age",
-                        "Never have I ever stalked an ex on social media",
-                        "Never have I ever pretended to be sick to skip work"
-                    ],
-                    spicy: [
-                        "Never have I ever had a one night stand",
-                        "Never have I ever sent nudes",
-                        "Never have I ever hooked up with someone from work",
-                        "Never have I ever had sex in public",
-                        "Never have I ever used a dating app just for hookups"
-                    ],
-                    cancelled: [
-                        "Never have I ever cheated on someone",
-                        "Never have I ever stolen something worth over $100",
-                        "Never have I ever hooked up with a friend's ex",
-                        "Never have I ever lied about being on birth control",
-                        "Never have I ever had sex with someone whose name I didn't know"
-                    ]
-                },
-                fmk: {
-                    medium: [
-                        "Ryan Reynolds, Chris Evans, Tom Holland",
-                        "Emma Stone, Jennifer Lawrence, Scarlett Johansson",
-                        "Batman, Superman, Spider-Man"
-                    ],
-                    spicy: [
-                        "Your ex, your ex's best friend, your ex's sibling",
-                        "Your boss, your coworker, the janitor",
-                        "Three people in this room"
-                    ],
-                    cancelled: [
-                        "Your sibling's ex, your parent's friend, your cousin",
-                        "Your therapist, your doctor, your lawyer",
-                        "Someone for money, someone for revenge, someone for power"
-                    ]
-                },
-                would_you_rather: {
-                    medium: [
-                        { optionA: "Never use social media again", optionB: "Never watch TV again" },
-                        { optionA: "Be able to fly", optionB: "Be invisible" },
-                        { optionA: "Win the lottery", optionB: "Live twice as long" }
-                    ],
-                    spicy: [
-                        { optionA: "Have sex with lights always on", optionB: "Only in complete darkness" },
-                        { optionA: "Give up oral sex", optionB: "Give up penetrative sex" },
-                        { optionA: "Kiss your ex", optionB: "Kiss your enemy" }
-                    ],
-                    cancelled: [
-                        { optionA: "Sleep with your boss for a promotion", optionB: "Stay in your dead-end job forever" },
-                        { optionA: "Cheat and never get caught", optionB: "Be cheated on and know" },
-                        { optionA: "Have sex with your cousin", optionB: "Have sex with your step-sibling" }
-                    ]
-                },
-                hot_takes: {
-                    medium: [
-                        "Pineapple belongs on pizza",
-                        "The book is always better than the movie",
-                        "Social media does more harm than good"
-                    ],
-                    spicy: [
-                        "Open relationships are healthier than monogamy",
-                        "Body count matters in a relationship",
-                        "Size does matter"
-                    ],
-                    cancelled: [
-                        "Cheating can save a relationship",
-                        "Some people deserve to be ghosted",
-                        "Gold diggers provide a valuable service"
-                    ]
-                }
-            };
-            
-            const dbGame = gameNameMap[gameConfig.game] || gameConfig.game;
-            const intensity = gameConfig.intensity || 'medium';
-            
-            questions = fallbackQuestions[dbGame]?.[intensity] || [
-                "Sample question - check your configuration"
-            ];
-            
-            console.log(`Loaded ${questions.length} offline questions for ${dbGame}/${intensity}`);
-        }
-        
-        function loadNextQuestion() {
-            if (questions.length === 0) {
-                showError("No questions available. Check your game configuration.");
+        // Try Socket.IO connection (for online modes)
+        function trySocketConnection() {
+            if (typeof io === 'undefined') {
+                console.log('Socket.IO not available, using offline mode');
+                isOfflineMode = true;
+                document.getElementById('mainContent').classList.add('offline-mode');
+                loadQuestionViaAPI();
                 return;
             }
             
-            // Get a random question
-            let question;
-            if (usedQuestions.length >= questions.length) {
-                // Reset if all questions used
-                usedQuestions = [];
+            try {
+                socket = io();
+                
+                socket.on('connect', () => {
+                    console.log('Connected to server');
+                    // Request first question
+                    socket.emit('get-question', {
+                        roomCode: gameConfig.room,
+                        game: gameConfig.game,
+                        intensity: gameConfig.intensity
+                    });
+                });
+                
+                socket.on('new-question', (data) => {
+                    if (data.question) {
+                        displayQuestion(data.question);
+                    }
+                });
+                
+                socket.on('players-updated', (players) => {
+                    updateScoreboard(players);
+                });
+                
+                socket.on('error', (error) => {
+                    console.error('Socket error:', error);
+                    // Fallback to API
+                    isOfflineMode = true;
+                    document.getElementById('mainContent').classList.add('offline-mode');
+                    loadQuestionViaAPI();
+                });
+                
+                socket.on('connect_error', () => {
+                    console.log('Connection failed, using offline mode');
+                    isOfflineMode = true;
+                    document.getElementById('mainContent').classList.add('offline-mode');
+                    loadQuestionViaAPI();
+                });
+            } catch (error) {
+                console.log('Socket initialization failed, using offline mode');
+                isOfflineMode = true;
+                document.getElementById('mainContent').classList.add('offline-mode');
+                loadQuestionViaAPI();
             }
-            
-            do {
-                const randomIndex = Math.floor(Math.random() * questions.length);
-                question = questions[randomIndex];
-            } while (usedQuestions.includes(question) && questions.length > 1);
-            
-            usedQuestions.push(question);
-            displayQuestion(question);
         }
         
-        function displayQuestion(question) {
-            document.getElementById('questionNumber').textContent = `Question ${currentQuestionIndex} of ∞`;
-            
-            const dbGame = gameNameMap[gameConfig.game] || gameConfig.game;
-            
-            // Display based on game type
-            if (dbGame === 'would_you_rather' && typeof question === 'object') {
-                document.getElementById('questionText').textContent = "Would you rather...";
-                document.getElementById('questionOptions').innerHTML = `
-                    <div class="option-card">A: ${question.optionA}</div>
-                    <div class="option-card">B: ${question.optionB}</div>
-                `;
-            } else if (dbGame === 'fmk' && typeof question === 'string') {
-                const options = question.split(',').map(o => o.trim());
-                document.getElementById('questionText').textContent = "F***, Marry, Kill:";
-                document.getElementById('questionOptions').innerHTML = options.map(opt => 
-                    `<div class="option-card">${opt}</div>`
-                ).join('');
-            } else {
-                // Simple text question
-                document.getElementById('questionText').textContent = 
-                    typeof question === 'object' ? question.text : question;
-                document.getElementById('questionOptions').innerHTML = '';
+        // Load question via API (for offline mode)
+        async function loadQuestionViaAPI() {
+            try {
+                // Map game names properly
+                const gameMapping = {
+                    'wyr': 'would_you_rather',
+                    'fmk': 'fmk',
+                    'nhie': 'never_have_i_ever',
+                    'hottakes': 'hot_takes'
+                };
+                
+                const mappedGame = gameMapping[gameConfig.game] || gameConfig.game;
+                
+                // Try to fetch from API
+                const response = await fetch(`/api/question/${mappedGame}/${gameConfig.intensity}`);
+                
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.question) {
+                        displayQuestion(data.question);
+                    }
+                } else {
+                    // Use fallback questions
+                    useFallbackQuestions();
+                }
+            } catch (error) {
+                console.log('API not available, using fallback');
+                useFallbackQuestions();
             }
         }
         
+        // Display question
+        function displayQuestion(questionText) {
+            currentQuestion++;
+            document.getElementById('questionNumber').textContent = `Question ${currentQuestion} of ∞`;
+            document.getElementById('questionText').textContent = questionText;
+        }
+        
+        // Update scoreboard (for online modes)
+        function updateScoreboard(players) {
+            const playersList = document.getElementById('playersList');
+            playersList.innerHTML = players.map(player => `
+                <div class="player-item">
+                    <div class="player-info">
+                        <span class="player-avatar">${player.avatar || '🎮'}</span>
+                        <span class="player-name">${player.name}</span>
+                    </div>
+                    <span class="player-score">${player.score || 0}</span>
+                </div>
+            `).join('');
+        }
+        
+        // Fallback questions (last resort)
+        function useFallbackQuestions() {
+            const fallbackQuestions = {
+                never_have_i_ever: {
+                    medium: ["Never have I ever... lied on my resume"],
+                    spicy: ["Never have I ever... had a threesome"],
+                    cancelled: ["Never have I ever... cheated on someone"]
+                },
+                fmk: {
+                    medium: ["Ryan Reynolds, Chris Hemsworth, Michael B. Jordan"],
+                    spicy: ["Your ex, your boss, your best friend"],
+                    cancelled: ["Putin, Trump, Kim Jong Un"]
+                },
+                would_you_rather: {
+                    medium: ["Would you rather... be able to fly or be invisible?"],
+                    spicy: ["Would you rather... never orgasm again or never kiss again?"],
+                    cancelled: ["Would you rather... be racist or homophobic?"]
+                },
+                hot_takes: {
+                    medium: ["Pineapple on pizza is actually good"],
+                    spicy: ["Cheating isn't always wrong"],
+                    cancelled: ["Some races are more attractive than others"]
+                }
+            };
+            
+            const gameMapping = {
+                'wyr': 'would_you_rather',
+                'fmk': 'fmk',
+                'nhie': 'never_have_i_ever',
+                'hottakes': 'hot_takes'
+            };
+            
+            const mappedGame = gameMapping[gameConfig.game] || 'never_have_i_ever';
+            const questions = fallbackQuestions[mappedGame]?.[gameConfig.intensity] || fallbackQuestions.never_have_i_ever.medium;
+            
+            const randomIndex = Math.floor(Math.random() * questions.length);
+            displayQuestion(questions[randomIndex]);
+        }
+        
+        // Next question handler
         function nextQuestion() {
-            currentQuestionIndex++;
-            loadNextQuestion();
+            if (!isOfflineMode && socket && socket.connected) {
+                // Online mode - request from server
+                socket.emit('get-question', {
+                    roomCode: gameConfig.room,
+                    game: gameConfig.game,
+                    intensity: gameConfig.intensity
+                });
+            } else {
+                // Offline mode - use API
+                loadQuestionViaAPI();
+            }
         }
         
+        // Exit game handler
         function exitGame() {
-            if (confirm("Are you sure you want to exit the game?")) {
-                localStorage.removeItem('gameConfig');
+            if (confirm('Are you sure you want to exit the game?')) {
+                if (socket) {
+                    socket.emit('end-game', { roomCode: gameConfig.room });
+                }
                 window.location.href = '/host';
             }
         }
         
-        function showError(message) {
-            const errorEl = document.getElementById('errorMessage');
-            errorEl.textContent = message;
-            errorEl.style.display = 'block';
-            setTimeout(() => {
-                errorEl.style.display = 'none';
-            }, 5000);
-        }
+        // Initialize when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            initGame();
+            
+            // Hook up buttons
+            document.getElementById('nextBtn').addEventListener('click', nextQuestion);
+            document.getElementById('exitBtn').addEventListener('click', exitGame);
+        });
     </script>
 </body>
 </html>

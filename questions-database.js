@@ -1538,11 +1538,27 @@ class QuestionManager {
     };
 
  this.customQuestions = {
-  never_have_i_ever: {
-    medium: [],
-    spicy: [],
-    cancelled: []
-  },
+    never_have_i_ever: {
+        medium: [],
+        spicy: [],
+        cancelled: []
+    },
+    fmk: {
+        medium: [],
+        spicy: [],
+        cancelled: []
+    },
+    would_you_rather: {
+        medium: [],
+        spicy: [],
+        cancelled: []
+    },
+    hot_takes: {
+        medium: [],
+        spicy: [],
+        cancelled: []
+    }
+};
   fmk: {
     medium: [],
     spicy: [],
