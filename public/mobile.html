@@ -2,234 +2,215 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-    <title>Join Game - Don't Drink!</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Don't Drink! - Join Game</title>
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
         }
-       
+        
         body {
-            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
             justify-content: center;
             align-items: center;
-            color: white;
             padding: 20px;
         }
-       
+        
         .container {
             width: 100%;
             max-width: 400px;
         }
-       
+        
         .card {
-            background: rgba(255, 255, 255, 0.1);
-            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.95);
             border-radius: 20px;
             padding: 30px;
-            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
-            border: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            animation: slideUp 0.5s ease;
         }
-       
+        
+        @keyframes slideUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        
         .logo {
-            font-size: 2rem;
-            font-weight: 700;
+            font-size: 2.5rem;
+            font-weight: bold;
             text-align: center;
-            margin-bottom: 10px;
-            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
-       
+        
         .room-code-display {
             text-align: center;
-            padding: 15px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 15px;
             margin-bottom: 20px;
+            padding: 10px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 10px;
         }
-       
+        
         .room-code-label {
-            font-size: 0.8rem;
-            opacity: 0.9;
+            font-size: 0.9rem;
+            color: #666;
             margin-bottom: 5px;
         }
-       
+        
         .room-code-value {
-            font-size: 1.8rem;
-            font-weight: 700;
-            letter-spacing: 3px;
-            color: #FACC15;
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: #667eea;
+            letter-spacing: 2px;
         }
-       
+        
         .input-group {
             margin-bottom: 20px;
         }
-       
-        .input-label {
-            font-size: 0.9rem;
-            margin-bottom: 8px;
+        
+        label {
             display: block;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
         }
-       
-        .input-field {
+        
+        input {
             width: 100%;
             padding: 12px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            border: 2px solid #e0e0e0;
             border-radius: 10px;
-            color: white;
             font-size: 1rem;
-            transition: all 0.3s ease;
+            transition: border-color 0.3s;
         }
-       
-        .input-field::placeholder {
-            color: rgba(255, 255, 255, 0.7);
-        }
-       
-        .input-field:focus {
+        
+        input:focus {
             outline: none;
-            border-color: rgba(255, 255, 255, 0.6);
-            background: rgba(255, 255, 255, 0.3);
+            border-color: #667eea;
         }
-       
-        .avatar-section {
-            margin-bottom: 25px;
-        }
-       
-        .avatar-label {
-            font-size: 0.9rem;
-            margin-bottom: 12px;
-            display: block;
-        }
-       
+        
         .avatar-grid {
             display: grid;
             grid-template-columns: repeat(4, 1fr);
             gap: 10px;
+            margin-top: 10px;
         }
-       
+        
         .avatar-option {
-            font-size: 1.8rem;
+            font-size: 2rem;
             padding: 10px;
-            background: rgba(255, 255, 255, 0.15);
-            border: 2px solid transparent;
+            border: 2px solid #e0e0e0;
             border-radius: 10px;
             cursor: pointer;
-            transition: all 0.3s ease;
+            transition: all 0.3s;
             text-align: center;
+            background: white;
         }
-       
+        
         .avatar-option:hover {
-            background: rgba(255, 255, 255, 0.25);
+            transform: scale(1.1);
+            border-color: #667eea;
+        }
+        
+        .avatar-option.selected {
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
             transform: scale(1.1);
         }
-       
-        .avatar-option.selected {
-            border-color: #FACC15;
-            background: rgba(250, 204, 21, 0.2);
-            box-shadow: 0 0 20px rgba(250, 204, 21, 0.4);
-        }
-       
+        
         .join-btn {
             width: 100%;
             padding: 15px;
-            background: linear-gradient(135deg, #10B981, #059669);
+            background: linear-gradient(135deg, #667eea, #764ba2);
             color: white;
             border: none;
             border-radius: 10px;
             font-size: 1.1rem;
-            font-weight: 700;
+            font-weight: 600;
             cursor: pointer;
-            transition: all 0.3s ease;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            transition: transform 0.2s;
         }
-       
+        
         .join-btn:hover:not(:disabled) {
             transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(16, 185, 129, 0.4);
         }
-       
+        
         .join-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
-       
+        
         .error-message {
-            background: rgba(239, 68, 68, 0.2);
-            border: 1px solid rgba(239, 68, 68, 0.4);
-            color: #FCA5A5;
-            padding: 10px;
-            border-radius: 8px;
-            margin-bottom: 15px;
-            font-size: 0.9rem;
+            color: #ff4757;
             text-align: center;
+            margin-top: 10px;
+            padding: 10px;
+            background: rgba(255, 71, 87, 0.1);
+            border-radius: 10px;
         }
-       
+        
         .hidden {
             display: none !important;
         }
-       
-        /* Waiting Screen */
+        
+        /* Waiting Screen Styles */
         .player-name-display {
             text-align: center;
-            margin-bottom: 30px;
-            font-size: 1.2rem;
+            margin: 30px 0;
+            font-size: 1.5rem;
+            color: #333;
         }
-       
+        
+        .player-name-display span {
+            display: inline-block;
+            margin: 0 10px;
+        }
+        
         #playerAvatar {
-            font-size: 2rem;
-            margin-right: 10px;
+            font-size: 3rem;
         }
-       
+        
         .spinner {
-            width: 50px;
-            height: 50px;
-            border: 4px solid rgba(255, 255, 255, 0.2);
-            border-top: 4px solid #FACC15;
+            width: 60px;
+            height: 60px;
+            margin: 30px auto;
+            border: 4px solid rgba(102, 126, 234, 0.2);
+            border-top-color: #667eea;
             border-radius: 50%;
             animation: spin 1s linear infinite;
-            margin: 30px auto;
         }
-       
+        
         @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+            to { transform: rotate(360deg); }
         }
-       
+        
         .waiting-message {
             text-align: center;
-            font-size: 1rem;
-            opacity: 0.9;
+            color: #666;
+            font-size: 1.1rem;
             margin-top: 20px;
         }
-       
+        
         .status-message {
-            background: rgba(255, 255, 255, 0.1);
-            padding: 10px;
-            border-radius: 8px;
             text-align: center;
-            margin-top: 15px;
-        }
-       
-        /* Voting Styles */
-        #answerOptions button, #answerOptions div {
-            font-size: 1.5rem;
+            margin-top: 20px;
             padding: 15px;
-            background: rgba(255, 255, 255, 0.2);
-            border: 2px solid rgba(255, 255, 255, 0.3);
+            background: rgba(102, 126, 234, 0.1);
             border-radius: 10px;
-            cursor: pointer;
-            margin: 5px;
-            width: 100%;
-        }
-        #answerOptions button:hover {
-            background: rgba(255, 255, 255, 0.3);
+            color: #667eea;
+            font-weight: 600;
         }
     </style>
 </head>
@@ -238,40 +219,44 @@
         <!-- Join Screen -->
         <div id="joinScreen" class="card">
             <h1 class="logo">Don't Drink!</h1>
-           
+            
             <div class="room-code-display">
-                <div class="room-code-label">Joining Room</div>
-                <div class="room-code-value" id="roomCodeDisplay">LOADING</div>
+                <div class="room-code-label">Room Code</div>
+                <div class="room-code-value" id="roomCodeDisplay">------</div>
             </div>
-           
+            
             <div id="errorMessage" class="error-message hidden"></div>
-           
+            
             <div class="input-group">
-                <label class="input-label">Your Name</label>
-                <input type="text" id="playerName" class="input-field" placeholder="Enter your name" maxlength="20" autocomplete="off">
+                <label for="playerName">Your Name</label>
+                <input type="text" id="playerName" placeholder="Enter your name" maxlength="20" autocomplete="off">
             </div>
-           
-            <div class="avatar-section">
-                <label class="avatar-label">Choose Your Avatar</label>
+            
+            <div class="input-group">
+                <label>Choose Your Avatar</label>
                 <div class="avatar-grid">
                     <div class="avatar-option selected" data-avatar="🍆">🍆</div>
                     <div class="avatar-option" data-avatar="🍑">🍑</div>
-                    <div class="avatar-option" data-avatar="👅">👅</div>
-                    <div class="avatar-option" data-avatar="💦">💦</div>
-                    <div class="avatar-option" data-avatar="🔥">🔥</div>
+                    <div class="avatar-option" data-avatar="💋">💋</div>
                     <div class="avatar-option" data-avatar="😈">😈</div>
-                    <div class="avatar-option" data-avatar="🥵">🥵</div>
-                    <div class="avatar-option" data-avatar="🍌">🍌</div>
-                    <div class="avatar-option" data-avatar="🍒">🍒</div>
+                    <div class="avatar-option" data-avatar="🔥">🔥</div>
+                    <div class="avatar-option" data-avatar="💦">💦</div>
                     <div class="avatar-option" data-avatar="🌶️">🌶️</div>
-                    <div class="avatar-option" data-avatar="🥒">🥒</div>
-                    <div class="avatar-option" data-avatar="🍾">🍾</div>
+                    <div class="avatar-option" data-avatar="🌮">🌮</div>
+                    <div class="avatar-option" data-avatar="🥵">🥵</div>
+                    <div class="avatar-option" data-avatar="😏">😏</div>
+                    <div class="avatar-option" data-avatar="🕺">🕺</div>
+                    <div class="avatar-option" data-avatar="💃">💃</div>
+                    <div class="avatar-option" data-avatar="👅">👅</div>
+                    <div class="avatar-option" data-avatar="🤤">🤤</div>
+                    <div class="avatar-option" data-avatar="🍯">🍯</div>
+                    <div class="avatar-option" data-avatar="😎">😎</div>
                 </div>
             </div>
-           
-            <button id="joinBtn" class="join-btn">Join Game</button>
+            
+            <button id="joinBtn" class="join-btn">JOIN GAME</button>
         </div>
-       
+        
         <!-- Waiting Screen -->
         <div id="waitingScreen" class="card hidden">
             <h1 class="logo">Don't Drink!</h1>
@@ -283,13 +268,8 @@
             <div class="waiting-message">Waiting for host to start the game...</div>
             <div id="gameStatus" class="status-message hidden"></div>
         </div>
-       
-        <!-- Voting Screen -->
-        <div class="voting-section card hidden" style="display: none;">
-            <div id="questionText" style="font-size: 1.2rem; margin-bottom: 20px; text-align: center;"></div>
-            <div id="answerOptions" style="display: grid; gap: 10px;"></div>
-        </div>
     </div>
+    
     <!-- Socket.IO from CDN with fallback -->
     <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script>
@@ -297,28 +277,28 @@
         let selectedAvatar = '🍆';
         let roomCode = '';
         let connected = false;
-       
+        
         // Get room code from URL
         function getRoomCodeFromURL() {
             const path = window.location.pathname;
             const code = path.substring(1);
             return code.length === 6 ? code.toUpperCase() : null;
         }
-       
+        
         // Initialize
         window.addEventListener('load', () => {
             roomCode = getRoomCodeFromURL();
-           
+            
             if (!roomCode) {
                 showError('Invalid room code. Please use a valid game link.');
                 document.getElementById('joinBtn').disabled = true;
                 return;
             }
-           
+            
             document.getElementById('roomCodeDisplay').textContent = roomCode;
             initSocket();
         });
-       
+        
         // Initialize Socket.IO
         function initSocket() {
             // If Socket.IO fails to load from CDN, try loading from server
@@ -332,160 +312,74 @@
                 initSocketConnection();
             }
         }
-       
+        
         function initSocketConnection() {
             // Auto-detect server URL
             const socketUrl = window.location.hostname === 'localhost'
                 ? 'http://localhost:3000'
                 : window.location.origin;
-          
+            
             socket = io(socketUrl, {
-                transports: ['polling', 'websocket'], // Polling først for bedre mobil-støtte
-                reconnection: true,                    // Enable auto-reconnect
-                reconnectionAttempts: Infinity,        // Keep trying forever
-                reconnectionDelay: 1000,               // Start with 1s delay
-                reconnectionDelayMax: 5000,            // Max delay 5s
-                randomizationFactor: 0.5               // Add randomness to delays
+                transports: ['websocket', 'polling'],
+                reconnection: true,
+                reconnectionAttempts: Infinity,
+                reconnectionDelay: 1000,
+                reconnectionDelayMax: 5000,
+                randomizationFactor: 0.5
             });
-                   
+            
             socket.on('connect', () => {
                 console.log('Connected to server');
                 connected = true;
                 hideError();
                 document.getElementById('joinBtn').disabled = false;
             });
-           
+            
             // CRITICAL: Listen for join-success event
             socket.on('join-success', (data) => {
                 console.log('Successfully joined room:', data);
                 showWaitingScreen();
             });
-           
+            
             socket.on('join-error', (error) => {
                 console.log('Join error:', error);
                 showError(error.message || 'Failed to join room');
                 document.getElementById('joinBtn').disabled = false;
             });
-           
+            
             socket.on('game-started', (data) => {
                 console.log('Game started:', data);
                 document.getElementById('gameStatus').textContent = 'Game is starting!';
                 document.getElementById('gameStatus').classList.remove('hidden');
-                // Redirect to play page - commented for testing
-                // setTimeout(() => {
-                //     window.location.href = `/play?room=${roomCode}&game=${data.game}`;
-                // }, 1000);
+                
+                // Redirect to play page after short delay
+                setTimeout(() => {
+                    window.location.href = `/play?room=${roomCode}`;
+                }, 1500);
             });
-            // Legg til denne nye handleren her
-            socket.on('new-question', (data) => {
-                console.log('New question received:', data); // Debug log
-                const { question, game, mode } = data; // Anta server sender game og mode med spørsmålet
-               
-                // Vis spørsmålet
-                document.getElementById('questionText').textContent = question || 'No question text';
-               
-                // Fjern loading/waiting og vis answer-section
-                document.getElementById('waitingScreen').style.display = 'none';
-                document.querySelector('.voting-section').style.display = 'block';
-               
-                const optionsDiv = document.getElementById('answerOptions');
-                optionsDiv.innerHTML = '';
-               
-                let answer = null; // For å lagre spillerens valg
-               
-                if (game === 'would_you_rather') {
-                    // WYR: To knapper for A/B
-                    const btnA = document.createElement('button');
-                    btnA.textContent = 'A';
-                    btnA.onclick = () => { answer = 'A'; submitAnswer(); };
-                    const btnB = document.createElement('button');
-                    btnB.textContent = 'B';
-                    btnB.onclick = () => { answer = 'B'; submitAnswer(); };
-                    optionsDiv.appendChild(btnA);
-                    optionsDiv.appendChild(btnB);
-                } else if (game === 'fmk') {
-                    // FMK: Drag-and-drop for tre alternativer (anta question er array ['Person1', 'Person2', 'Person3'])
-                    const options = question.split(', '); // Split hvis string, eller bruk question hvis array
-                    const dropZones = ['F', 'M', 'K'].map(label => {
-                        const zone = document.createElement('div');
-                        zone.textContent = label;
-                        zone.ondrop = (ev) => { /* handle drop */ answer[label] = ev.dataTransfer.getData('text'); };
-                        zone.ondragover = (ev) => ev.preventDefault();
-                        return zone;
-                    });
-                    options.forEach(opt => {
-                        const draggable = document.createElement('div');
-                        draggable.textContent = opt;
-                        draggable.draggable = true;
-                        draggable.ondragstart = (ev) => ev.dataTransfer.setData('text', opt);
-                        optionsDiv.appendChild(draggable);
-                    });
-                    dropZones.forEach(zone => optionsDiv.appendChild(zone));
-                    // Submit-knapp for FMK
-                    const submitBtn = document.createElement('button');
-                    submitBtn.textContent = 'Submit';
-                    submitBtn.onclick = submitAnswer;
-                    optionsDiv.appendChild(submitBtn);
-                } else if (game === 'never_have_i_ever') {
-                    // NHIE: To knapper
-                    const btnHave = document.createElement('button');
-                    btnHave.textContent = 'I Have';
-                    btnHave.onclick = () => { answer = 'have'; submitAnswer(); };
-                    const btnNever = document.createElement('button');
-                    btnNever.textContent = 'Never';
-                    btnNever.onclick = () => { answer = 'never'; submitAnswer(); };
-                    optionsDiv.appendChild(btnHave);
-                    optionsDiv.appendChild(btnNever);
-                } else if (game === 'hot_takes') {
-                    // Hot Takes: To knapper
-                    const btnAgree = document.createElement('button');
-                    btnAgree.textContent = 'Agree 👍';
-                    btnAgree.onclick = () => { answer = 'agree'; submitAnswer(); };
-                    const btnDisagree = document.createElement('button');
-                    btnDisagree.textContent = 'Disagree 👎';
-                    btnDisagree.onclick = () => { answer = 'disagree'; submitAnswer(); };
-                    optionsDiv.appendChild(btnAgree);
-                    optionsDiv.appendChild(btnDisagree);
-                } else {
-                    console.log('Unknown game type:', game); // Debug if game not recognized
-                }
-               
-                // Funksjon for å sende svar
-                function submitAnswer() {
-                    console.log('Submitting answer:', answer); // Debug log
-                    socket.emit('submit-answer', { roomCode: getRoomCodeFromURL(), answer });
-                }
-            });
-                   
+            
             socket.on('players-updated', (players) => {
-                console.log('Players updated:', players);
-                const status = `${players.length} player${players.length !== 1 ? 's' : ''} in room`;
-                document.getElementById('gameStatus').textContent = status;
-                document.getElementById('gameStatus').classList.remove('hidden');
+                console.log('Players in room:', players.length);
             });
-           
+            
             socket.on('host-disconnected', () => {
-                console.log('Host disconnected - staying on page for debugging'); // Debug log
-                showError('Host has left the game - staying on page for debugging');
-                // Comment redirect for testing
-                // setTimeout(() => {
-                //     window.location.href = '/';
-                // }, 3000);
+                showError('Host has left the game');
+                setTimeout(() => {
+                    window.location.href = '/';
+                }, 3000);
             });
-           
+            
             socket.on('disconnect', () => {
+                connected = false;
                 console.log('Disconnected from server');
-                connected = false;
-                showError('Lost connection to server');
             });
-           
+            
             socket.on('connect_error', (error) => {
-                console.error('Connection error:', error);
-                connected = false;
-                showError('Cannot connect to game server');
+                console.error('Connection failed:', error);
+                showError('Connection failed. Please try again.');
             });
         }
-       
+        
         // Avatar selection
         document.querySelectorAll('.avatar-option').forEach(option => {
             option.addEventListener('click', () => {
@@ -494,31 +388,44 @@
                 selectedAvatar = option.dataset.avatar;
             });
         });
-       
+        
         // Join button
         document.getElementById('joinBtn').addEventListener('click', () => {
             const playerName = document.getElementById('playerName').value.trim();
-           
+            
             if (!playerName) {
                 showError('Please enter your name');
                 return;
             }
-           
+            
             if (!connected) {
                 showError('Connecting to server...');
                 return;
             }
-           
+            
             document.getElementById('joinBtn').disabled = true;
-           
-            // Send join request
+            
+            // Send join request - using callback pattern
             socket.emit('join-room', {
                 roomCode: roomCode,
                 playerName: playerName,
                 avatar: selectedAvatar
+            }, (response) => {
+                if (response && response.success) {
+                    // Backup in case join-success event doesn't fire
+                    setTimeout(() => {
+                        if (document.getElementById('joinScreen').classList.contains('hidden')) {
+                            return; // Already on waiting screen
+                        }
+                        showWaitingScreen();
+                    }, 100);
+                } else {
+                    showError(response?.error || 'Failed to join room');
+                    document.getElementById('joinBtn').disabled = false;
+                }
             });
-           
-            // Set timeout in case server doesn't respond
+            
+            // Timeout fallback
             setTimeout(() => {
                 if (!document.getElementById('waitingScreen').classList.contains('hidden')) {
                     return; // Already on waiting screen
@@ -527,29 +434,30 @@
                 showError('Join timeout - please try again');
             }, 5000);
         });
-       
+        
         // Enter key support
         document.getElementById('playerName').addEventListener('keypress', (e) => {
             if (e.key === 'Enter') {
                 document.getElementById('joinBtn').click();
             }
         });
-       
+        
         function showWaitingScreen() {
             const playerName = document.getElementById('playerName').value.trim();
             document.getElementById('playerNameDisplay').textContent = playerName;
             document.getElementById('playerAvatar').textContent = selectedAvatar;
-           
+            
             document.getElementById('joinScreen').classList.add('hidden');
             document.getElementById('waitingScreen').classList.remove('hidden');
         }
-       
+        
         function showError(message) {
             const errorEl = document.getElementById('errorMessage');
             errorEl.textContent = message;
             errorEl.classList.remove('hidden');
+            setTimeout(() => hideError(), 5000);
         }
-       
+        
         function hideError() {
             document.getElementById('errorMessage').classList.add('hidden');
         }
