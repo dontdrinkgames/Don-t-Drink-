@@ -220,7 +220,6 @@
             padding: 8px;
             text-align: center;
             border: 1px solid rgba(255, 255, 255, 0.2);
-            position: relative;
         }
         .player-avatar {
             font-size: 1.5rem;
@@ -233,130 +232,6 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-        }
-        .remove-btn {
-            position: absolute;
-            top: 2px;
-            right: 2px;
-            background: rgba(255, 0, 0, 0.6);
-            color: white;
-            border: none;
-            border-radius: 50%;
-            width: 18px;
-            height: 18px;
-            font-size: 12px;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.2s;
-        }
-        .remove-btn:hover {
-            background: rgba(255, 0, 0, 0.9);
-            transform: scale(1.1);
-        }
-        .add-player-btn {
-            padding: 8px 16px;
-            background: linear-gradient(135deg, #4CAF50, #45a049);
-            color: white;
-            border: none;
-            border-radius: 8px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s;
-            font-size: 0.9rem;
-            margin-top: 8px;
-        }
-        .add-player-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 4px 12px rgba(76, 175, 80, 0.4);
-        }
-        /* Modal */
-        .modal {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0, 0, 0, 0.7);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 1000;
-            backdrop-filter: blur(5px);
-        }
-        .modal-content {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 24px;
-            width: 90%;
-            max-width: 400px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
-        }
-        .modal-title {
-            font-size: 1.5rem;
-            font-weight: 600;
-            color: #333;
-            margin-bottom: 16px;
-            text-align: center;
-        }
-        .modal-input {
-            width: 100%;
-            padding: 12px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1rem;
-            margin-bottom: 16px;
-            font-family: 'Poppins', sans-serif;
-        }
-        .avatar-grid {
-            display: grid;
-            grid-template-columns: repeat(4, 1fr);
-            gap: 10px;
-            margin-bottom: 16px;
-        }
-        .avatar-option {
-            font-size: 2rem;
-            padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            cursor: pointer;
-            text-align: center;
-            transition: all 0.2s;
-            background: white;
-        }
-        .avatar-option:hover {
-            transform: scale(1.1);
-            border-color: #667eea;
-        }
-        .avatar-option.selected {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
-        }
-        .modal-buttons {
-            display: flex;
-            gap: 10px;
-        }
-        .modal-btn {
-            flex: 1;
-            padding: 12px;
-            border: none;
-            border-radius: 10px;
-            font-weight: 600;
-            cursor: pointer;
-            font-size: 1rem;
-            transition: all 0.3s;
-        }
-        .modal-btn.primary {
-            background: linear-gradient(135deg, #667eea, #764ba2);
-            color: white;
-        }
-        .modal-btn.secondary {
-            background: #e0e0e0;
-            color: #666;
-        }
-        .modal-btn:hover {
-            transform: translateY(-2px);
         }
         /* Start Button */
         .start-section {
@@ -549,10 +424,9 @@
             <div class="section-title">Players</div>
             <div id="playersList" class="players-grid">
                 <div class="empty-state">
-                    No players yet. Share the room code or QR code to invite friends.
+                    Players must join from their mobile devices using the QR code or room code above.
                 </div>
             </div>
-            <button id="addPlayerBtn" class="add-player-btn">+ Add Player</button>
         </div>
         
         <!-- Start Game Button -->
@@ -566,38 +440,6 @@
         <div id="successMessage" class="message success-message hidden"></div>
         <div id="errorMessage" class="message error-message hidden"></div>
     </div>
-    
-    <!-- Add Player Modal -->
-    <div id="addPlayerModal" class="modal hidden">
-        <div class="modal-content">
-            <h2 class="modal-title">Add Player</h2>
-            <input type="text" id="playerNameInput" class="modal-input" placeholder="Enter player name" maxlength="20">
-            <div class="section-title">Choose Avatar</div>
-            <div class="avatar-grid">
-                <div class="avatar-option selected" data-avatar="🍆">🍆</div>
-                <div class="avatar-option" data-avatar="🍑">🍑</div>
-                <div class="avatar-option" data-avatar="💋">💋</div>
-                <div class="avatar-option" data-avatar="😈">😈</div>
-                <div class="avatar-option" data-avatar="🔥">🔥</div>
-                <div class="avatar-option" data-avatar="💦">💦</div>
-                <div class="avatar-option" data-avatar="🌶️">🌶️</div>
-                <div class="avatar-option" data-avatar="🌮">🌮</div>
-                <div class="avatar-option" data-avatar="🥵">🥵</div>
-                <div class="avatar-option" data-avatar="😏">😏</div>
-                <div class="avatar-option" data-avatar="🕺">🕺</div>
-                <div class="avatar-option" data-avatar="💃">💃</div>
-                <div class="avatar-option" data-avatar="👅">👅</div>
-                <div class="avatar-option" data-avatar="🤤">🤤</div>
-                <div class="avatar-option" data-avatar="🍯">🍯</div>
-                <div class="avatar-option" data-avatar="😎">😎</div>
-            </div>
-            <div class="modal-buttons">
-                <button class="modal-btn secondary" onclick="closeAddPlayerModal()">Cancel</button>
-                <button class="modal-btn primary" onclick="addPlayer()">Add Player</button>
-            </div>
-        </div>
-    </div>
-    
     <!-- Socket.IO from server first, CDN as fallback -->
     <script src="/socket.io/socket.io.js"></script>
     <script>
@@ -759,13 +601,12 @@
             if (players.length === 0) {
                 playersList.innerHTML = `
                     <div class="empty-state">
-                        No players yet. Share the room code or QR code to invite friends.
+                        Players must join from their mobile devices using the QR code or room code above.
                     </div>
                 `;
             } else {
-                playersList.innerHTML = players.map((player, index) => `
+                playersList.innerHTML = players.map((player) => `
                     <div class="player-card">
-                        <button class="remove-btn" onclick="removePlayer(${index})">×</button>
                         <div class="player-avatar">${player.avatar}</div>
                         <div class="player-name">${player.name}</div>
                     </div>
@@ -840,49 +681,6 @@
                 window.location.href = `/play?room=${gameState.roomCode}&game=${config.game}`;
             }
         });
-        
-        // Add player modal
-        document.getElementById('addPlayerBtn').addEventListener('click', () => {
-            document.getElementById('addPlayerModal').classList.remove('hidden');
-            document.getElementById('playerNameInput').focus();
-        });
-        
-        function closeAddPlayerModal() {
-            document.getElementById('addPlayerModal').classList.add('hidden');
-            document.getElementById('playerNameInput').value = '';
-            selectedAvatar = '🍆';
-            document.querySelectorAll('.avatar-option').forEach(o => o.classList.remove('selected'));
-            document.querySelector('.avatar-option[data-avatar="🍆"]').classList.add('selected');
-        }
-        
-        // Avatar selection
-        document.querySelectorAll('.avatar-option').forEach(option => {
-            option.addEventListener('click', () => {
-                document.querySelectorAll('.avatar-option').forEach(o => o.classList.remove('selected'));
-                option.classList.add('selected');
-                selectedAvatar = option.dataset.avatar;
-            });
-        });
-        
-        function addPlayer() {
-            const name = document.getElementById('playerNameInput').value.trim();
-            if (name) {
-                players.push({
-                    name: name,
-                    avatar: selectedAvatar
-                });
-                updatePlayersDisplay();
-                closeAddPlayerModal();
-                showSuccess(`${name} added to the game!`);
-            }
-        }
-        
-        function removePlayer(index) {
-            const player = players[index];
-            players.splice(index, 1);
-            updatePlayersDisplay();
-            showSuccess(`${player.name} removed from the game`);
-        }
         
         // Show success message
         function showSuccess(message) {
