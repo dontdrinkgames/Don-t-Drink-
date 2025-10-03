@@ -597,12 +597,12 @@
         
         <!-- Game Screen -->
         <div class="game-screen" id="gameScreen">
-            <div class="logo">
-                <h1>DON'T DRINK!</h1>
+            <!-- Game title (dynamic based on game type) -->
+            <div style="text-align: center; margin: 20px 0;">
+                <h1 id="mobileGameTitle" style="font-size: 2rem; font-weight: 900; color: white; text-transform: uppercase; margin: 0;">LOADING...</h1>
             </div>
             
-            <div class="game-question" id="gameQuestion">
-                <div class="question-number" id="mobileQuestionNumber">Question 1</div>
+            <div class="game-question" id="gameQuestion" style="display: none;">
                 <div class="question-text" id="mobileQuestionText">Loading question...</div>
             </div>
             
@@ -1037,34 +1037,34 @@
             document.getElementById('mobileResults').style.display = 'none';
             console.log('✅ Hidden previous screens');
             
-            // Update question display
-            document.getElementById('mobileQuestionNumber').textContent = `Question ${data.questionNumber || 1}`;
+            // Set game title
+            const gameTitles = {
+                'nhie': 'Never Have I Ever',
+                'never_have_i_ever': 'Never Have I Ever',
+                'wyr': 'Would You Rather',
+                'would_you_rather': 'Would You Rather',
+                'fmk': 'Fuck, Marry, Kill',
+                'fuck_marry_kill': 'Fuck, Marry, Kill',
+                'hot': 'Hot Takes',
+                'hot_takes': 'Hot Takes'
+            };
+            document.getElementById('mobileGameTitle').textContent = gameTitles[data.game] || data.game.toUpperCase();
             
-            // Get question text - handle different formats
-            let questionText = '';
-            if (data.text) {
-                questionText = data.text;
-            } else if (data.optionA && data.optionB) {
-                questionText = `Would you rather: ${data.optionA} OR ${data.optionB}`;
-            } else if (typeof data.question === 'string') {
-                questionText = data.question;
-            } else if (data.question?.text) {
-                questionText = data.question.text;
+            // For WYR and FMK, don't show question box
+            if (data.game === 'would_you_rather' || data.game === 'wyr' || data.game === 'fmk' || data.game === 'fuck_marry_kill') {
+                document.getElementById('gameQuestion').style.display = 'none';
             } else {
-                questionText = 'Loading question...';
-            }
-            
-            console.log('📝 Mobile question text:', questionText);
-            const questionEl = document.getElementById('mobileQuestionText');
-            if (questionEl) {
-                questionEl.textContent = questionText;
-                console.log('✅ Updated question text element');
-            } else {
-                console.error('❌ Could not find mobileQuestionText element!');
+                // For NHIE and Hot Takes, show question text
+                document.getElementById('gameQuestion').style.display = 'block';
+                const questionEl = document.getElementById('mobileQuestionText');
+                if (questionEl) {
+                    questionEl.textContent = data.text || 'Loading question...';
+                }
             }
             
             // Hide all interaction views
             document.getElementById('votingButtons').classList.remove('active');
+            document.getElementById('fmkContainer').classList.remove('active');
             document.getElementById('spotlightPlayerView').classList.remove('active');
             document.getElementById('spectatorView').classList.remove('active');
             document.getElementById('confirmationMessage').classList.remove('show');
@@ -1072,13 +1072,6 @@
             
             // Show appropriate UI based on mode
             if (data.mode === 'voting' || data.mode === 'mobile') {
-                // For FMK, hide the question box
-                if (data.game === 'fmk' || data.game === 'fuck_marry_kill') {
-                    document.getElementById('gameQuestion').style.display = 'none';
-                } else {
-                    document.getElementById('gameQuestion').style.display = 'flex';
-                }
-                
                 showVotingButtons(data.game);
             }
             // Spotlight mode is handled by 'spotlight-active' event
@@ -1442,6 +1435,7 @@
             
             const touch = e.changedTouches[0];
             const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+            const person = clone.dataset.person;
             
             // Find the drop zone
             let dropZone = null;
@@ -1455,7 +1449,6 @@
             
             if (dropZone) {
                 const category = dropZone.id.replace('drop-', '');
-                const person = clone.dataset.person;
                 
                 // Update answer
                 fmkAnswers[category] = person;
@@ -1464,6 +1457,24 @@
                 dropZone.dataset.person = person;
                 
                 console.log('✅ Re-arranged:', person, 'to', category);
+            } else {
+                // Dropped outside - put it back in original spot
+                console.log('⚠️ Dropped outside, finding original category');
+                
+                // Find which category this person was originally in and put it back
+                for (const [cat, val] of Object.entries(fmkAnswers)) {
+                    if (val === null) {
+                        const dropZoneToRestore = document.getElementById(`drop-${cat}`);
+                        if (dropZoneToRestore && !dropZoneToRestore.classList.contains('filled')) {
+                            fmkAnswers[cat] = person;
+                            dropZoneToRestore.textContent = person;
+                            dropZoneToRestore.classList.add('filled');
+                            dropZoneToRestore.dataset.person = person;
+                            console.log('✅ Restored', person, 'to', cat);
+                            break;
+                        }
+                    }
+                }
             }
             
             // Remove clone
@@ -1513,7 +1524,7 @@
             console.log('📨 Vote submitted:', vote);
         }
         
-        // Show mobile results
+        // Show mobile results (same design as host)
         function showMobileResults(data) {
             console.log('📊 Showing mobile results:', data);
             
@@ -1524,25 +1535,60 @@
             const resultsEl = document.getElementById('mobileResults');
             const contentEl = document.getElementById('mobileResultsContent');
             
-            let html = '<div style="padding: 20px;">';
-            html += '<div style="font-size: 1.5rem; margin-bottom: 15px;">📊 Results</div>';
+            let html = '<div style="padding: 15px;">';
+            html += '<h3 style="color: white; margin-bottom: 20px; font-size: 1.3rem; text-align: center;">📊 The Results</h3>';
             
             // Sort by vote count
             const sortedVotes = Object.entries(data.votes).sort((a, b) => b[1] - a[1]);
             
             for (const [option, count] of sortedVotes) {
                 const percentage = data.totalPlayers > 0 ? (count / data.totalPlayers * 100).toFixed(0) : 0;
-                const voters = data.voters[option] || [];
+                const votersForOption = data.voters[option] || [];
                 
                 html += `
-                    <div style="margin: 15px 0; padding: 15px; background: rgba(255,255,255,0.15); border-radius: 12px;">
-                        <div style="font-weight: 700; margin-bottom: 8px;">${option.toUpperCase()}</div>
-                        <div style="font-size: 0.9rem; margin-bottom: 5px;">${count} votes (${percentage}%)</div>
-                        ${voters.length > 0 ? `
-                            <div style="font-size: 0.85rem; color: rgba(255,255,255,0.8);">
-                                ${voters.join(', ')}
+                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                        <!-- Option name -->
+                        <div style="text-align: center; font-size: 1rem; font-weight: 700; color: white; margin-bottom: 10px;">
+                            ${option.toUpperCase()}
+                        </div>
+                        
+                        <!-- Bar graph -->
+                        <div style="background: rgba(0,0,0,0.2); height: 40px; border-radius: 10px; overflow: hidden; margin-bottom: 10px; position: relative;">
+                            <div style="
+                                background: linear-gradient(135deg, #A855F7, #9333EA);
+                                height: 100%;
+                                width: ${percentage}%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                color: white;
+                                font-weight: 700;
+                                font-size: 0.95rem;
+                                transition: width 0.5s ease;
+                            ">
+                                ${percentage}%
                             </div>
-                        ` : ''}
+                            ${percentage < 20 ? `<div style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.7); font-weight: 700; font-size: 0.9rem;">${percentage}%</div>` : ''}
+                        </div>
+                        
+                        <!-- Player bubbles -->
+                        ${votersForOption.length > 0 ? `
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
+                                ${votersForOption.map(voter => `
+                                    <div style="
+                                        background: #7C3AED;
+                                        color: white;
+                                        padding: 6px 12px;
+                                        border-radius: 16px;
+                                        font-size: 0.8rem;
+                                        font-weight: 600;
+                                        filter: drop-shadow(2px 2px 0px #6D28D9);
+                                    ">
+                                        ${voter}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : '<div style="text-align: center; color: rgba(255,255,255,0.5); font-size: 0.85rem;">No votes</div>'}
                     </div>
                 `;
             }
