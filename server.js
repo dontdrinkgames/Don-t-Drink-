@@ -505,9 +505,18 @@ setInterval(() => {
     });
 }, 60 * 60 * 1000);
 
-// Start server
+// Start server with error handling
 const PORT = process.env.PORT || 3000;
-server.listen(PORT, () => {
+
+server.on('error', (err) => {
+    console.error('❌ Server error:', err);
+    if (err.code === 'EADDRINUSE') {
+        console.error(`Port ${PORT} is already in use`);
+        process.exit(1);
+    }
+});
+
+server.listen(PORT, '0.0.0.0', () => {
     console.log(`
 ╔════════════════════════════════════════╗
 ║       DON'T DRINK! SERVER RUNNING      ║
@@ -524,4 +533,7 @@ server.listen(PORT, () => {
 ║  Status: ${questionManager ? '✅ Questions loaded' : '⚠️  No questions'}${' '.repeat(questionManager ? 9 : 15)}║
 ╚════════════════════════════════════════╝
     `);
+    
+    console.log(`✅ Server ready at port ${PORT}`);
+    console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
 });
