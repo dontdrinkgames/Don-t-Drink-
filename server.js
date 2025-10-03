@@ -264,18 +264,44 @@ io.on('connection', (socket) => {
     socket.on('next-question', (data) => {
         try {
             const { roomCode, game, intensity, mode, questionNumber } = data;
+            
+            console.log('📥 next-question request:', {
+                roomCode,
+                game,
+                intensity,
+                mode,
+                questionNumber,
+                roomExists: !!rooms[roomCode],
+                availableRooms: Object.keys(rooms)
+            });
+            
             const room = rooms[roomCode];
             
             if (!room) {
-                socket.emit('error', { message: 'Room not found' });
+                console.error('❌ Room not found:', roomCode);
+                console.error('Available rooms:', Object.keys(rooms));
+                socket.emit('error', { message: `Room not found: ${roomCode}. Available rooms: ${Object.keys(rooms).join(', ')}` });
                 return;
             }
             
             if (questionManager) {
                 const question = questionManager.getRandomQuestion(game, intensity, mode, questionNumber);
                 
+                console.log('✅ Question fetched:', question.text.substring(0, 50) + '...');
+                
                 // Send to all clients in room
                 io.to(roomCode).emit('new-question', {
+                    question: question.text,
+                    questionId: question.id,
+                    isCustom: question.isCustom,
+                    questionNumber,
+                    game,
+                    mode,
+                    intensity
+                });
+                
+                // ALSO send directly to the requester
+                socket.emit('new-question', {
                     question: question.text,
                     questionId: question.id,
                     isCustom: question.isCustom,

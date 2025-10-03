@@ -427,7 +427,15 @@
             gameConfig.mode = urlParams.get('mode') || 'offline';
             gameConfig.intensity = urlParams.get('intensity') || 'medium';
             
+            console.log('🎮 URL Parameters:', {
+                room: gameConfig.roomCode,
+                game: gameConfig.game,
+                mode: gameConfig.mode,
+                intensity: gameConfig.intensity
+            });
+            
             if (!gameConfig.roomCode || !gameConfig.game) {
+                console.error('❌ Missing configuration!');
                 alert('Missing game configuration. Redirecting...');
                 window.location.href = '/host';
                 return;
@@ -477,18 +485,15 @@
                 console.log('📍 Room code:', gameConfig.roomCode);
                 console.log('🎮 Game config:', gameConfig);
                 
-                // Join room
-                socket.emit('join-room', {
-                    roomCode: gameConfig.roomCode,
-                    playerName: 'Host',
-                    avatar: '👑'
-                });
+                // DON'T join room - we're the host viewing the game
+                // The room already exists from host.html
                 
-                // Load first question
+                // Load first question immediately
                 setTimeout(() => {
-                    console.log('⏰ Loading first question after 1 second...');
+                    console.log('⏰ Loading first question...');
+                    console.log('📤 Sending to room:', gameConfig.roomCode);
                     loadNextQuestion();
-                }, 1000);
+                }, 500);
             });
             
             socket.on('new-question', (data) => {
