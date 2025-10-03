@@ -492,7 +492,23 @@
             
             <div class="game-question" id="gameQuestion">
                 <div class="question-number" id="mobileQuestionNumber">Question 1</div>
-                <div class="question-text" id="mobileQuestionText">Loading...</div>
+                <div class="question-text" id="mobileQuestionText">Loading question...</div>
+            </div>
+            
+            <!-- Vote Waiting Screen -->
+            <div class="spectator-view" id="voteWaitingScreen" style="display: none;">
+                <div class="spectating-message">
+                    <div class="spectating-emoji">⏳</div>
+                    <div class="spectating-text">Waiting for others...</div>
+                    <div class="spectating-status" id="voteCounter">0/0 players voted</div>
+                </div>
+            </div>
+            
+            <!-- Vote Results Display -->
+            <div class="spectator-view" id="mobileResults" style="display: none;">
+                <div class="spectating-message" id="mobileResultsContent">
+                    <!-- Results will be injected here -->
+                </div>
             </div>
             
             <!-- Voting Buttons (Mobile Voting Mode) -->
@@ -720,16 +736,23 @@
             // Vote update from server
             socket.on('vote-update', (data) => {
                 console.log('📊 MOBILE: vote-update received:', data);
+                console.log('   - totalVotes:', data.totalVotes);
+                console.log('   - totalPlayers:', data.totalPlayers);
+                console.log('   - revealed:', data.revealed);
                 
                 // Update vote counter
                 const counterEl = document.getElementById('voteCounter');
                 if (counterEl) {
                     counterEl.textContent = `${data.totalVotes}/${data.totalPlayers} players voted`;
+                    console.log('✅ Updated vote counter');
                 }
                 
                 // If all voted and results revealed, show results on mobile too
                 if (data.totalVotes === data.totalPlayers && data.revealed) {
+                    console.log('🎯 All voted and revealed - showing results!');
                     showMobileResults(data);
+                } else {
+                    console.log('⏳ Not ready to show results yet');
                 }
             });
             
@@ -830,16 +853,24 @@
         // Handle new question
         function handleNewQuestion(data) {
             console.log('📱 handleNewQuestion called with:', data);
+            console.log('   - game:', data.game);
+            console.log('   - mode:', data.mode);
+            console.log('   - text:', data.text);
+            console.log('   - optionA:', data.optionA);
+            console.log('   - optionB:', data.optionB);
+            
             currentGameData = data;
             selectedAnswer = null;
             
             // Show game screen
             document.getElementById('waitingScreen').classList.remove('active');
             document.getElementById('gameScreen').classList.add('active');
+            console.log('✅ Switched to game screen');
             
             // Hide previous screens
             document.getElementById('voteWaitingScreen').style.display = 'none';
             document.getElementById('mobileResults').style.display = 'none';
+            console.log('✅ Hidden previous screens');
             
             // Update question display
             document.getElementById('mobileQuestionNumber').textContent = `Question ${data.questionNumber || 1}`;
@@ -859,7 +890,13 @@
             }
             
             console.log('📝 Mobile question text:', questionText);
-            document.getElementById('mobileQuestionText').textContent = questionText;
+            const questionEl = document.getElementById('mobileQuestionText');
+            if (questionEl) {
+                questionEl.textContent = questionText;
+                console.log('✅ Updated question text element');
+            } else {
+                console.error('❌ Could not find mobileQuestionText element!');
+            }
             
             // Hide all interaction views
             document.getElementById('votingButtons').classList.remove('active');
