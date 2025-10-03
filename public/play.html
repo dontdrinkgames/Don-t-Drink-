@@ -473,7 +473,10 @@
             });
             
             socket.on('connect', () => {
-                console.log('Connected to server');
+                console.log('✅ Connected to server');
+                console.log('📍 Room code:', gameConfig.roomCode);
+                console.log('🎮 Game config:', gameConfig);
+                
                 // Join room
                 socket.emit('join-room', {
                     roomCode: gameConfig.roomCode,
@@ -482,12 +485,24 @@
                 });
                 
                 // Load first question
-                loadNextQuestion();
+                setTimeout(() => {
+                    console.log('⏰ Loading first question after 1 second...');
+                    loadNextQuestion();
+                }, 1000);
             });
             
             socket.on('new-question', (data) => {
-                console.log('New question received:', data);
+                console.log('📨 NEW-QUESTION EVENT RECEIVED!');
+                console.log('📦 Data:', data);
+                console.log('❓ Question:', data.question);
+                console.log('🎮 Game:', data.game);
+                console.log('📱 Mode:', data.mode);
                 displayQuestion(data);
+            });
+            
+            socket.on('error', (error) => {
+                console.error('❌ Socket error:', error);
+                alert('Error: ' + (error.message || JSON.stringify(error)));
             });
             
             socket.on('vote-update', (data) => {
@@ -568,7 +583,14 @@
         
         // Display question
         function displayQuestion(data) {
+            console.log('🎨 displayQuestion called with:', data);
+            
             const { question, game, mode } = data;
+            
+            console.log('📝 Question type:', typeof question);
+            console.log('📝 Question value:', question);
+            console.log('🎮 Game:', game);
+            console.log('📱 Mode:', mode);
             
             // Hide all special displays
             document.getElementById('wyrOptions').classList.add('hidden');
@@ -581,11 +603,13 @@
             
             // Display based on game type
             if (game === 'would_you_rather' && typeof question === 'object' && question.optionA) {
+                console.log('✅ Displaying WYR question');
                 textEl.textContent = 'Would you rather...';
                 document.getElementById('optionA').textContent = question.optionA;
                 document.getElementById('optionB').textContent = question.optionB;
                 document.getElementById('wyrOptions').classList.remove('hidden');
             } else if ((game === 'fmk' || gameConfig.game === 'fmk') && typeof question === 'string' && question.includes(',')) {
+                console.log('✅ Displaying FMK question');
                 textEl.textContent = 'Choose wisely...';
                 const people = question.split(',').map(p => p.trim());
                 const fmkGrid = document.getElementById('fmkGrid');
@@ -597,8 +621,11 @@
                 `).join('');
                 fmkGrid.classList.remove('hidden');
             } else {
-                textEl.textContent = typeof question === 'string' ? question : 
+                console.log('✅ Displaying standard question');
+                const questionText = typeof question === 'string' ? question : 
                                      question.text || JSON.stringify(question);
+                console.log('📝 Final text:', questionText);
+                textEl.textContent = questionText;
             }
             
             // Show voting results if in voting mode
