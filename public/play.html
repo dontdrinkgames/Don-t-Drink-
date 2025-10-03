@@ -3,8 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Don't Drink! - Play</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>Don't Drink! - Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;900&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -25,54 +25,70 @@
         
         .game-header {
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 20px;
             width: 100%;
-            max-width: 800px;
+            max-width: 1200px;
         }
         
         .game-title {
-            font-size: 3em;
-            font-weight: 700;
+            font-size: 2.5rem;
+            font-weight: 900;
             text-transform: uppercase;
             text-shadow: 3px 3px 10px rgba(0,0,0,0.3);
             margin-bottom: 10px;
+            letter-spacing: 2px;
         }
         
         .game-info {
             display: flex;
             justify-content: center;
-            gap: 30px;
+            gap: 20px;
             flex-wrap: wrap;
-            margin-top: 20px;
+            margin-top: 15px;
         }
         
-        .info-item {
-            background: rgba(255,255,255,0.1);
+        .info-badge {
+            background: rgba(255,255,255,0.2);
             backdrop-filter: blur(10px);
-            padding: 10px 20px;
-            border-radius: 15px;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            font-weight: 600;
         }
         
         .question-card {
-            background: rgba(255,255,255,0.95);
-            border-radius: 30px;
+            background: #FFFFFF;
+            border-radius: 24px;
             padding: 40px;
-            max-width: 800px;
+            max-width: 900px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
-            text-align: center;
+            box-shadow: 4px 6px 0px rgba(102, 126, 234, 0.8);
+            margin-bottom: 20px;
         }
         
         .question-number {
             color: #667eea;
-            font-size: 1.2em;
-            font-weight: 600;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 20px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .mode-indicator {
+            background: linear-gradient(135deg, #FACC15, #FB923C);
+            color: #1a1a1a;
+            padding: 8px 20px;
+            border-radius: 20px;
+            display: inline-block;
+            font-weight: 700;
+            font-size: 0.9rem;
             margin-bottom: 20px;
         }
         
         .question-text {
             color: #333;
-            font-size: 1.8em;
+            font-size: 1.8rem;
             font-weight: 600;
             margin: 30px 0;
             min-height: 100px;
@@ -80,115 +96,239 @@
             flex-direction: column;
             align-items: center;
             justify-content: center;
+            line-height: 1.4;
         }
         
-        .option-card {
-            background: rgba(102, 126, 234, 0.1);
-            border: 2px solid #667eea;
-            border-radius: 15px;
-            padding: 20px;
-            margin: 15px 0;
-            color: #333;
-            font-size: 1.1em;
-        }
-        
-        .fmk-grid {
+        /* Would You Rather Options */
+        .wyr-options {
             display: grid;
-            gap: 15px;
-            margin: 20px 0;
-        }
-        
-        .fmk-person {
-            background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(255,255,255,0.7));
-            border-radius: 15px;
-            padding: 25px;
-            font-size: 1.4em;
-            font-weight: 600;
-            color: #333;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
-            transition: transform 0.3s;
-        }
-        
-        .fmk-person:hover {
-            transform: scale(1.05);
-        }
-        
-        .rating-section {
-            display: flex;
-            justify-content: center;
-            gap: 40px;
+            gap: 20px;
             margin: 30px 0;
-            padding: 20px 0;
-            border-top: 2px solid #f0f0f0;
         }
         
-        .rating-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        .rating-btn {
-            background: white;
-            border: 3px solid #e0e0e0;
-            border-radius: 50%;
-            width: 60px;
-            height: 60px;
-            font-size: 1.8em;
-            cursor: pointer;
+        .wyr-option {
+            background: #A855F7;
+            color: white;
+            border-radius: 16px;
+            padding: 25px;
+            font-size: 1.2rem;
+            font-weight: 600;
+            filter: drop-shadow(4px 6px 0px #7C3AED);
             transition: all 0.3s;
         }
         
-        .rating-btn:hover:not(:disabled) {
-            transform: scale(1.15);
+        .wyr-option:hover {
+            transform: translateY(-4px);
+            filter: drop-shadow(6px 8px 0px #7C3AED);
         }
         
-        .rating-btn.good:hover:not(:disabled) {
-            background: #4ade80;
-            border-color: #22c55e;
+        .option-label {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
-        .rating-btn.bad:hover:not(:disabled) {
-            background: #f87171;
-            border-color: #ef4444;
+        /* FMK Grid */
+        .fmk-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            margin: 30px 0;
         }
         
-        .rating-btn:disabled {
+        .fmk-person {
+            background: #10B981;
+            color: white;
+            border-radius: 16px;
+            padding: 30px 20px;
+            text-align: center;
+            filter: drop-shadow(4px 6px 0px #059669);
+            transition: all 0.3s;
+        }
+        
+        .fmk-person:hover {
+            transform: translateY(-4px);
+            filter: drop-shadow(6px 8px 0px #059669);
+        }
+        
+        .person-number {
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 10px;
+        }
+        
+        .person-name {
+            font-size: 1.1rem;
+            font-weight: 600;
+        }
+        
+        /* Voting Results */
+        .voting-results {
+            margin: 30px 0;
+            padding: 20px;
+            background: rgba(102, 126, 234, 0.1);
+            border-radius: 16px;
+        }
+        
+        .vote-bar {
+            margin: 15px 0;
+        }
+        
+        .vote-label {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .bar-container {
+            background: #e0e0e0;
+            height: 30px;
+            border-radius: 15px;
+            overflow: hidden;
+        }
+        
+        .bar-fill {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            height: 100%;
+            transition: width 0.5s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 700;
+        }
+        
+        /* Spotlight Mode */
+        .spotlight-display {
+            margin: 30px 0;
+            padding: 30px;
+            background: linear-gradient(135deg, #FACC15, #FB923C);
+            border-radius: 20px;
+            text-align: center;
+            filter: drop-shadow(4px 6px 0px #D97706);
+        }
+        
+        .spotlight-emoji {
+            font-size: 4rem;
+            margin-bottom: 15px;
+        }
+        
+        .spotlight-player-name {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: #1a1a1a;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+        }
+        
+        .spotlight-status {
+            font-size: 1.2rem;
+            color: #333;
+            font-weight: 600;
+        }
+        
+        .spotlight-answer {
+            margin-top: 20px;
+            padding: 20px;
+            background: rgba(255,255,255,0.3);
+            border-radius: 12px;
+            font-size: 1.3rem;
+            font-weight: 700;
+            color: #1a1a1a;
+        }
+        
+        /* Buttons */
+        .button-group {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            margin-top: 30px;
+        }
+        
+        .next-btn {
+            background: #10B981;
+            color: white;
+            border: none;
+            padding: 15px 40px;
+            border-radius: 16px;
+            font-size: 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+            filter: drop-shadow(4px 6px 0px #059669);
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .next-btn:hover {
+            transform: translateY(-4px);
+            filter: drop-shadow(6px 8px 0px #059669);
+        }
+        
+        .next-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
         
-        .rating-label {
-            color: #999;
-            font-size: 0.9em;
-            margin-top: 8px;
-        }
-        
-        .next-btn {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        .end-btn {
+            background: #DC2626;
             color: white;
             border: none;
-            padding: 15px 40px;
-            border-radius: 50px;
-            font-size: 1.2em;
-            font-weight: 600;
+            padding: 12px 30px;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 700;
             cursor: pointer;
+            filter: drop-shadow(4px 6px 0px #991B1B);
             transition: all 0.3s;
-            margin-top: 20px;
         }
         
-        .next-btn:hover {
-            transform: scale(1.05);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        .end-btn:hover {
+            transform: translateY(-4px);
+            filter: drop-shadow(6px 8px 0px #991B1B);
         }
         
-        .error-message {
-            background: #ff4444;
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            display: none;
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Players List */
+        .players-display {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 15px;
+        }
+        
+        .player-chip {
+            background: rgba(255,255,255,0.2);
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+        }
+        
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .game-title {
+                font-size: 1.8rem;
+            }
+            
+            .question-text {
+                font-size: 1.3rem;
+            }
+            
+            .fmk-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .question-card {
+                padding: 25px;
+            }
         }
     </style>
 </head>
@@ -196,177 +336,329 @@
     <div class="game-header">
         <h1 class="game-title" id="gameTitle">Loading...</h1>
         <div class="game-info">
-            <div class="info-item">Mode: <span id="gameMode">offline</span></div>
-            <div class="info-item">Intensity: <span id="gameIntensity">-</span></div>
-            <div class="info-item">Room: <span id="roomCode">-</span></div>
+            <div class="info-badge">🎮 <span id="gameType">-</span></div>
+            <div class="info-badge">📱 <span id="gameMode">-</span></div>
+            <div class="info-badge">🌶️ <span id="gameIntensity">-</span></div>
+            <div class="info-badge">🏠 Room: <span id="roomCode">-</span></div>
         </div>
+        <div class="players-display" id="playersDisplay"></div>
     </div>
-    
-    <div class="error-message" id="errorMessage"></div>
     
     <div class="question-card">
         <div class="question-number" id="questionNumber">Question 1</div>
-        <div class="question-text" id="questionText">Loading question...</div>
-        <div id="questionOptions"></div>
+        <div class="mode-indicator" id="modeIndicator">🎲 Mixmaster Mode</div>
         
-        <div class="rating-section">
-            <div class="rating-container">
-                <button class="rating-btn good" id="thumbsUp">👍</button>
-                <div class="rating-label">Good</div>
+        <div class="question-text" id="questionText">Loading question...</div>
+        
+        <!-- WYR Options (hidden by default) -->
+        <div class="wyr-options hidden" id="wyrOptions">
+            <div class="wyr-option">
+                <div class="option-label">Option A:</div>
+                <div id="optionA"></div>
             </div>
-            <div class="rating-container">
-                <button class="rating-btn bad" id="thumbsDown">👎</button>
-                <div class="rating-label">Bad</div>
+            <div class="wyr-option">
+                <div class="option-label">Option B:</div>
+                <div id="optionB"></div>
             </div>
         </div>
         
-        <button class="next-btn" id="nextBtn">Next Question</button>
-    </div>
-    
-    <script>
-        // Configuration
-        const urlParams = new URLSearchParams(window.location.search);
-        const gameConfig = {
-            game: urlParams.get('game') || localStorage.getItem('gameType') || 'nhie',
-            intensity: urlParams.get('intensity') || localStorage.getItem('gameIntensity') || 'medium',
-            mode: urlParams.get('mode') || 'offline',
-            roomCode: urlParams.get('room') || 'OFFLINE'
-        };
+        <!-- FMK Grid (hidden by default) -->
+        <div class="fmk-grid hidden" id="fmkGrid"></div>
         
+        <!-- Voting Results (hidden by default) -->
+        <div class="voting-results hidden" id="votingResults"></div>
+        
+        <!-- Spotlight Display (hidden by default) -->
+        <div class="spotlight-display hidden" id="spotlightDisplay">
+            <div class="spotlight-emoji" id="spotlightEmoji">🎯</div>
+            <div class="spotlight-player-name" id="spotlightPlayerName">-</div>
+            <div class="spotlight-status" id="spotlightStatus">In the Spotlight</div>
+            <div class="spotlight-answer hidden" id="spotlightAnswer"></div>
+        </div>
+        
+        <!-- Button Group -->
+        <div class="button-group">
+            <button class="next-btn" id="nextBtn">Next Question</button>
+            <button class="end-btn" id="endBtn">End Game</button>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script>
+        let socket;
+        let gameConfig = {
+            game: null,
+            mode: null,
+            intensity: null,
+            roomCode: null
+        };
         let questionCounter = 0;
         let currentQuestion = null;
+        let players = [];
+        let currentMode = null; // For mixmaster
         
-        // Title mappings
-        const titles = {
+        // Game title mappings
+        const gameTitles = {
             'nhie': 'Never Have I Ever',
             'never_have_i_ever': 'Never Have I Ever',
-            'fmk': 'Fuck, Marry, Kill',
+            'fmk': 'F*ck, Marry, Kill',
             'wyr': 'Would You Rather',
             'would_you_rather': 'Would You Rather',
+            'ht': 'Hot Takes',
             'hottakes': 'Hot Takes',
-            'hot_takes': 'Hot Takes',
-            'hot': 'Hot Takes'
+            'hot_takes': 'Hot Takes'
+        };
+        
+        // Mode labels
+        const modeLabels = {
+            'offline': '📺 Offline Mode',
+            'voting': '📱 Mobile Voting',
+            'mobile': '📱 Mobile Voting',
+            'spotlight': '🎯 Spotlight Mode',
+            'mixmaster': '🎲 Mixmaster Mode'
         };
         
         // Initialize
-        function init() {
+        window.addEventListener('load', () => {
+            // Get config from URL
+            const urlParams = new URLSearchParams(window.location.search);
+            gameConfig.roomCode = urlParams.get('room');
+            gameConfig.game = urlParams.get('game');
+            gameConfig.mode = urlParams.get('mode') || 'offline';
+            gameConfig.intensity = urlParams.get('intensity') || 'medium';
+            
+            if (!gameConfig.roomCode || !gameConfig.game) {
+                alert('Missing game configuration. Redirecting...');
+                window.location.href = '/host';
+                return;
+            }
+            
             // Update UI
-            document.getElementById('gameTitle').textContent = titles[gameConfig.game] || gameConfig.game.toUpperCase();
+            updateGameInfo();
+            
+            // Initialize socket
+            initSocket();
+            
+            // Event listeners
+            document.getElementById('nextBtn').onclick = loadNextQuestion;
+            document.getElementById('endBtn').onclick = endGame;
+        });
+        
+        // Update game info display
+        function updateGameInfo() {
+            document.getElementById('gameTitle').textContent = gameTitles[gameConfig.game] || gameConfig.game.toUpperCase();
+            document.getElementById('gameType').textContent = gameTitles[gameConfig.game] || gameConfig.game;
             document.getElementById('gameMode').textContent = gameConfig.mode;
             document.getElementById('gameIntensity').textContent = gameConfig.intensity;
             document.getElementById('roomCode').textContent = gameConfig.roomCode;
             
-            // Event listeners
-            document.getElementById('nextBtn').onclick = loadQuestion;
-            document.getElementById('thumbsUp').onclick = () => rate('up');
-            document.getElementById('thumbsDown').onclick = () => rate('down');
-            
-            // Load first question
-            loadQuestion();
+            currentMode = gameConfig.mode;
+            updateModeIndicator();
         }
         
-        // Load question from API
-        function loadQuestion() {
+        // Update mode indicator
+        function updateModeIndicator() {
+            const indicator = document.getElementById('modeIndicator');
+            indicator.textContent = modeLabels[currentMode] || currentMode;
+        }
+        
+        // Initialize Socket.IO
+        function initSocket() {
+            const socketUrl = window.location.hostname === 'localhost' 
+                ? 'http://localhost:3000' 
+                : window.location.origin;
+            
+            socket = io(socketUrl, {
+                transports: ['websocket', 'polling']
+            });
+            
+            socket.on('connect', () => {
+                console.log('Connected to server');
+                // Join room
+                socket.emit('join-room', {
+                    roomCode: gameConfig.roomCode,
+                    playerName: 'Host',
+                    avatar: '👑'
+                });
+                
+                // Load first question
+                loadNextQuestion();
+            });
+            
+            socket.on('new-question', (data) => {
+                console.log('New question received:', data);
+                displayQuestion(data);
+            });
+            
+            socket.on('vote-update', (data) => {
+                console.log('Vote update:', data);
+                updateVotingDisplay(data);
+            });
+            
+            socket.on('spotlight-active', (data) => {
+                console.log('Spotlight active:', data);
+                showSpotlight(data);
+            });
+            
+            socket.on('answer-revealed', (data) => {
+                console.log('Answer revealed:', data);
+                revealSpotlightAnswer(data);
+            });
+            
+            socket.on('players-updated', (data) => {
+                players = Array.isArray(data) ? data : (data.players || []);
+                updatePlayersDisplay();
+            });
+        }
+        
+        // Load next question
+        function loadNextQuestion() {
+            questionCounter++;
+            
+            // Clear votes for new question
+            socket.emit('clear-votes', { roomCode: gameConfig.roomCode });
+            
+            // Determine mode (for mixmaster)
+            if (gameConfig.mode === 'mixmaster') {
+                const modes = ['offline', 'voting', 'spotlight'];
+                currentMode = modes[(questionCounter - 1) % modes.length];
+                updateModeIndicator();
+            } else {
+                currentMode = gameConfig.mode;
+            }
+            
             // Map game names
             const gameMap = {
                 'nhie': 'never_have_i_ever',
                 'wyr': 'would_you_rather',
-                'hottakes': 'hot_takes',
-                'hot': 'hot_takes'
+                'ht': 'hot_takes',
+                'hottakes': 'hot_takes'
             };
             
-            const game = gameMap[gameConfig.game] || gameConfig.game;
-            const url = `/api/question/${game}/${gameConfig.intensity}`;
+            const mappedGame = gameMap[gameConfig.game] || gameConfig.game;
             
-            fetch(url)
-                .then(response => response.json())
-                .then(data => {
-                    if (data.question) {
-                        questionCounter++;
-                        currentQuestion = data;
-                        showQuestion(data.question, data.game || game);
-                    } else if (data.error) {
-                        showError(data.message || 'No questions available');
-                    }
-                })
-                .catch(error => {
-                    console.error('Error:', error);
-                    showError('Failed to load question');
-                });
+            // Request question
+            socket.emit('next-question', {
+                roomCode: gameConfig.roomCode,
+                game: mappedGame,
+                intensity: gameConfig.intensity,
+                mode: currentMode,
+                questionNumber: questionCounter
+            });
+            
+            // Update question number
+            document.getElementById('questionNumber').textContent = `Question ${questionCounter}`;
         }
         
         // Display question
-        function showQuestion(question, gameType) {
-            document.getElementById('questionNumber').textContent = `Question ${questionCounter}`;
-            document.getElementById('errorMessage').style.display = 'none';
+        function displayQuestion(data) {
+            const { question, game, mode } = data;
+            
+            // Hide all special displays
+            document.getElementById('wyrOptions').classList.add('hidden');
+            document.getElementById('fmkGrid').classList.add('hidden');
+            document.getElementById('votingResults').classList.add('hidden');
+            document.getElementById('spotlightDisplay').classList.add('hidden');
             
             const textEl = document.getElementById('questionText');
-            const optionsEl = document.getElementById('questionOptions');
+            textEl.classList.remove('hidden');
             
-            // Clear previous
-            textEl.textContent = '';
-            optionsEl.innerHTML = '';
-            
-            // Reset rating buttons
-            document.getElementById('thumbsUp').disabled = false;
-            document.getElementById('thumbsDown').disabled = false;
-            document.getElementById('thumbsUp').style.background = 'white';
-            document.getElementById('thumbsDown').style.background = 'white';
-            
-            // Display based on type
-            if (gameType === 'would_you_rather' && typeof question === 'object' && question.optionA) {
+            // Display based on game type
+            if (game === 'would_you_rather' && typeof question === 'object' && question.optionA) {
                 textEl.textContent = 'Would you rather...';
-                optionsEl.innerHTML = `
-                    <div class="option-card">
-                        <strong>Option A:</strong> ${question.optionA}
-                    </div>
-                    <div class="option-card">
-                        <strong>Option B:</strong> ${question.optionB}
-                    </div>
-                `;
-            } else if ((gameType === 'fmk' || gameConfig.game === 'fmk') && typeof question === 'string' && question.includes(',')) {
+                document.getElementById('optionA').textContent = question.optionA;
+                document.getElementById('optionB').textContent = question.optionB;
+                document.getElementById('wyrOptions').classList.remove('hidden');
+            } else if ((game === 'fmk' || gameConfig.game === 'fmk') && typeof question === 'string' && question.includes(',')) {
                 textEl.textContent = 'Choose wisely...';
                 const people = question.split(',').map(p => p.trim());
-                optionsEl.innerHTML = `
-                    <div class="fmk-grid">
-                        ${people.map(person => `<div class="fmk-person">${person}</div>`).join('')}
+                const fmkGrid = document.getElementById('fmkGrid');
+                fmkGrid.innerHTML = people.map((person, i) => `
+                    <div class="fmk-person">
+                        <div class="person-number">${i + 1}</div>
+                        <div class="person-name">${person}</div>
                     </div>
-                `;
+                `).join('');
+                fmkGrid.classList.remove('hidden');
             } else {
-                // Default text display
                 textEl.textContent = typeof question === 'string' ? question : 
                                      question.text || JSON.stringify(question);
             }
-        }
-        
-        // Show error
-        function showError(msg) {
-            const errorEl = document.getElementById('errorMessage');
-            errorEl.textContent = msg;
-            errorEl.style.display = 'block';
-        }
-        
-        // Rate question
-        function rate(type) {
-            const upBtn = document.getElementById('thumbsUp');
-            const downBtn = document.getElementById('thumbsDown');
             
-            if (type === 'up') {
-                upBtn.style.background = '#4ade80';
-                upBtn.disabled = true;
-                downBtn.disabled = true;
-            } else {
-                downBtn.style.background = '#f87171';
-                upBtn.disabled = true;
-                downBtn.disabled = true;
+            // Show voting results if in voting mode
+            if (currentMode === 'voting' || currentMode === 'mobile') {
+                document.getElementById('votingResults').classList.remove('hidden');
+                updateVotingDisplay({ votes: {}, voters: [], totalVotes: 0, totalPlayers: players.length });
+            }
+            
+            // Set up spotlight if in spotlight mode
+            if (currentMode === 'spotlight' && players.length > 0) {
+                const spotlightPlayer = players[(questionCounter - 1) % players.length];
+                socket.emit('set-spotlight', {
+                    roomCode: gameConfig.roomCode,
+                    playerName: spotlightPlayer.name
+                });
             }
         }
         
-        // Start when ready
-        if (document.readyState === 'loading') {
-            document.addEventListener('DOMContentLoaded', init);
-        } else {
-            init();
+        // Update voting display
+        function updateVotingDisplay(data) {
+            const resultsEl = document.getElementById('votingResults');
+            const { votes, voters, totalVotes, totalPlayers } = data;
+            
+            let html = '<h3 style="color: #333; margin-bottom: 15px;">Live Votes</h3>';
+            
+            for (const [option, count] of Object.entries(votes)) {
+                const percentage = totalPlayers > 0 ? (count / totalPlayers * 100).toFixed(0) : 0;
+                html += `
+                    <div class="vote-bar">
+                        <div class="vote-label">
+                            <span>${option}</span>
+                            <span>${count} votes</span>
+                        </div>
+                        <div class="bar-container">
+                            <div class="bar-fill" style="width: ${percentage}%">${percentage}%</div>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            html += `<p style="color: #666; margin-top: 15px; font-size: 0.9rem;">${totalVotes} / ${totalPlayers} players voted</p>`;
+            resultsEl.innerHTML = html;
+        }
+        
+        // Show spotlight
+        function showSpotlight(data) {
+            const { player, avatar, status } = data;
+            
+            document.getElementById('spotlightEmoji').textContent = avatar || '🎯';
+            document.getElementById('spotlightPlayerName').textContent = player;
+            document.getElementById('spotlightStatus').textContent = status === 'thinking' ? 'Thinking...' : 'Ready to reveal...';
+            document.getElementById('spotlightDisplay').classList.remove('hidden');
+            document.getElementById('spotlightAnswer').classList.add('hidden');
+        }
+        
+        // Reveal spotlight answer
+        function revealSpotlightAnswer(data) {
+            const answerEl = document.getElementById('spotlightAnswer');
+            answerEl.textContent = data.answer || 'Answer revealed!';
+            answerEl.classList.remove('hidden');
+            document.getElementById('spotlightStatus').textContent = 'Answer revealed!';
+        }
+        
+        // Update players display
+        function updatePlayersDisplay() {
+            const displayEl = document.getElementById('playersDisplay');
+            displayEl.innerHTML = players.map(p => `
+                <div class="player-chip">${p.avatar} ${p.name}</div>
+            `).join('');
+        }
+        
+        // End game
+        function endGame() {
+            if (confirm('Are you sure you want to end the game?')) {
+                window.location.href = '/host';
+            }
         }
     </script>
 </body>

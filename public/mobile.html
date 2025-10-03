@@ -236,6 +236,178 @@
             font-weight: 600;
             color: #333;
         }
+        
+        /* Game Screen */
+        .game-screen {
+            display: none;
+            text-align: center;
+        }
+        
+        .game-screen.active {
+            display: block;
+        }
+        
+        .game-question {
+            background: rgba(255,255,255,0.15);
+            padding: 25px;
+            border-radius: 20px;
+            margin: 20px 0;
+            min-height: 150px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        
+        .question-number {
+            font-size: 14px;
+            color: rgba(255,255,255,0.8);
+            margin-bottom: 15px;
+            font-weight: 600;
+        }
+        
+        .question-text {
+            font-size: 18px;
+            color: white;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+        
+        /* Voting Buttons */
+        .voting-buttons {
+            display: none;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .voting-buttons.active {
+            display: flex;
+        }
+        
+        .vote-btn {
+            padding: 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+        }
+        
+        .vote-btn:active {
+            transform: scale(0.98);
+        }
+        
+        .vote-btn.agree {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+        }
+        
+        .vote-btn.disagree {
+            background: linear-gradient(135deg, #DC2626, #991B1B);
+            color: white;
+        }
+        
+        /* Spotlight Views */
+        .spotlight-player-view,
+        .spectator-view {
+            display: none;
+        }
+        
+        .spotlight-player-view.active,
+        .spectator-view.active {
+            display: block;
+        }
+        
+        .spotlight-badge {
+            background: linear-gradient(135deg, #FACC15, #FB923C);
+            color: #1a1a1a;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            margin: 20px 0;
+        }
+        
+        .spotlight-answer-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin: 20px 0;
+        }
+        
+        .answer-btn {
+            padding: 20px;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .answer-btn.selected {
+            transform: scale(1.05);
+            box-shadow: 0 0 0 4px rgba(250, 204, 21, 0.5);
+        }
+        
+        .reveal-btn {
+            width: 100%;
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 700;
+            cursor: pointer;
+            margin-top: 20px;
+            display: none;
+        }
+        
+        .reveal-btn.active {
+            display: block;
+        }
+        
+        .spectating-message {
+            background: rgba(255,255,255,0.15);
+            padding: 30px;
+            border-radius: 20px;
+            margin: 20px 0;
+        }
+        
+        .spectating-emoji {
+            font-size: 64px;
+            margin-bottom: 15px;
+        }
+        
+        .spectating-text {
+            font-size: 20px;
+            color: white;
+            margin-bottom: 10px;
+        }
+        
+        .spectating-status {
+            font-size: 16px;
+            color: rgba(255,255,255,0.8);
+        }
+        
+        /* Confirmation Message */
+        .confirmation-message {
+            display: none;
+            background: rgba(16, 185, 129, 0.2);
+            border: 2px solid #10B981;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 20px 0;
+            color: white;
+            font-weight: 600;
+        }
+        
+        .confirmation-message.show {
+            display: block;
+        }
     </style>
 </head>
 <body>
@@ -303,6 +475,48 @@
             <div class="room-code">
                 <div class="room-code-label">Romkode</div>
                 <div class="room-code-display" id="waitingRoomCode">------</div>
+            </div>
+        </div>
+        
+        <!-- Game Screen -->
+        <div class="game-screen" id="gameScreen">
+            <div class="logo">
+                <h1>DON'T DRINK!</h1>
+            </div>
+            
+            <div class="game-question" id="gameQuestion">
+                <div class="question-number" id="mobileQuestionNumber">Question 1</div>
+                <div class="question-text" id="mobileQuestionText">Loading...</div>
+            </div>
+            
+            <!-- Voting Buttons (Mobile Voting Mode) -->
+            <div class="voting-buttons" id="votingButtons">
+                <!-- Dynamic buttons will be inserted here -->
+            </div>
+            
+            <!-- Spotlight Player View -->
+            <div class="spotlight-player-view" id="spotlightPlayerView">
+                <div class="spotlight-badge">🎯 You're in the Spotlight!</div>
+                <div class="spotlight-answer-buttons" id="spotlightAnswerButtons">
+                    <!-- Dynamic buttons will be inserted here -->
+                </div>
+                <button class="reveal-btn" id="revealBtn">Reveal Answer</button>
+            </div>
+            
+            <!-- Spectator View (Spotlight on another player) -->
+            <div class="spectator-view" id="spectatorView">
+                <div class="spectating-message">
+                    <div class="spectating-emoji" id="spectatingEmoji">👀</div>
+                    <div class="spectating-text">
+                        <strong id="spectatingPlayerName">Player</strong> is in the spotlight
+                    </div>
+                    <div class="spectating-status" id="spectatingStatus">Thinking...</div>
+                </div>
+            </div>
+            
+            <!-- Confirmation Message -->
+            <div class="confirmation-message" id="confirmationMessage">
+                ✅ Your answer has been recorded!
             </div>
         </div>
     </div>
@@ -465,8 +679,41 @@
             // Game started
             socket.on('game-started', (data) => {
                 console.log('Game started!', data);
-                // Navigate to play page or handle game start
-                window.location.href = '/play';
+                // Show game screen
+                document.getElementById('waitingScreen').classList.remove('active');
+                document.getElementById('gameScreen').classList.add('active');
+            });
+            
+            // New question received
+            socket.on('new-question', (data) => {
+                console.log('New question:', data);
+                handleNewQuestion(data);
+            });
+            
+            // Spotlight events
+            socket.on('spotlight-active', (data) => {
+                console.log('Spotlight active:', data);
+                handleSpotlight(data);
+            });
+            
+            socket.on('spotlight-status', (data) => {
+                console.log('Spotlight status:', data);
+                if (data.status === 'ready-to-reveal') {
+                    document.getElementById('revealBtn').classList.add('active');
+                }
+            });
+            
+            socket.on('answer-revealed', (data) => {
+                console.log('Answer revealed:', data);
+                // Hide spotlight views
+                document.getElementById('spotlightPlayerView').classList.remove('active');
+                document.getElementById('spectatorView').classList.remove('active');
+            });
+            
+            // Vote confirmed
+            socket.on('vote-confirmed', (data) => {
+                console.log('Vote confirmed:', data);
+                showConfirmation();
             });
             
             // Host disconnected
@@ -531,6 +778,178 @@
                 document.getElementById('joinBtn').click();
             }
         });
+        
+        // === GAME INTERACTION FUNCTIONS ===
+        
+        let currentGameData = null;
+        let selectedAnswer = null;
+        
+        // Handle new question
+        function handleNewQuestion(data) {
+            currentGameData = data;
+            selectedAnswer = null;
+            
+            // Update question display
+            document.getElementById('mobileQuestionNumber').textContent = `Question ${data.questionNumber || 1}`;
+            document.getElementById('mobileQuestionText').textContent = 
+                typeof data.question === 'string' ? data.question : 
+                (data.question.text || JSON.stringify(data.question));
+            
+            // Hide all interaction views
+            document.getElementById('votingButtons').classList.remove('active');
+            document.getElementById('spotlightPlayerView').classList.remove('active');
+            document.getElementById('spectatorView').classList.remove('active');
+            document.getElementById('confirmationMessage').classList.remove('show');
+            document.getElementById('revealBtn').classList.remove('active');
+            
+            // Show appropriate UI based on mode
+            if (data.mode === 'voting' || data.mode === 'mobile') {
+                showVotingButtons(data.game);
+            }
+            // Spotlight mode is handled by 'spotlight-active' event
+        }
+        
+        // Show voting buttons
+        function showVotingButtons(game) {
+            const buttonsContainer = document.getElementById('votingButtons');
+            buttonsContainer.innerHTML = '';
+            
+            // Different buttons based on game type
+            if (game === 'never_have_i_ever') {
+                buttonsContainer.innerHTML = `
+                    <button class="vote-btn agree" onclick="submitVote('have')">✅ I HAVE</button>
+                    <button class="vote-btn disagree" onclick="submitVote('havent')">❌ I HAVE NEVER</button>
+                `;
+            } else if (game === 'hot_takes') {
+                buttonsContainer.innerHTML = `
+                    <button class="vote-btn agree" onclick="submitVote('agree')">✅ AGREE</button>
+                    <button class="vote-btn disagree" onclick="submitVote('disagree')">❌ DISAGREE</button>
+                `;
+            } else if (game === 'would_you_rather') {
+                buttonsContainer.innerHTML = `
+                    <button class="vote-btn" style="background: linear-gradient(135deg, #A855F7, #7C3AED);" onclick="submitVote('optionA')">🅰️ OPTION A</button>
+                    <button class="vote-btn" style="background: linear-gradient(135deg, #F472B6, #EC4899);" onclick="submitVote('optionB')">🅱️ OPTION B</button>
+                `;
+            } else if (game === 'fmk') {
+                buttonsContainer.innerHTML = `
+                    <div style="color: white; margin-bottom: 10px; font-size: 14px;">Choose for each person:</div>
+                    <button class="vote-btn" style="background: linear-gradient(135deg, #F472B6, #EC4899);" onclick="submitVote('person1-fuck')">💋 Person 1 - Fuck</button>
+                    <button class="vote-btn" style="background: linear-gradient(135deg, #FACC15, #FB923C);" onclick="submitVote('person2-marry')">💍 Person 2 - Marry</button>
+                    <button class="vote-btn" style="background: linear-gradient(135deg, #DC2626, #991B1B);" onclick="submitVote('person3-kill')">🔪 Person 3 - Kill</button>
+                `;
+            }
+            
+            buttonsContainer.classList.add('active');
+        }
+        
+        // Submit vote
+        function submitVote(vote) {
+            if (!socket || !socket.connected) {
+                showError('Not connected to server');
+                return;
+            }
+            
+            socket.emit('vote', {
+                roomCode: playerData.roomCode,
+                playerName: playerData.name,
+                vote: vote,
+                questionId: currentGameData?.questionId
+            });
+            
+            // Disable voting buttons after voting
+            const buttons = document.querySelectorAll('.vote-btn');
+            buttons.forEach(btn => btn.disabled = true);
+        }
+        
+        // Handle spotlight
+        function handleSpotlight(data) {
+            const { player, avatar, status } = data;
+            
+            // Check if this player is in the spotlight
+            if (player === playerData.name) {
+                // Show spotlight player view
+                document.getElementById('spotlightPlayerView').classList.add('active');
+                document.getElementById('spectatorView').classList.remove('active');
+                
+                // Set up answer buttons based on game type
+                setupSpotlightAnswerButtons(currentGameData?.game);
+            } else {
+                // Show spectator view
+                document.getElementById('spectatorView').classList.add('active');
+                document.getElementById('spotlightPlayerView').classList.remove('active');
+                
+                // Update spectator display
+                document.getElementById('spectatingEmoji').textContent = avatar || '👀';
+                document.getElementById('spectatingPlayerName').textContent = player;
+                document.getElementById('spectatingStatus').textContent = 
+                    status === 'thinking' ? 'Thinking...' : 
+                    status === 'ready-to-reveal' ? 'Ready to reveal...' : 
+                    'In the spotlight';
+            }
+        }
+        
+        // Setup spotlight answer buttons
+        function setupSpotlightAnswerButtons(game) {
+            const container = document.getElementById('spotlightAnswerButtons');
+            container.innerHTML = '';
+            
+            if (game === 'never_have_i_ever') {
+                container.innerHTML = `
+                    <button class="answer-btn agree" onclick="selectSpotlightAnswer('have')">✅ I HAVE</button>
+                    <button class="answer-btn disagree" onclick="selectSpotlightAnswer('havent')">❌ I HAVE NEVER</button>
+                `;
+            } else if (game === 'hot_takes') {
+                container.innerHTML = `
+                    <button class="answer-btn agree" onclick="selectSpotlightAnswer('agree')">✅ AGREE</button>
+                    <button class="answer-btn disagree" onclick="selectSpotlightAnswer('disagree')">❌ DISAGREE</button>
+                `;
+            } else if (game === 'would_you_rather') {
+                container.innerHTML = `
+                    <button class="answer-btn" style="background: #A855F7; color: white;" onclick="selectSpotlightAnswer('optionA')">🅰️ OPTION A</button>
+                    <button class="answer-btn" style="background: #F472B6; color: white;" onclick="selectSpotlightAnswer('optionB')">🅱️ OPTION B</button>
+                `;
+            }
+        }
+        
+        // Select spotlight answer
+        function selectSpotlightAnswer(answer) {
+            selectedAnswer = answer;
+            
+            // Update button states
+            const buttons = document.querySelectorAll('.answer-btn');
+            buttons.forEach(btn => btn.classList.remove('selected'));
+            event.target.classList.add('selected');
+            
+            // Send answer to server (private)
+            socket.emit('spotlight-answer', {
+                roomCode: playerData.roomCode,
+                answer: answer
+            });
+        }
+        
+        // Reveal answer button
+        document.getElementById('revealBtn').addEventListener('click', () => {
+            if (!selectedAnswer) {
+                alert('Please select an answer first!');
+                return;
+            }
+            
+            socket.emit('reveal-answer', {
+                roomCode: playerData.roomCode
+            });
+            
+            // Hide reveal button
+            document.getElementById('revealBtn').classList.remove('active');
+        });
+        
+        // Show confirmation
+        function showConfirmation() {
+            const confirmEl = document.getElementById('confirmationMessage');
+            confirmEl.classList.add('show');
+            setTimeout(() => {
+                confirmEl.classList.remove('show');
+            }, 3000);
+        }
     </script>
 </body>
 </html>

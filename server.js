@@ -23,7 +23,7 @@ const io = socketIo(server, {
 // Import questions database
 let questionManager = null;
 try {
-    const QuestionManager = require('./questions-database.js');
+    const { QuestionManager } = require('./questions-database.js');
     questionManager = new QuestionManager();
     console.log('✅ Questions database loaded');
 } catch (error) {
@@ -69,6 +69,11 @@ app.get('/play', (req, res) => {
 
 app.get('/player', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'player.html'));
+});
+
+// Anonymous question submission
+app.get('/add-question/:roomCode', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'add-question.html'));
 });
 
 // Health check for Render
@@ -232,10 +237,10 @@ io.on('connection', (socket) => {
     // Get question
     socket.on('get-question', (data, callback) => {
         try {
-            const { game, intensity } = data;
+            const { game, intensity, mode, questionNumber } = data;
             
             if (questionManager) {
-                const question = questionManager.getRandomQuestion(game, intensity);
+                const question = questionManager.getRandomQuestion(game, intensity, mode, questionNumber);
                 if (typeof callback === 'function') {
                     callback({ success: true, question });
                 }
@@ -252,6 +257,212 @@ io.on('connection', (socket) => {
             if (typeof callback === 'function') {
                 callback({ success: false, error: error.message });
             }
+        }
+    });
+    
+    // Next question (from host)
+    socket.on('next-question', (data) => {
+        try {
+            const { roomCode, game, intensity, mode, questionNumber } = data;
+            const room = rooms[roomCode];
+            
+            if (!room) {
+                socket.emit('error', { message: 'Room not found' });
+                return;
+            }
+            
+            if (questionManager) {
+                const question = questionManager.getRandomQuestion(game, intensity, mode, questionNumber);
+                
+                // Send to all clients in room
+                io.to(roomCode).emit('new-question', {
+                    question: question.text,
+                    questionId: question.id,
+                    isCustom: question.isCustom,
+                    questionNumber,
+                    game,
+                    mode,
+                    intensity
+                });
+                
+                console.log(`📤 Question ${questionNumber} sent to room ${roomCode}`);
+            }
+        } catch (error) {
+            console.error('Next question error:', error);
+            socket.emit('error', { message: error.message });
+        }
+    });
+    
+    // Mobile voting - player votes
+    socket.on('vote', (data) => {
+        try {
+            const { roomCode, playerName, vote, questionId } = data;
+            const room = rooms[roomCode];
+            
+            if (!room) {
+                socket.emit('error', { message: 'Room not found' });
+                return;
+            }
+            
+            // Initialize votes for this question if needed
+            if (!room.currentVotes) {
+                room.currentVotes = {};
+            }
+            
+            // Store vote
+            room.currentVotes[playerName] = vote;
+            
+            // Count votes
+            const voteCounts = {};
+            const voters = [];
+            
+            for (const [player, playerVote] of Object.entries(room.currentVotes)) {
+                voteCounts[playerVote] = (voteCounts[playerVote] || 0) + 1;
+                voters.push(player);
+            }
+            
+            // Send vote update to host
+            io.to(room.hostId).emit('vote-update', {
+                votes: voteCounts,
+                voters,
+                totalVotes: voters.length,
+                totalPlayers: room.players.length
+            });
+            
+            // Confirm to voter
+            socket.emit('vote-confirmed', { success: true });
+            
+            console.log(`🗳️ Vote from ${playerName} in room ${roomCode}: ${vote}`);
+        } catch (error) {
+            console.error('Vote error:', error);
+            socket.emit('error', { message: error.message });
+        }
+    });
+    
+    // Spotlight mode - set spotlight player
+    socket.on('set-spotlight', (data) => {
+        try {
+            const { roomCode, playerName } = data;
+            const room = rooms[roomCode];
+            
+            if (!room) {
+                socket.emit('error', { message: 'Room not found' });
+                return;
+            }
+            
+            const player = room.players.find(p => p.name === playerName);
+            
+            if (!player) {
+                socket.emit('error', { message: 'Player not found' });
+                return;
+            }
+            
+            // Notify all clients who is in spotlight
+            io.to(roomCode).emit('spotlight-active', {
+                player: player.name,
+                avatar: player.avatar,
+                status: 'thinking'
+            });
+            
+            console.log(`🎯 Spotlight on ${playerName} in room ${roomCode}`);
+        } catch (error) {
+            console.error('Set spotlight error:', error);
+            socket.emit('error', { message: error.message });
+        }
+    });
+    
+    // Spotlight player submits answer (private)
+    socket.on('spotlight-answer', (data) => {
+        try {
+            const { roomCode, answer } = data;
+            const room = rooms[roomCode];
+            
+            if (!room) {
+                socket.emit('error', { message: 'Room not found' });
+                return;
+            }
+            
+            // Store answer privately
+            room.spotlightAnswer = answer;
+            
+            // Update status to ready (but don't reveal answer yet)
+            io.to(roomCode).emit('spotlight-status', {
+                status: 'ready-to-reveal'
+            });
+            
+            console.log(`💭 Spotlight answer saved for room ${roomCode}`);
+        } catch (error) {
+            console.error('Spotlight answer error:', error);
+            socket.emit('error', { message: error.message });
+        }
+    });
+    
+    // Spotlight player reveals answer
+    socket.on('reveal-answer', (data) => {
+        try {
+            const { roomCode } = data;
+            const room = rooms[roomCode];
+            
+            if (!room) {
+                socket.emit('error', { message: 'Room not found' });
+                return;
+            }
+            
+            // Reveal the answer to everyone
+            io.to(roomCode).emit('answer-revealed', {
+                answer: room.spotlightAnswer
+            });
+            
+            console.log(`✨ Answer revealed in room ${roomCode}`);
+        } catch (error) {
+            console.error('Reveal answer error:', error);
+            socket.emit('error', { message: error.message });
+        }
+    });
+    
+    // Add custom question
+    socket.on('add-custom-question', (data) => {
+        try {
+            const { roomCode, question, game, intensity } = data;
+            
+            if (questionManager) {
+                // Map game names
+                const gameMap = {
+                    'nhie': 'never_have_i_ever',
+                    'wyr': 'would_you_rather',
+                    'hot': 'hot_takes',
+                    'hottakes': 'hot_takes'
+                };
+                
+                const mappedGame = gameMap[game] || game;
+                
+                const success = questionManager.addCustomQuestion(mappedGame, intensity, question);
+                
+                if (success) {
+                    socket.emit('custom-question-added', { success: true });
+                    console.log(`➕ Custom question added to ${mappedGame}/${intensity}`);
+                } else {
+                    socket.emit('error', { message: 'Failed to add question' });
+                }
+            }
+        } catch (error) {
+            console.error('Add custom question error:', error);
+            socket.emit('error', { message: error.message });
+        }
+    });
+    
+    // Clear votes for new question
+    socket.on('clear-votes', (data) => {
+        try {
+            const { roomCode } = data;
+            const room = rooms[roomCode];
+            
+            if (room) {
+                room.currentVotes = {};
+                room.spotlightAnswer = null;
+            }
+        } catch (error) {
+            console.error('Clear votes error:', error);
         }
     });
     
