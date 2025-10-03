@@ -2,8 +2,9 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
     <title>Don't Drink! - Join Game</title>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
     <style>
         * {
             margin: 0;
@@ -12,111 +13,91 @@
         }
         
         body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+            font-family: 'Poppins', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
             align-items: center;
             padding: 20px;
+            color: white;
         }
         
         .container {
             width: 100%;
             max-width: 400px;
-        }
-        
-        .card {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 20px;
-            padding: 30px;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
-            animation: slideUp 0.5s ease;
-        }
-        
-        @keyframes slideUp {
-            from {
-                opacity: 0;
-                transform: translateY(30px);
-            }
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
+            margin: 0 auto;
         }
         
         .logo {
-            font-size: 2.5rem;
-            font-weight: bold;
             text-align: center;
-            margin-bottom: 20px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            margin: 40px 0;
+        }
+        
+        .logo h1 {
+            font-size: 2.5em;
+            font-weight: 700;
+            text-transform: uppercase;
+            text-shadow: 3px 3px 10px rgba(0,0,0,0.3);
+            background: white;
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            background-clip: text;
         }
         
-        .room-code-display {
-            text-align: center;
-            margin-bottom: 20px;
-            padding: 10px;
-            background: rgba(102, 126, 234, 0.1);
-            border-radius: 10px;
+        .join-card {
+            background: rgba(255,255,255,0.95);
+            border-radius: 30px;
+            padding: 40px 30px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
         }
         
-        .room-code-label {
-            font-size: 0.9rem;
-            color: #666;
-            margin-bottom: 5px;
+        .form-group {
+            margin-bottom: 25px;
         }
         
-        .room-code-value {
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #667eea;
-            letter-spacing: 2px;
-        }
-        
-        .input-group {
-            margin-bottom: 20px;
-        }
-        
-        label {
+        .form-group label {
             display: block;
-            margin-bottom: 8px;
-            color: #333;
+            color: #667eea;
             font-weight: 600;
+            margin-bottom: 10px;
+            font-size: 0.9em;
+            text-transform: uppercase;
+            letter-spacing: 1px;
         }
         
-        input {
+        .form-group input {
             width: 100%;
-            padding: 12px;
+            padding: 15px;
             border: 2px solid #e0e0e0;
-            border-radius: 10px;
-            font-size: 1rem;
-            transition: border-color 0.3s;
+            border-radius: 15px;
+            font-size: 1.1em;
+            font-family: 'Poppins', sans-serif;
+            transition: all 0.3s;
         }
         
-        input:focus {
+        .form-group input:focus {
             outline: none;
             border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
         }
         
-        .avatar-grid {
+        .avatar-selector {
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(5, 1fr);
             gap: 10px;
             margin-top: 10px;
         }
         
         .avatar-option {
-            font-size: 2rem;
+            font-size: 2em;
             padding: 10px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
+            background: #f5f5f5;
+            border: 3px solid #e0e0e0;
+            border-radius: 15px;
             cursor: pointer;
             transition: all 0.3s;
             text-align: center;
-            background: white;
         }
         
         .avatar-option:hover {
@@ -125,341 +106,427 @@
         }
         
         .avatar-option.selected {
-            border-color: #667eea;
-            background: rgba(102, 126, 234, 0.1);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: #764ba2;
             transform: scale(1.1);
         }
         
-        .join-btn {
+        .btn {
             width: 100%;
-            padding: 15px;
-            background: linear-gradient(135deg, #667eea, #764ba2);
+            padding: 18px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 10px;
-            font-size: 1.1rem;
+            border-radius: 20px;
+            font-size: 1.2em;
             font-weight: 600;
             cursor: pointer;
-            transition: transform 0.2s;
+            transition: all 0.3s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 10px;
         }
         
-        .join-btn:hover:not(:disabled) {
+        .btn:hover:not(:disabled) {
             transform: translateY(-2px);
+            box-shadow: 0 10px 30px rgba(102,126,234,0.4);
         }
         
-        .join-btn:disabled {
+        .btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
         
         .error-message {
-            color: #ff4757;
-            text-align: center;
-            margin-top: 10px;
-            padding: 10px;
-            background: rgba(255, 71, 87, 0.1);
+            background: #ff4444;
+            color: white;
+            padding: 15px;
             border-radius: 10px;
-        }
-        
-        .hidden {
-            display: none !important;
-        }
-        
-        /* Waiting Screen Styles */
-        .player-name-display {
+            margin-bottom: 20px;
             text-align: center;
-            margin: 30px 0;
-            font-size: 1.5rem;
-            color: #333;
+            display: none;
         }
         
-        .player-name-display span {
-            display: inline-block;
-            margin: 0 10px;
+        .success-message {
+            background: #4ade80;
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            text-align: center;
+            display: none;
         }
         
-        #playerAvatar {
-            font-size: 3rem;
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+        
+        .loading.active {
+            display: block;
         }
         
         .spinner {
-            width: 60px;
-            height: 60px;
-            margin: 30px auto;
-            border: 4px solid rgba(102, 126, 234, 0.2);
-            border-top-color: #667eea;
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #667eea;
             border-radius: 50%;
+            width: 40px;
+            height: 40px;
             animation: spin 1s linear infinite;
+            margin: 0 auto 20px;
         }
         
         @keyframes spin {
-            to { transform: rotate(360deg); }
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
         }
         
-        .waiting-message {
+        /* Waiting screen */
+        .waiting-screen {
+            display: none;
             text-align: center;
-            color: #666;
-            font-size: 1.1rem;
-            margin-top: 20px;
+            padding: 30px;
         }
         
-        .status-message {
-            text-align: center;
-            margin-top: 20px;
+        .waiting-screen.active {
+            display: block;
+        }
+        
+        .player-avatar {
+            font-size: 5em;
+            margin: 20px 0;
+            animation: bounce 2s infinite;
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+        
+        .waiting-text {
+            color: #333;
+            font-size: 1.2em;
+            margin: 20px 0;
+        }
+        
+        .room-info {
+            background: rgba(102,126,234,0.1);
+            border: 2px solid #667eea;
+            border-radius: 15px;
             padding: 15px;
-            background: rgba(102, 126, 234, 0.1);
-            border-radius: 10px;
-            color: #667eea;
-            font-weight: 600;
+            margin: 20px 0;
+            color: #333;
+        }
+        
+        .connection-status {
+            position: fixed;
+            top: 10px;
+            right: 10px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.85em;
+            background: rgba(255,255,255,0.9);
+            color: #333;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ff4444;
+        }
+        
+        .status-dot.connected {
+            background: #4ade80;
         }
     </style>
+    <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
+    <div class="connection-status" id="connectionStatus">
+        <span class="status-dot" id="statusDot"></span>
+        <span id="statusText">Connecting...</span>
+    </div>
+    
     <div class="container">
-        <!-- Join Screen -->
-        <div id="joinScreen" class="card">
-            <h1 class="logo">Don't Drink!</h1>
-            
-            <div class="room-code-display">
-                <div class="room-code-label">Room Code</div>
-                <div class="room-code-value" id="roomCodeDisplay">------</div>
-            </div>
-            
-            <div id="errorMessage" class="error-message hidden"></div>
-            
-            <div class="input-group">
-                <label for="playerName">Your Name</label>
-                <input type="text" id="playerName" placeholder="Enter your name" maxlength="20" autocomplete="off">
-            </div>
-            
-            <div class="input-group">
-                <label>Choose Your Avatar</label>
-                <div class="avatar-grid">
-                    <div class="avatar-option selected" data-avatar="🍆">🍆</div>
-                    <div class="avatar-option" data-avatar="🍑">🍑</div>
-                    <div class="avatar-option" data-avatar="💋">💋</div>
-                    <div class="avatar-option" data-avatar="😈">😈</div>
-                    <div class="avatar-option" data-avatar="🔥">🔥</div>
-                    <div class="avatar-option" data-avatar="💦">💦</div>
-                    <div class="avatar-option" data-avatar="🌶️">🌶️</div>
-                    <div class="avatar-option" data-avatar="🌮">🌮</div>
-                    <div class="avatar-option" data-avatar="🥵">🥵</div>
-                    <div class="avatar-option" data-avatar="😏">😏</div>
-                    <div class="avatar-option" data-avatar="🕺">🕺</div>
-                    <div class="avatar-option" data-avatar="💃">💃</div>
-                    <div class="avatar-option" data-avatar="👅">👅</div>
-                    <div class="avatar-option" data-avatar="🤤">🤤</div>
-                    <div class="avatar-option" data-avatar="🍯">🍯</div>
-                    <div class="avatar-option" data-avatar="😎">😎</div>
-                </div>
-            </div>
-            
-            <button id="joinBtn" class="join-btn">JOIN GAME</button>
+        <div class="logo">
+            <h1>Don't Drink!</h1>
         </div>
         
-        <!-- Waiting Screen -->
-        <div id="waitingScreen" class="card hidden">
-            <h1 class="logo">Don't Drink!</h1>
-            <div class="player-name-display">
-                <span id="playerAvatar">🍆</span>
-                <span id="playerNameDisplay">Player</span>
+        <div class="error-message" id="errorMessage"></div>
+        <div class="success-message" id="successMessage"></div>
+        
+        <div class="join-card">
+            <!-- Join Form -->
+            <div id="joinForm">
+                <form onsubmit="joinGame(event)">
+                    <div class="form-group">
+                        <label for="playerName">Your Name</label>
+                        <input type="text" id="playerName" name="playerName" required 
+                               placeholder="Enter your name" maxlength="20">
+                    </div>
+                    
+                    <div class="form-group">
+                        <label>Choose Your Avatar</label>
+                        <div class="avatar-selector" id="avatarSelector">
+                            <div class="avatar-option" data-avatar="😎">😎</div>
+                            <div class="avatar-option" data-avatar="🤪">🤪</div>
+                            <div class="avatar-option" data-avatar="😈">😈</div>
+                            <div class="avatar-option" data-avatar="🥳">🥳</div>
+                            <div class="avatar-option" data-avatar="🤠">🤠</div>
+                            <div class="avatar-option" data-avatar="🦄">🦄</div>
+                            <div class="avatar-option" data-avatar="🔥">🔥</div>
+                            <div class="avatar-option" data-avatar="💀">💀</div>
+                            <div class="avatar-option" data-avatar="👽">👽</div>
+                            <div class="avatar-option" data-avatar="🎭">🎭</div>
+                        </div>
+                    </div>
+                    
+                    <button type="submit" class="btn" id="joinBtn">Join Game</button>
+                </form>
             </div>
-            <div class="spinner"></div>
-            <div class="waiting-message">Waiting for host to start the game...</div>
-            <div id="gameStatus" class="status-message hidden"></div>
+            
+            <!-- Loading Screen -->
+            <div class="loading" id="loadingScreen">
+                <div class="spinner"></div>
+                <p>Connecting to game...</p>
+            </div>
+            
+            <!-- Waiting Screen -->
+            <div class="waiting-screen" id="waitingScreen">
+                <div class="player-avatar" id="playerAvatarDisplay">😎</div>
+                <h2 id="playerNameDisplay">Player</h2>
+                <div class="waiting-text">Waiting for host to start the game...</div>
+                <div class="room-info">
+                    <strong>Room Code:</strong> <span id="roomCodeDisplay">------</span>
+                </div>
+                <button class="btn" onclick="leaveGame()">Leave Game</button>
+            </div>
         </div>
     </div>
     
-    <!-- Socket.IO from CDN with fallback -->
-    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js"></script>
     <script>
         let socket = null;
-        let selectedAvatar = '🍆';
-        let roomCode = '';
-        let connected = false;
+        let playerData = {
+            name: '',
+            avatar: '😎',
+            roomCode: ''
+        };
         
         // Get room code from URL
-        function getRoomCodeFromURL() {
-            const path = window.location.pathname;
-            const code = path.substring(1);
-            return code.length === 6 ? code.toUpperCase() : null;
-        }
+        const pathParts = window.location.pathname.split('/');
+        const roomCode = pathParts[pathParts.length - 1];
         
-        // Initialize
-        window.addEventListener('load', () => {
-            roomCode = getRoomCodeFromURL();
+        // Initialize connection when page loads
+        window.addEventListener('DOMContentLoaded', function() {
+            console.log('Page loaded, room code:', roomCode);
             
-            if (!roomCode) {
-                showError('Invalid room code. Please use a valid game link.');
+            if (!roomCode || roomCode.length !== 6) {
+                showError('Invalid room code. Please check the URL.');
                 document.getElementById('joinBtn').disabled = true;
                 return;
             }
             
-            document.getElementById('roomCodeDisplay').textContent = roomCode;
-            initSocket();
+            playerData.roomCode = roomCode;
+            initSocketConnection();
         });
         
-        // Initialize Socket.IO
-        function initSocket() {
-            // If Socket.IO fails to load from CDN, try loading from server
-            if (typeof io === 'undefined') {
-                const script = document.createElement('script');
-                script.src = '/socket.io/socket.io.js';
-                script.onload = () => initSocketConnection();
-                script.onerror = () => showError('Failed to load connection library');
-                document.head.appendChild(script);
-            } else {
-                initSocketConnection();
-            }
-        }
-        
+        // Initialize Socket.IO connection
         function initSocketConnection() {
-            // Auto-detect server URL
-            const socketUrl = window.location.hostname === 'localhost'
-                ? 'http://localhost:3000'
-                : window.location.origin;
+            // Determine server URL
+            let socketUrl;
             
+            if (window.location.hostname === 'localhost' || 
+                window.location.hostname === '127.0.0.1' ||
+                window.location.hostname.includes('192.168')) {
+                // Local development
+                socketUrl = `http://${window.location.hostname}:3000`;
+            } else {
+                // Production (dontdrinkgames.com)
+                socketUrl = window.location.origin;
+            }
+            
+            console.log('Connecting to server:', socketUrl);
+            
+            // Connect with options
             socket = io(socketUrl, {
                 transports: ['websocket', 'polling'],
                 reconnection: true,
-                reconnectionAttempts: Infinity,
                 reconnectionDelay: 1000,
                 reconnectionDelayMax: 5000,
-                randomizationFactor: 0.5
+                reconnectionAttempts: 10,
+                timeout: 20000,
+                autoConnect: true
             });
             
+            // Connection events
             socket.on('connect', () => {
-                console.log('Connected to server');
-                connected = true;
-                hideError();
+                console.log('Connected to server!');
+                updateConnectionStatus(true);
                 document.getElementById('joinBtn').disabled = false;
-            });
-            
-            // CRITICAL: Listen for join-success event
-            socket.on('join-success', (data) => {
-                console.log('Successfully joined room:', data);
-                showWaitingScreen();
-            });
-            
-            socket.on('join-error', (error) => {
-                console.log('Join error:', error);
-                showError(error.message || 'Failed to join room');
-                document.getElementById('joinBtn').disabled = false;
-            });
-            
-            socket.on('game-started', (data) => {
-                console.log('Game started:', data);
-                document.getElementById('gameStatus').textContent = 'Game is starting!';
-                document.getElementById('gameStatus').classList.remove('hidden');
-                
-                // Redirect to play page after short delay
-                setTimeout(() => {
-                    window.location.href = `/play?room=${roomCode}`;
-                }, 1500);
-            });
-            
-            socket.on('players-updated', (players) => {
-                console.log('Players in room:', players.length);
-            });
-            
-            socket.on('host-disconnected', () => {
-                showError('Host has left the game');
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 3000);
             });
             
             socket.on('disconnect', () => {
-                connected = false;
                 console.log('Disconnected from server');
+                updateConnectionStatus(false);
+                if (document.getElementById('waitingScreen').classList.contains('active')) {
+                    showError('Lost connection to server. Please refresh and try again.');
+                }
             });
             
             socket.on('connect_error', (error) => {
-                console.error('Connection failed:', error);
+                console.error('Connection error:', error.message);
+                updateConnectionStatus(false);
                 showError('Connection failed. Please try again.');
+            });
+            
+            // Game events
+            socket.on('player-joined', (data) => {
+                console.log('Successfully joined game!', data);
+                showWaitingScreen();
+            });
+            
+            socket.on('game-started', (gameData) => {
+                console.log('Game started!', gameData);
+                showSuccess('Game is starting!');
+                // Redirect to player game view
+                setTimeout(() => {
+                    window.location.href = `/player.html?room=${roomCode}`;
+                }, 1000);
+            });
+            
+            socket.on('error', (error) => {
+                console.error('Server error:', error);
+                showError(error.message || 'An error occurred');
+                hideLoading();
+            });
+            
+            socket.on('room-not-found', () => {
+                showError('Room not found. Please check the room code.');
+                hideLoading();
+            });
+            
+            socket.on('room-full', () => {
+                showError('This room is full.');
+                hideLoading();
             });
         }
         
         // Avatar selection
         document.querySelectorAll('.avatar-option').forEach(option => {
-            option.addEventListener('click', () => {
-                document.querySelectorAll('.avatar-option').forEach(o => o.classList.remove('selected'));
-                option.classList.add('selected');
-                selectedAvatar = option.dataset.avatar;
+            option.addEventListener('click', function() {
+                document.querySelectorAll('.avatar-option').forEach(opt => {
+                    opt.classList.remove('selected');
+                });
+                this.classList.add('selected');
+                playerData.avatar = this.dataset.avatar;
             });
         });
         
-        // Join button
-        document.getElementById('joinBtn').addEventListener('click', () => {
-            const playerName = document.getElementById('playerName').value.trim();
+        // Select first avatar by default
+        document.querySelector('.avatar-option').click();
+        
+        // Join game function
+        function joinGame(event) {
+            event.preventDefault();
             
-            if (!playerName) {
+            const name = document.getElementById('playerName').value.trim();
+            
+            if (!name) {
                 showError('Please enter your name');
                 return;
             }
             
-            if (!connected) {
-                showError('Connecting to server...');
+            if (!socket || !socket.connected) {
+                showError('Not connected to server. Please refresh and try again.');
                 return;
             }
             
-            document.getElementById('joinBtn').disabled = true;
+            playerData.name = name;
             
-            // Send join request - using callback pattern
+            console.log('Joining game with:', playerData);
+            
+            // Show loading
+            showLoading();
+            
+            // Emit join event
             socket.emit('join-room', {
-                roomCode: roomCode,
-                playerName: playerName,
-                avatar: selectedAvatar
-            }, (response) => {
-                if (response && response.success) {
-                    // Backup in case join-success event doesn't fire
-                    setTimeout(() => {
-                        if (document.getElementById('joinScreen').classList.contains('hidden')) {
-                            return; // Already on waiting screen
-                        }
-                        showWaitingScreen();
-                    }, 100);
-                } else {
-                    showError(response?.error || 'Failed to join room');
-                    document.getElementById('joinBtn').disabled = false;
-                }
+                roomCode: playerData.roomCode,
+                playerName: playerData.name,
+                avatar: playerData.avatar
             });
             
-            // Timeout fallback
+            // Timeout if no response
             setTimeout(() => {
-                if (!document.getElementById('waitingScreen').classList.contains('hidden')) {
-                    return; // Already on waiting screen
+                if (document.getElementById('loadingScreen').classList.contains('active')) {
+                    hideLoading();
+                    showError('Failed to join game. Please try again.');
                 }
-                document.getElementById('joinBtn').disabled = false;
-                showError('Join timeout - please try again');
-            }, 5000);
-        });
-        
-        // Enter key support
-        document.getElementById('playerName').addEventListener('keypress', (e) => {
-            if (e.key === 'Enter') {
-                document.getElementById('joinBtn').click();
-            }
-        });
-        
-        function showWaitingScreen() {
-            const playerName = document.getElementById('playerName').value.trim();
-            document.getElementById('playerNameDisplay').textContent = playerName;
-            document.getElementById('playerAvatar').textContent = selectedAvatar;
-            
-            document.getElementById('joinScreen').classList.add('hidden');
-            document.getElementById('waitingScreen').classList.remove('hidden');
+            }, 10000);
         }
         
+        // Show waiting screen
+        function showWaitingScreen() {
+            hideLoading();
+            document.getElementById('joinForm').style.display = 'none';
+            document.getElementById('waitingScreen').classList.add('active');
+            document.getElementById('playerAvatarDisplay').textContent = playerData.avatar;
+            document.getElementById('playerNameDisplay').textContent = playerData.name;
+            document.getElementById('roomCodeDisplay').textContent = playerData.roomCode;
+        }
+        
+        // Leave game
+        function leaveGame() {
+            if (socket && socket.connected) {
+                socket.emit('leave-room');
+            }
+            window.location.href = '/';
+        }
+        
+        // UI Helper functions
         function showError(message) {
             const errorEl = document.getElementById('errorMessage');
             errorEl.textContent = message;
-            errorEl.classList.remove('hidden');
-            setTimeout(() => hideError(), 5000);
+            errorEl.style.display = 'block';
+            setTimeout(() => {
+                errorEl.style.display = 'none';
+            }, 5000);
         }
         
-        function hideError() {
-            document.getElementById('errorMessage').classList.add('hidden');
+        function showSuccess(message) {
+            const successEl = document.getElementById('successMessage');
+            successEl.textContent = message;
+            successEl.style.display = 'block';
+            setTimeout(() => {
+                successEl.style.display = 'none';
+            }, 3000);
+        }
+        
+        function showLoading() {
+            document.getElementById('loadingScreen').classList.add('active');
+            document.getElementById('joinForm').style.display = 'none';
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingScreen').classList.remove('active');
+            document.getElementById('joinForm').style.display = 'block';
+        }
+        
+        function updateConnectionStatus(connected) {
+            const statusDot = document.getElementById('statusDot');
+            const statusText = document.getElementById('statusText');
+            
+            if (connected) {
+                statusDot.classList.add('connected');
+                statusText.textContent = 'Connected';
+            } else {
+                statusDot.classList.remove('connected');
+                statusText.textContent = 'Disconnected';
+            }
         }
     </script>
 </body>
