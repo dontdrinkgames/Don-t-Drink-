@@ -485,15 +485,25 @@
                 console.log('📍 Room code:', gameConfig.roomCode);
                 console.log('🎮 Game config:', gameConfig);
                 
-                // DON'T join room - we're the host viewing the game
-                // The room already exists from host.html
-                
-                // Load first question immediately
-                setTimeout(() => {
-                    console.log('⏰ Loading first question...');
-                    console.log('📤 Sending to room:', gameConfig.roomCode);
-                    loadNextQuestion();
-                }, 500);
+                // MUST join the room with the socket connection!
+                console.log('🚪 Joining room as host viewer...');
+                socket.emit('join-room', {
+                    roomCode: gameConfig.roomCode,
+                    playerName: 'Host-Display',
+                    avatar: '🎮'
+                }, (response) => {
+                    if (response && response.success) {
+                        console.log('✅ Joined room successfully!');
+                        // Now load first question
+                        setTimeout(() => {
+                            console.log('⏰ Loading first question...');
+                            loadNextQuestion();
+                        }, 500);
+                    } else {
+                        console.error('❌ Failed to join room:', response);
+                        alert('Failed to join room: ' + (response?.error || 'Unknown error'));
+                    }
+                });
             });
             
             socket.on('new-question', (data) => {
