@@ -380,20 +380,27 @@ io.on('connection', (socket) => {
             const { roomCode } = data;
             const room = rooms[roomCode];
             
-            if (!room) return;
+            if (!room) {
+                console.error('❌ End game: Room not found:', roomCode);
+                return;
+            }
             
-            // Reset room state but keep players
+            // Reset room state but keep players and room structure
             room.gameState = 'waiting';
             room.currentVotes = {};
             room.voterDetails = {};
+            room.resultsRevealed = false;
+            room.gameConfig = null;
+            
+            console.log(`🏁 Game ended in room ${roomCode}. ${room.players.length} players returned to lobby.`);
             
             // Notify all players to return to waiting screen
             io.to(roomCode).emit('game-ended', { 
                 message: 'Game ended. Return to lobby!',
-                roomCode 
+                roomCode,
+                playersCount: room.players.length
             });
             
-            console.log(`🏁 Game ended in room ${roomCode}. Players returned to lobby.`);
         } catch (error) {
             console.error('End game error:', error);
         }

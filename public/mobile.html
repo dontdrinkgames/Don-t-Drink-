@@ -287,12 +287,16 @@
             cursor: move;
             touch-action: none;
             filter: drop-shadow(2px 3px 0px #7C3AED);
-            transition: all 0.2s;
+            user-select: none;
+            -webkit-user-select: none;
         }
         
         .fmk-draggable.dragging {
-            opacity: 0.5;
-            transform: scale(0.95);
+            opacity: 0.8;
+            transform: scale(1.05);
+            z-index: 1000;
+            position: fixed;
+            pointer-events: none;
         }
         
         .fmk-categories {
@@ -855,15 +859,28 @@
             socket.on('game-ended', (data) => {
                 console.log('🏁 Game ended, returning to lobby');
                 
-                // Show waiting screen again
+                // Hide game screen
                 document.getElementById('gameScreen').classList.remove('active');
+                
+                // Hide all game-specific elements
+                document.getElementById('votingButtons').classList.remove('active');
+                document.getElementById('fmkContainer').classList.remove('active');
+                document.getElementById('voteWaitingScreen').style.display = 'none';
+                document.getElementById('mobileResults').style.display = 'none';
+                document.getElementById('gameQuestion').style.display = 'flex';
+                
+                // Show waiting screen again
                 document.getElementById('waitingScreen').classList.add('active');
                 
                 // Update waiting screen message
                 const statusEl = document.querySelector('.waiting-subtext');
                 if (statusEl) {
                     statusEl.textContent = 'Game ended! Waiting for host to start new game...';
+                    statusEl.style.color = '#666';
                 }
+                
+                // Reset currentGameData
+                currentGameData = null;
             });
             
             // Vote update from server
@@ -1240,50 +1257,87 @@
         
         // Touch support for mobile drag-and-drop
         let touchedElement = null;
-        let touchStartX = 0;
-        let touchStartY = 0;
+        let originalParent = null;
+        let clone = null;
         
         function handleTouchStart(e) {
-            touchedElement = e.target;
-            const touch = e.touches[0];
-            touchStartX = touch.clientX;
-            touchStartY = touch.clientY;
-            e.target.classList.add('dragging');
             e.preventDefault();
+            e.stopPropagation();
+            
+            touchedElement = e.target;
+            originalParent = touchedElement.parentElement;
+            
+            // Create a clone to move around
+            clone = touchedElement.cloneNode(true);
+            clone.style.position = 'fixed';
+            clone.style.pointerEvents = 'none';
+            clone.style.zIndex = '9999';
+            clone.style.opacity = '0.9';
+            clone.style.transform = 'scale(1.05)';
+            document.body.appendChild(clone);
+            
+            // Hide original
+            touchedElement.style.opacity = '0.3';
+            
+            const touch = e.touches[0];
+            updateClonePosition(touch.clientX, touch.clientY);
+        }
+        
+        function updateClonePosition(x, y) {
+            if (!clone) return;
+            const rect = clone.getBoundingClientRect();
+            clone.style.left = (x - rect.width / 2) + 'px';
+            clone.style.top = (y - rect.height / 2) + 'px';
         }
         
         function handleTouchMove(e) {
-            if (!touchedElement) return;
+            if (!clone) return;
             e.preventDefault();
+            e.stopPropagation();
             
             const touch = e.touches[0];
-            const currentX = touch.clientX;
-            const currentY = touch.clientY;
+            updateClonePosition(touch.clientX, touch.clientY);
             
-            // Move the element
-            touchedElement.style.position = 'fixed';
-            touchedElement.style.left = currentX - (touchedElement.offsetWidth / 2) + 'px';
-            touchedElement.style.top = currentY - (touchedElement.offsetHeight / 2) + 'px';
-            touchedElement.style.zIndex = '1000';
-            touchedElement.style.opacity = '0.8';
+            // Check if over a drop zone
+            const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            // Remove all drag-over states
+            document.querySelectorAll('.fmk-category').forEach(cat => {
+                cat.classList.remove('drag-over');
+            });
+            
+            // Add drag-over to current target
+            if (dropTarget) {
+                const category = dropTarget.closest('.fmk-category');
+                if (category) {
+                    category.classList.add('drag-over');
+                }
+            }
         }
         
         function handleTouchEnd(e) {
-            if (!touchedElement) return;
+            if (!clone) return;
             e.preventDefault();
+            e.stopPropagation();
             
             const touch = e.changedTouches[0];
             const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
             
             // Find the drop zone
-            let dropZone = dropTarget;
-            if (dropTarget && !dropTarget.classList.contains('fmk-drop-zone')) {
-                dropZone = dropTarget.closest('.fmk-drop-zone');
+            let dropZone = null;
+            if (dropTarget) {
+                if (dropTarget.classList.contains('fmk-drop-zone')) {
+                    dropZone = dropTarget;
+                } else {
+                    dropZone = dropTarget.closest('.fmk-drop-zone');
+                }
             }
             
-            if (dropZone && dropZone.classList.contains('fmk-drop-zone')) {
+            if (dropZone) {
                 const category = dropZone.id.replace('drop-', '');
                 const person = touchedElement.dataset.person;
+                
+                console.log('✅ Dropped:', person, 'into', category);
                 
                 // Update answer
                 fmkAnswers[category] = person;
@@ -1293,22 +1347,25 @@
                 dropZone.classList.add('filled');
                 dropZone.dataset.person = person;
                 
-                // Hide the dragged element
+                // Hide the original element
                 touchedElement.style.display = 'none';
                 
-                console.log('✅ Touch dropped:', person, 'into', category);
                 updateFMKSubmitButton();
+            } else {
+                // Reset original element
+                touchedElement.style.opacity = '1';
             }
             
-            // Reset styles
-            if (touchedElement) {
-                touchedElement.classList.remove('dragging');
-                touchedElement.style.position = '';
-                touchedElement.style.left = '';
-                touchedElement.style.top = '';
-                touchedElement.style.zIndex = '';
-                touchedElement.style.opacity = '';
+            // Remove clone
+            if (clone && clone.parentElement) {
+                clone.parentElement.removeChild(clone);
             }
+            clone = null;
+            
+            // Remove all drag-over states
+            document.querySelectorAll('.fmk-category').forEach(cat => {
+                cat.classList.remove('drag-over');
+            });
             
             touchedElement = null;
         }
