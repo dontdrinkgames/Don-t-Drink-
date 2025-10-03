@@ -350,6 +350,7 @@
         
         // Show waiting screen
         function showWaitingScreen() {
+            console.log('Showing waiting screen for:', playerData);
             document.getElementById('joinScreen').classList.add('hidden');
             document.getElementById('waitingScreen').classList.add('active');
             document.getElementById('waitingAvatar').textContent = playerData.avatar;
@@ -500,7 +501,9 @@
                 return;
             }
             
+            // Update playerData BEFORE sending join request
             playerData.name = name;
+            
             document.getElementById('joinBtn').disabled = true;
             hideError();
             
