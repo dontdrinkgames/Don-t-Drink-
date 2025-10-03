@@ -145,6 +145,7 @@ io.on('connection', (socket) => {
             
             if (!room) {
                 const error = { message: 'Room not found' };
+                console.error(`❌ Room ${roomCode} not found. Available:`, Object.keys(rooms));
                 if (typeof callback === 'function') {
                     callback({ success: false, error: error.message });
                 }
@@ -152,31 +153,43 @@ io.on('connection', (socket) => {
                 return;
             }
             
+            // If this is the host reconnecting (Host-Display), update the hostId and clear disconnect timer
+            if (playerName === 'Host-Display' && room.hostDisconnectedAt) {
+                console.log(`✅ Host reconnected to room ${roomCode} - cancelling deletion`);
+                delete room.hostDisconnectedAt;
+                room.hostId = socket.id; // Update to new socket ID
+            }
+            
             // Remove any existing player with same name (rejoin support)
             room.players = room.players.filter(p => 
                 p.name !== playerName && p.id !== socket.id
             );
             
-            const player = {
-                id: socket.id,
-                name: playerName,
-                avatar: avatar || '🎮',
-                score: 0,
-                joinedAt: Date.now()
-            };
+            // Only add to players list if not the host display
+            if (playerName !== 'Host-Display') {
+                const player = {
+                    id: socket.id,
+                    name: playerName,
+                    avatar: avatar || '🎮',
+                    score: 0,
+                    joinedAt: Date.now()
+                };
+                
+                room.players.push(player);
+                console.log(`✅ ${playerName} joined room ${roomCode}`);
+                
+                // Notify everyone
+                io.to(room.hostId).emit('player-joined', player);
+                io.to(roomCode.toUpperCase()).emit('players-updated', {
+                    players: room.players,
+                    count: room.players.length
+                });
+            } else {
+                console.log(`✅ Host-Display connected to room ${roomCode}`);
+            }
             
-            room.players.push(player);
             socket.join(roomCode.toUpperCase());
             socket.roomCode = roomCode.toUpperCase();
-            
-            console.log(`✅ ${playerName} joined room ${roomCode}`);
-            
-            // Notify everyone
-            io.to(room.hostId).emit('player-joined', player);
-            io.to(roomCode.toUpperCase()).emit('players-updated', {
-                players: room.players,
-                count: room.players.length
-            });
             
             const response = {
                 success: true,
@@ -500,17 +513,29 @@ io.on('connection', (socket) => {
         if (socket.roomCode) {
             const room = rooms[socket.roomCode];
             if (room) {
+                // Remove non-host players
                 room.players = room.players.filter(p => p.id !== socket.id);
                 io.to(socket.roomCode).emit('players-updated', {
                     players: room.players,
                     count: room.players.length
                 });
                 
-                // If host disconnects, notify players and delete room
+                // If host disconnects, DON'T delete room immediately
+                // Give them 30 seconds to reconnect (for page navigation)
                 if (room.hostId === socket.id) {
-                    io.to(socket.roomCode).emit('host-disconnected');
-                    delete rooms[socket.roomCode];
-                    console.log(`🗑️ Room ${socket.roomCode} deleted (host left)`);
+                    console.log(`⚠️ Host disconnected from room ${socket.roomCode} - waiting for reconnect...`);
+                    
+                    room.hostDisconnectedAt = Date.now();
+                    
+                    // Only delete after 30 seconds if no reconnect
+                    setTimeout(() => {
+                        const currentRoom = rooms[socket.roomCode];
+                        if (currentRoom && currentRoom.hostDisconnectedAt) {
+                            io.to(socket.roomCode).emit('host-disconnected');
+                            delete rooms[socket.roomCode];
+                            console.log(`🗑️ Room ${socket.roomCode} deleted (host didn't reconnect)`);
+                        }
+                    }, 30000); // 30 seconds grace period
                 }
             }
         }
