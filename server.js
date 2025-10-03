@@ -304,14 +304,11 @@ io.on('connection', (socket) => {
             if (questionManager) {
                 const question = questionManager.getRandomQuestion(game, intensity, mode, questionNumber);
                 
-                const questionText = typeof question.text === 'string' ? question.text : (question.question || JSON.stringify(question));
-                console.log('✅ Question fetched:', questionText.substring(0, 50) + '...');
+                console.log('✅ Question fetched:', question);
                 
-                // Send to all clients in room
+                // Send to all clients in room - send the FULL question object
                 io.to(roomCode).emit('new-question', {
-                    question: question.text,
-                    questionId: question.id,
-                    isCustom: question.isCustom,
+                    ...question, // Spread all question properties (text, optionA, optionB, etc.)
                     questionNumber,
                     game,
                     mode,
@@ -320,9 +317,7 @@ io.on('connection', (socket) => {
                 
                 // ALSO send directly to the requester
                 socket.emit('new-question', {
-                    question: question.text,
-                    questionId: question.id,
-                    isCustom: question.isCustom,
+                    ...question, // Spread all question properties
                     questionNumber,
                     game,
                     mode,

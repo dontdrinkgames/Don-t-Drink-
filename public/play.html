@@ -642,11 +642,12 @@
             textEl.classList.remove('hidden');
             
             // Display based on game type
-            if (game === 'would_you_rather' && typeof question === 'object' && question.optionA) {
+            // WYR: data has optionA and optionB properties directly
+            if (game === 'would_you_rather' && data.optionA && data.optionB) {
                 console.log('✅ Displaying WYR question');
                 textEl.textContent = 'Would you rather...';
-                document.getElementById('optionA').textContent = question.optionA;
-                document.getElementById('optionB').textContent = question.optionB;
+                document.getElementById('optionA').textContent = data.optionA;
+                document.getElementById('optionB').textContent = data.optionB;
                 document.getElementById('wyrOptions').classList.remove('hidden');
             } else if ((game === 'fmk' || gameConfig.game === 'fmk') && typeof question === 'string' && question.includes(',')) {
                 console.log('✅ Displaying FMK question');
@@ -662,8 +663,8 @@
                 fmkGrid.classList.remove('hidden');
             } else {
                 console.log('✅ Displaying standard question');
-                const questionText = typeof question === 'string' ? question : 
-                                     question.text || JSON.stringify(question);
+                // Try data.text first (NHIE, Hot Takes), then fall back to data.question
+                const questionText = data.text || (typeof question === 'string' ? question : question?.text) || 'Question data missing';
                 console.log('📝 Final text:', questionText);
                 textEl.textContent = questionText;
             }
