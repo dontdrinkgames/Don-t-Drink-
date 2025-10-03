@@ -702,6 +702,37 @@
                 handleNewQuestion(data);
             });
             
+            // Game ended - return to lobby
+            socket.on('game-ended', (data) => {
+                console.log('🏁 Game ended, returning to lobby');
+                
+                // Show waiting screen again
+                document.getElementById('gameScreen').classList.remove('active');
+                document.getElementById('waitingScreen').classList.add('active');
+                
+                // Update waiting screen message
+                const statusEl = document.querySelector('.waiting-subtext');
+                if (statusEl) {
+                    statusEl.textContent = 'Game ended! Waiting for host to start new game...';
+                }
+            });
+            
+            // Vote update from server
+            socket.on('vote-update', (data) => {
+                console.log('📊 MOBILE: vote-update received:', data);
+                
+                // Update vote counter
+                const counterEl = document.getElementById('voteCounter');
+                if (counterEl) {
+                    counterEl.textContent = `${data.totalVotes}/${data.totalPlayers} players voted`;
+                }
+                
+                // If all voted and results revealed, show results on mobile too
+                if (data.totalVotes === data.totalPlayers && data.revealed) {
+                    showMobileResults(data);
+                }
+            });
+            
             // Spotlight events
             socket.on('spotlight-active', (data) => {
                 console.log('Spotlight active:', data);
@@ -806,6 +837,10 @@
             document.getElementById('waitingScreen').classList.remove('active');
             document.getElementById('gameScreen').classList.add('active');
             
+            // Hide previous screens
+            document.getElementById('voteWaitingScreen').style.display = 'none';
+            document.getElementById('mobileResults').style.display = 'none';
+            
             // Update question display
             document.getElementById('mobileQuestionNumber').textContent = `Question ${data.questionNumber || 1}`;
             
@@ -887,9 +922,52 @@
                 questionId: currentGameData?.questionId
             });
             
-            // Disable voting buttons after voting
-            const buttons = document.querySelectorAll('.vote-btn');
-            buttons.forEach(btn => btn.disabled = true);
+            // Hide voting buttons
+            document.getElementById('votingButtons').classList.remove('active');
+            
+            // Show vote waiting screen
+            document.getElementById('voteWaitingScreen').style.display = 'block';
+            
+            console.log('📨 Vote submitted:', vote);
+        }
+        
+        // Show mobile results
+        function showMobileResults(data) {
+            console.log('📊 Showing mobile results:', data);
+            
+            // Hide waiting screen
+            document.getElementById('voteWaitingScreen').style.display = 'none';
+            
+            // Show results
+            const resultsEl = document.getElementById('mobileResults');
+            const contentEl = document.getElementById('mobileResultsContent');
+            
+            let html = '<div style="padding: 20px;">';
+            html += '<div style="font-size: 1.5rem; margin-bottom: 15px;">📊 Results</div>';
+            
+            // Sort by vote count
+            const sortedVotes = Object.entries(data.votes).sort((a, b) => b[1] - a[1]);
+            
+            for (const [option, count] of sortedVotes) {
+                const percentage = data.totalPlayers > 0 ? (count / data.totalPlayers * 100).toFixed(0) : 0;
+                const voters = data.voters[option] || [];
+                
+                html += `
+                    <div style="margin: 15px 0; padding: 15px; background: rgba(255,255,255,0.15); border-radius: 12px;">
+                        <div style="font-weight: 700; margin-bottom: 8px;">${option.toUpperCase()}</div>
+                        <div style="font-size: 0.9rem; margin-bottom: 5px;">${count} votes (${percentage}%)</div>
+                        ${voters.length > 0 ? `
+                            <div style="font-size: 0.85rem; color: rgba(255,255,255,0.8);">
+                                ${voters.join(', ')}
+                            </div>
+                        ` : ''}
+                    </div>
+                `;
+            }
+            
+            html += '</div>';
+            contentEl.innerHTML = html;
+            resultsEl.style.display = 'block';
         }
         
         // Handle spotlight

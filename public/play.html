@@ -782,6 +782,10 @@
         // Reveal voting results
         function revealVotingResults() {
             resultsRevealed = true;
+            
+            // Notify server that results are revealed
+            socket.emit('reveal-results', { roomCode: gameConfig.roomCode });
+            
             // Re-trigger display update to show detailed results
             socket.emit('request-vote-update', { roomCode: gameConfig.roomCode });
         }
@@ -815,8 +819,12 @@
         
         // End game
         function endGame() {
-            if (confirm('Are you sure you want to end the game?')) {
-                window.location.href = '/host';
+            if (confirm('End this game and return to lobby?')) {
+                // Emit end-game event to server
+                socket.emit('end-game', { roomCode: gameConfig.roomCode });
+                
+                // Return to host page with same room code
+                window.location.href = `/host?room=${gameConfig.roomCode}`;
             }
         }
     </script>

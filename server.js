@@ -300,6 +300,7 @@ io.on('connection', (socket) => {
             // Clear votes for new question
             room.currentVotes = {};
             room.voterDetails = {};
+            room.resultsRevealed = false;
             
             if (questionManager) {
                 const question = questionManager.getRandomQuestion(game, intensity, mode, questionNumber);
@@ -329,6 +330,31 @@ io.on('connection', (socket) => {
         } catch (error) {
             console.error('Next question error:', error);
             socket.emit('error', { message: error.message });
+        }
+    });
+    
+    // End game - return all players to lobby
+    socket.on('end-game', (data) => {
+        try {
+            const { roomCode } = data;
+            const room = rooms[roomCode];
+            
+            if (!room) return;
+            
+            // Reset room state but keep players
+            room.gameState = 'waiting';
+            room.currentVotes = {};
+            room.voterDetails = {};
+            
+            // Notify all players to return to waiting screen
+            io.to(roomCode).emit('game-ended', { 
+                message: 'Game ended. Return to lobby!',
+                roomCode 
+            });
+            
+            console.log(`🏁 Game ended in room ${roomCode}. Players returned to lobby.`);
+        } catch (error) {
+            console.error('End game error:', error);
         }
     });
     
@@ -406,10 +432,42 @@ io.on('connection', (socket) => {
                 }, {}) : {},
                 voters: room.voterDetails || {},
                 totalVotes: voters.length,
-                totalPlayers: room.players.length
+                totalPlayers: room.players.length,
+                revealed: room.resultsRevealed || false
             });
         } catch (error) {
             console.error('Request vote update error:', error);
+        }
+    });
+    
+    // Handle reveal results (broadcast to all players)
+    socket.on('reveal-results', (data) => {
+        try {
+            const { roomCode } = data;
+            const room = rooms[roomCode];
+            
+            if (!room) return;
+            
+            room.resultsRevealed = true;
+            
+            const voters = Object.keys(room.currentVotes || {});
+            const voteCounts = Object.values(room.currentVotes).reduce((acc, vote) => {
+                acc[vote] = (acc[vote] || 0) + 1;
+                return acc;
+            }, {});
+            
+            // Send to ALL players in room
+            io.to(roomCode).emit('vote-update', {
+                votes: voteCounts,
+                voters: room.voterDetails || {},
+                totalVotes: voters.length,
+                totalPlayers: room.players.length,
+                revealed: true
+            });
+            
+            console.log(`🔍 Results revealed in room ${roomCode}`);
+        } catch (error) {
+            console.error('Reveal results error:', error);
         }
     });
     
