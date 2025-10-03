@@ -516,7 +516,9 @@
             questionCounter++;
             
             // Clear votes for new question
-            socket.emit('clear-votes', { roomCode: gameConfig.roomCode });
+            if (socket && socket.connected) {
+                socket.emit('clear-votes', { roomCode: gameConfig.roomCode });
+            }
             
             // Determine mode (for mixmaster)
             if (gameConfig.mode === 'mixmaster') {
@@ -524,27 +526,41 @@
                 currentMode = modes[(questionCounter - 1) % modes.length];
                 updateModeIndicator();
             } else {
-                currentMode = gameConfig.mode;
+                currentMode = gameConfig.mode === 'voting' ? 'mobile' : gameConfig.mode;
             }
             
-            // Map game names
+            // Map game names to match database
             const gameMap = {
                 'nhie': 'never_have_i_ever',
                 'wyr': 'would_you_rather',
                 'ht': 'hot_takes',
-                'hottakes': 'hot_takes'
+                'hottakes': 'hot_takes',
+                'hot': 'hot_takes',
+                'fmk': 'fmk'
             };
             
             const mappedGame = gameMap[gameConfig.game] || gameConfig.game;
             
-            // Request question
-            socket.emit('next-question', {
-                roomCode: gameConfig.roomCode,
+            console.log('Requesting question:', {
                 game: mappedGame,
                 intensity: gameConfig.intensity,
                 mode: currentMode,
                 questionNumber: questionCounter
             });
+            
+            // Request question from server
+            if (socket && socket.connected) {
+                socket.emit('next-question', {
+                    roomCode: gameConfig.roomCode,
+                    game: mappedGame,
+                    intensity: gameConfig.intensity,
+                    mode: currentMode,
+                    questionNumber: questionCounter
+                });
+            } else {
+                console.error('Socket not connected!');
+                alert('Not connected to server. Please refresh the page.');
+            }
             
             // Update question number
             document.getElementById('questionNumber').textContent = `Question ${questionCounter}`;

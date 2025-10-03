@@ -679,9 +679,15 @@
             // Game started
             socket.on('game-started', (data) => {
                 console.log('Game started!', data);
-                // Show game screen
-                document.getElementById('waitingScreen').classList.remove('active');
-                document.getElementById('gameScreen').classList.add('active');
+                // For offline mode, players don't need to interact - keep them on waiting screen
+                if (data.mode === 'offline') {
+                    // Show a message that they can watch the host screen
+                    document.getElementById('waitingSubtext').textContent = 'Game started! Watch the host screen 📺';
+                } else {
+                    // For voting/spotlight modes, show game screen
+                    document.getElementById('waitingScreen').classList.remove('active');
+                    document.getElementById('gameScreen').classList.add('active');
+                }
             });
             
             // New question received

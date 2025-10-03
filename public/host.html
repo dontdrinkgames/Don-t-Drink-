@@ -654,6 +654,10 @@
             if (!gameState.selectedGame || !gameState.selectedMode || !gameState.selectedIntensity) {
                 startBtn.textContent = 'Select game settings to continue';
                 startBtn.disabled = true;
+            } else if (gameState.selectedMode === 'offline') {
+                // Offline mode doesn't need players - can start immediately
+                startBtn.textContent = 'Start Game (Offline Mode)';
+                startBtn.disabled = false;
             } else if (players.length === 0) {
                 startBtn.textContent = 'Waiting for players to join...';
                 startBtn.disabled = true;
@@ -665,8 +669,11 @@
         
         // Start game
         document.getElementById('startBtn').addEventListener('click', () => {
+            // Offline mode doesn't require players
+            const hasEnoughPlayers = gameState.selectedMode === 'offline' || players.length > 0;
+            
             if (gameState.selectedGame && gameState.selectedMode && 
-                gameState.selectedIntensity && players.length > 0) {
+                gameState.selectedIntensity && hasEnoughPlayers) {
                 
                 const config = {
                     game: gameState.selectedGame,
@@ -679,7 +686,8 @@
                     gameConfig: config
                 });
                 
-                window.location.href = `/play?room=${gameState.roomCode}&game=${config.game}`;
+                // Navigate to play screen with proper parameters
+                window.location.href = `/play?room=${gameState.roomCode}&game=${config.game}&mode=${config.mode}&intensity=${config.intensity}`;
             }
         });
         
