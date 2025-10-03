@@ -96,6 +96,47 @@ app.get('/:roomCode', (req, res) => {
 io.on('connection', (socket) => {
     console.log('🔌 User connected:', socket.id);
     
+    // Host reconnect to existing room
+    socket.on('host-reconnect', (data, callback) => {
+        try {
+            const { roomCode, hostId } = data;
+            const room = rooms[roomCode];
+            
+            if (!room) {
+                console.log(`❌ Room ${roomCode} not found for reconnect`);
+                if (typeof callback === 'function') {
+                    callback({ success: false, error: 'Room not found' });
+                }
+                return;
+            }
+            
+            // Update host ID
+            room.hostId = socket.id;
+            
+            // Join the room
+            socket.join(roomCode);
+            
+            console.log(`🔄 Host reconnected to room ${roomCode} with ${room.players.length} players`);
+            
+            if (typeof callback === 'function') {
+                callback({ 
+                    success: true, 
+                    roomCode,
+                    players: room.players
+                });
+            }
+            
+            // Notify all players that host is back
+            socket.to(roomCode).emit('host-reconnected', { message: 'Host is back!' });
+            
+        } catch (error) {
+            console.error('Host reconnect error:', error);
+            if (typeof callback === 'function') {
+                callback({ success: false, error: error.message });
+            }
+        }
+    });
+    
     // Create room
     socket.on('create-room', (data, callback) => {
         try {

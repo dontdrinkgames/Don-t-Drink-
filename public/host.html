@@ -489,12 +489,38 @@
             
             socket.on('connect', () => {
                 console.log('Connected to server');
-                socket.emit('create-room', { hostId: socket.id }, (response) => {
-                    if (response && response.success && response.roomCode) {
-                        gameState.roomCode = response.roomCode;
-                        updateRoomDisplay();
-                    }
-                });
+                
+                // Check if we're returning to an existing room
+                if (gameState.roomCode) {
+                    console.log('🔄 Reconnecting to existing room:', gameState.roomCode);
+                    socket.emit('host-reconnect', { 
+                        roomCode: gameState.roomCode,
+                        hostId: socket.id 
+                    }, (response) => {
+                        if (response && response.success) {
+                            console.log('✅ Reconnected to room:', gameState.roomCode);
+                            players = response.players || [];
+                            updateRoomDisplay();
+                            updatePlayersDisplay();
+                        } else {
+                            console.error('❌ Failed to reconnect, creating new room');
+                            socket.emit('create-room', { hostId: socket.id }, (response) => {
+                                if (response && response.success && response.roomCode) {
+                                    gameState.roomCode = response.roomCode;
+                                    updateRoomDisplay();
+                                }
+                            });
+                        }
+                    });
+                } else {
+                    // Create new room
+                    socket.emit('create-room', { hostId: socket.id }, (response) => {
+                        if (response && response.success && response.roomCode) {
+                            gameState.roomCode = response.roomCode;
+                            updateRoomDisplay();
+                        }
+                    });
+                }
             });
             
             socket.on('room-created', (data) => {
@@ -713,6 +739,15 @@
         
         // Initialize on load
         window.addEventListener('load', () => {
+            // Check if returning to existing room
+            const urlParams = new URLSearchParams(window.location.search);
+            const existingRoom = urlParams.get('room');
+            
+            if (existingRoom) {
+                console.log('📍 Returning to existing room:', existingRoom);
+                gameState.roomCode = existingRoom;
+            }
+            
             initializeSocket();
         });
     </script>
