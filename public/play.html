@@ -383,6 +383,9 @@
             <div class="wyr-option" id="optionA">
                 <!-- Option text will be inserted here -->
             </div>
+            <div style="text-align: center; color: white; font-size: 1.5rem; font-weight: 900; padding: 10px 0;">
+                OR
+            </div>
             <div class="wyr-option" id="optionB">
                 <!-- Option text will be inserted here -->
             </div>
@@ -647,13 +650,15 @@
             // WYR: data has optionA and optionB properties directly
             if (game === 'would_you_rather' && data.optionA && data.optionB) {
                 console.log('✅ Displaying WYR question');
-                textEl.textContent = 'Would you rather...';
+                
+                // Hide the regular question text
+                textEl.style.display = 'none';
                 
                 // Show the actual options without "Option A/B" labels
                 const optionAEl = document.getElementById('optionA');
                 const optionBEl = document.getElementById('optionB');
                 
-                // Just show the option text directly
+                // Add "OR" between options
                 optionAEl.innerHTML = data.optionA;
                 optionBEl.innerHTML = data.optionB;
                 
@@ -672,7 +677,8 @@
                 fmkGrid.classList.remove('hidden');
             } else {
                 console.log('✅ Displaying standard question');
-                // Try data.text first (NHIE, Hot Takes), then fall back to data.question
+                // Show question text for NHIE and Hot Takes
+                textEl.style.display = 'flex';
                 const questionText = data.text || (typeof question === 'string' ? question : question?.text) || 'Question data missing';
                 console.log('📝 Final text:', questionText);
                 textEl.textContent = questionText;
@@ -753,38 +759,66 @@
             }
             
             // Results revealed - show detailed breakdown
-            let html = '<h3 style="color: white; margin-bottom: 20px; font-size: 1.3rem;">📊 The Truth Revealed</h3>';
+            let html = '<h3 style="color: white; margin-bottom: 25px; font-size: 1.4rem; text-align: center;">📊 The Results</h3>';
+            
+            html += '<div style="display: flex; flex-direction: column; gap: 30px;">';
             
             // Sort votes by count (most votes first)
             const sortedVotes = Object.entries(votes).sort((a, b) => b[1] - a[1]);
             
             for (const [option, count] of sortedVotes) {
                 const percentage = totalPlayers > 0 ? (count / totalPlayers * 100).toFixed(0) : 0;
-                
-                // Get voters for this option - voters is now { "option": ["player1", "player2"] }
                 const votersForOption = voters[option] || [];
                 
                 html += `
-                    <div class="vote-bar">
-                        <div class="vote-label">
-                            <span>${option.toUpperCase()}</span>
-                            <span>${count} ${count === 1 ? 'vote' : 'votes'}</span>
+                    <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 16px;">
+                        <!-- Option name -->
+                        <div style="text-align: center; font-size: 1.2rem; font-weight: 700; color: white; margin-bottom: 15px;">
+                            ${option.toUpperCase()}
                         </div>
-                        <div class="bar-container">
-                            <div class="bar-fill" style="width: ${percentage}%">${percentage}%</div>
-                        </div>
-                        ${votersForOption.length > 0 ? `
-                            <div style="margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
-                                <div style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 5px; font-weight: 600;">Who voted for this:</div>
-                                <div style="color: white; font-weight: 700; display: flex; flex-wrap: wrap; gap: 8px;">
-                                    ${votersForOption.map(v => `<span style="background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 8px;">${v}</span>`).join('')}
-                                </div>
+                        
+                        <!-- Bar graph -->
+                        <div style="background: rgba(0,0,0,0.2); height: 50px; border-radius: 12px; overflow: hidden; margin-bottom: 15px; position: relative;">
+                            <div style="
+                                background: linear-gradient(135deg, #A855F7, #9333EA);
+                                height: 100%;
+                                width: ${percentage}%;
+                                display: flex;
+                                align-items: center;
+                                justify-content: center;
+                                color: white;
+                                font-weight: 700;
+                                font-size: 1.1rem;
+                                transition: width 0.5s ease;
+                            ">
+                                ${percentage}%
                             </div>
-                        ` : ''}
+                            ${percentage < 20 ? `<div style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.7); font-weight: 700;">${percentage}%</div>` : ''}
+                        </div>
+                        
+                        <!-- Player bubbles -->
+                        ${votersForOption.length > 0 ? `
+                            <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+                                ${votersForOption.map(voter => `
+                                    <div style="
+                                        background: #7C3AED;
+                                        color: white;
+                                        padding: 8px 16px;
+                                        border-radius: 20px;
+                                        font-size: 0.9rem;
+                                        font-weight: 600;
+                                        filter: drop-shadow(2px 2px 0px #6D28D9);
+                                    ">
+                                        ${voter}
+                                    </div>
+                                `).join('')}
+                            </div>
+                        ` : '<div style="text-align: center; color: rgba(255,255,255,0.5); font-size: 0.9rem;">No votes</div>'}
                     </div>
                 `;
             }
             
+            html += '</div>';
             resultsEl.innerHTML = html;
         }
         

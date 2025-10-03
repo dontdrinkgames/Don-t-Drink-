@@ -1155,12 +1155,17 @@
                 </div>
             `).join('');
             
-            // Reset drop zones
+            // Reset drop zones and make them draggable out
             ['fuck', 'marry', 'kill'].forEach(category => {
                 const dropZone = document.getElementById(`drop-${category}`);
                 dropZone.textContent = 'Drag here';
                 dropZone.classList.remove('filled');
                 dropZone.dataset.person = '';
+                
+                // Add touch listeners to drop zones for dragging out
+                dropZone.addEventListener('touchstart', handleDropZoneTouchStart, { passive: false });
+                dropZone.addEventListener('touchmove', handleDropZoneTouchMove, { passive: false });
+                dropZone.addEventListener('touchend', handleDropZoneTouchEnd, { passive: false });
             });
             
             // Add drag event listeners
@@ -1368,6 +1373,111 @@
             });
             
             touchedElement = null;
+        }
+        
+        // Handle dragging FROM drop zones (to rearrange)
+        let dropZoneDragging = false;
+        
+        function handleDropZoneTouchStart(e) {
+            const dropZone = e.currentTarget;
+            if (!dropZone.classList.contains('filled')) return;
+            
+            e.preventDefault();
+            e.stopPropagation();
+            
+            dropZoneDragging = true;
+            const person = dropZone.dataset.person;
+            
+            // Create clone
+            clone = document.createElement('div');
+            clone.className = 'fmk-draggable';
+            clone.textContent = person;
+            clone.dataset.person = person;
+            clone.style.position = 'fixed';
+            clone.style.pointerEvents = 'none';
+            clone.style.zIndex = '9999';
+            clone.style.opacity = '0.9';
+            clone.style.transform = 'scale(1.05)';
+            document.body.appendChild(clone);
+            
+            // Clear the drop zone
+            const category = dropZone.id.replace('drop-', '');
+            fmkAnswers[category] = null;
+            dropZone.textContent = 'Drag here';
+            dropZone.classList.remove('filled');
+            dropZone.dataset.person = '';
+            
+            const touch = e.touches[0];
+            updateClonePosition(touch.clientX, touch.clientY);
+            
+            updateFMKSubmitButton();
+        }
+        
+        function handleDropZoneTouchMove(e) {
+            if (!dropZoneDragging || !clone) return;
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const touch = e.touches[0];
+            updateClonePosition(touch.clientX, touch.clientY);
+            
+            // Visual feedback
+            const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+            document.querySelectorAll('.fmk-category').forEach(cat => {
+                cat.classList.remove('drag-over');
+            });
+            
+            if (dropTarget) {
+                const category = dropTarget.closest('.fmk-category');
+                if (category) {
+                    category.classList.add('drag-over');
+                }
+            }
+        }
+        
+        function handleDropZoneTouchEnd(e) {
+            if (!dropZoneDragging || !clone) return;
+            e.preventDefault();
+            e.stopPropagation();
+            
+            const touch = e.changedTouches[0];
+            const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            // Find the drop zone
+            let dropZone = null;
+            if (dropTarget) {
+                if (dropTarget.classList.contains('fmk-drop-zone')) {
+                    dropZone = dropTarget;
+                } else {
+                    dropZone = dropTarget.closest('.fmk-drop-zone');
+                }
+            }
+            
+            if (dropZone) {
+                const category = dropZone.id.replace('drop-', '');
+                const person = clone.dataset.person;
+                
+                // Update answer
+                fmkAnswers[category] = person;
+                dropZone.textContent = person;
+                dropZone.classList.add('filled');
+                dropZone.dataset.person = person;
+                
+                console.log('✅ Re-arranged:', person, 'to', category);
+            }
+            
+            // Remove clone
+            if (clone && clone.parentElement) {
+                clone.parentElement.removeChild(clone);
+            }
+            clone = null;
+            dropZoneDragging = false;
+            
+            document.querySelectorAll('.fmk-category').forEach(cat => {
+                cat.classList.remove('drag-over');
+            });
+            
+            updateFMKSubmitButton();
         }
         
         function submitFMKAnswer() {
