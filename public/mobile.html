@@ -241,6 +241,7 @@
         .game-screen {
             display: none;
             text-align: center;
+            padding-bottom: 40px;
         }
         
         .game-screen.active {
@@ -257,6 +258,109 @@
             flex-direction: column;
             justify-content: center;
             filter: drop-shadow(4px 6px 0px #7C3AED);
+        }
+        
+        /* FMK Drag and Drop */
+        .fmk-container {
+            display: none;
+            margin: 20px 0;
+        }
+        
+        .fmk-container.active {
+            display: block;
+        }
+        
+        .fmk-options {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+        
+        .fmk-draggable {
+            background: #9333EA;
+            color: white;
+            padding: 18px;
+            border-radius: 16px;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: move;
+            touch-action: none;
+            filter: drop-shadow(2px 3px 0px #7C3AED);
+            transition: all 0.2s;
+        }
+        
+        .fmk-draggable.dragging {
+            opacity: 0.5;
+            transform: scale(0.95);
+        }
+        
+        .fmk-categories {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .fmk-category {
+            background: rgba(168, 85, 247, 0.2);
+            border: 2px dashed rgba(168, 85, 247, 0.5);
+            border-radius: 16px;
+            padding: 15px;
+        }
+        
+        .fmk-category.drag-over {
+            background: rgba(168, 85, 247, 0.4);
+            border-color: #A855F7;
+        }
+        
+        .fmk-category-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: white;
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .fmk-drop-zone {
+            min-height: 60px;
+            background: rgba(255,255,255,0.05);
+            border-radius: 12px;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255,255,255,0.5);
+            font-size: 0.9rem;
+        }
+        
+        .fmk-drop-zone.filled {
+            background: #7C3AED;
+            color: white;
+            font-weight: 700;
+        }
+        
+        .fmk-submit-btn {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+            border: none;
+            padding: 18px 40px;
+            border-radius: 16px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-top: 20px;
+            cursor: pointer;
+            filter: drop-shadow(3px 4px 0px #047857);
+            transition: all 0.2s;
+        }
+        
+        .fmk-submit-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        .fmk-submit-btn:active:not(:disabled) {
+            transform: scale(0.98);
         }
         
         .question-number {
@@ -514,6 +618,32 @@
             <!-- Voting Buttons (Mobile Voting Mode) -->
             <div class="voting-buttons" id="votingButtons">
                 <!-- Dynamic buttons will be inserted here -->
+            </div>
+            
+            <!-- FMK Drag and Drop Container -->
+            <div class="fmk-container" id="fmkContainer">
+                <div class="fmk-options" id="fmkOptions">
+                    <!-- Draggable options will be inserted here -->
+                </div>
+                
+                <div class="fmk-categories">
+                    <div class="fmk-category" data-category="fuck">
+                        <div class="fmk-category-title">💋 Fuck</div>
+                        <div class="fmk-drop-zone" id="drop-fuck">Drag here</div>
+                    </div>
+                    
+                    <div class="fmk-category" data-category="marry">
+                        <div class="fmk-category-title">💍 Marry</div>
+                        <div class="fmk-drop-zone" id="drop-marry">Drag here</div>
+                    </div>
+                    
+                    <div class="fmk-category" data-category="kill">
+                        <div class="fmk-category-title">🔪 Kill</div>
+                        <div class="fmk-drop-zone" id="drop-kill">Drag here</div>
+                    </div>
+                </div>
+                
+                <button class="fmk-submit-btn" id="fmkSubmitBtn" disabled>Submit Answer</button>
             </div>
             
             <!-- Spotlight Player View -->
@@ -930,7 +1060,20 @@
         // Show voting buttons
         function showVotingButtons(game) {
             const buttonsContainer = document.getElementById('votingButtons');
+            const fmkContainer = document.getElementById('fmkContainer');
+            
+            // Hide both first
+            buttonsContainer.classList.remove('active');
+            fmkContainer.classList.remove('active');
             buttonsContainer.innerHTML = '';
+            
+            // FMK uses drag-and-drop, others use buttons
+            if (game === 'fmk' || game === 'fuck_marry_kill') {
+                console.log('🎯 Showing FMK drag-and-drop interface');
+                setupFMKDragDrop();
+                fmkContainer.classList.add('active');
+                return;
+            }
             
             // Different buttons based on game type
             if (game === 'never_have_i_ever') {
@@ -948,16 +1091,131 @@
                     <button class="vote-btn" style="background: linear-gradient(135deg, #A855F7, #7C3AED);" onclick="submitVote('optionA')">🅰️ OPTION A</button>
                     <button class="vote-btn" style="background: linear-gradient(135deg, #F472B6, #EC4899);" onclick="submitVote('optionB')">🅱️ OPTION B</button>
                 `;
-            } else if (game === 'fmk') {
-                buttonsContainer.innerHTML = `
-                    <div style="color: white; margin-bottom: 10px; font-size: 14px;">Choose for each person:</div>
-                    <button class="vote-btn" style="background: linear-gradient(135deg, #F472B6, #EC4899);" onclick="submitVote('person1-fuck')">💋 Person 1 - Fuck</button>
-                    <button class="vote-btn" style="background: linear-gradient(135deg, #FACC15, #FB923C);" onclick="submitVote('person2-marry')">💍 Person 2 - Marry</button>
-                    <button class="vote-btn" style="background: linear-gradient(135deg, #DC2626, #991B1B);" onclick="submitVote('person3-kill')">🔪 Person 3 - Kill</button>
-                `;
             }
             
             buttonsContainer.classList.add('active');
+        }
+        
+        // FMK Drag and Drop Setup
+        let fmkAnswers = { fuck: null, marry: null, kill: null };
+        
+        function setupFMKDragDrop() {
+            console.log('🎮 Setting up FMK drag-and-drop');
+            
+            // Get question text and parse people
+            const questionText = currentGameData?.text || '';
+            const people = questionText.split(',').map(p => p.trim()).filter(p => p);
+            
+            console.log('👥 FMK people:', people);
+            
+            if (people.length !== 3) {
+                console.error('❌ FMK question must have exactly 3 people');
+                return;
+            }
+            
+            // Reset answers
+            fmkAnswers = { fuck: null, marry: null, kill: null };
+            
+            // Create draggable options
+            const optionsContainer = document.getElementById('fmkOptions');
+            optionsContainer.innerHTML = people.map((person, i) => `
+                <div class="fmk-draggable" draggable="true" data-person="${person}" data-index="${i}">
+                    ${person}
+                </div>
+            `).join('');
+            
+            // Reset drop zones
+            ['fuck', 'marry', 'kill'].forEach(category => {
+                const dropZone = document.getElementById(`drop-${category}`);
+                dropZone.textContent = 'Drag here';
+                dropZone.classList.remove('filled');
+                dropZone.dataset.person = '';
+            });
+            
+            // Add drag event listeners
+            const draggables = document.querySelectorAll('.fmk-draggable');
+            draggables.forEach(draggable => {
+                draggable.addEventListener('dragstart', handleDragStart);
+                draggable.addEventListener('dragend', handleDragEnd);
+            });
+            
+            // Add drop zone listeners
+            const dropZones = document.querySelectorAll('.fmk-drop-zone');
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', handleDragOver);
+                zone.addEventListener('drop', handleDrop);
+                zone.addEventListener('dragleave', handleDragLeave);
+            });
+            
+            // Submit button
+            document.getElementById('fmkSubmitBtn').onclick = submitFMKAnswer;
+            updateFMKSubmitButton();
+        }
+        
+        let draggedElement = null;
+        
+        function handleDragStart(e) {
+            draggedElement = e.target;
+            e.target.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', e.target.dataset.person);
+        }
+        
+        function handleDragEnd(e) {
+            e.target.classList.remove('dragging');
+        }
+        
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            e.currentTarget.closest('.fmk-category').classList.add('drag-over');
+        }
+        
+        function handleDragLeave(e) {
+            e.currentTarget.closest('.fmk-category').classList.remove('drag-over');
+        }
+        
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.closest('.fmk-category').classList.remove('drag-over');
+            
+            const dropZone = e.currentTarget;
+            const category = dropZone.id.replace('drop-', '');
+            const person = e.dataTransfer.getData('text/plain');
+            
+            // Update answer
+            fmkAnswers[category] = person;
+            
+            // Update UI
+            dropZone.textContent = person;
+            dropZone.classList.add('filled');
+            dropZone.dataset.person = person;
+            
+            // Hide the dragged element
+            if (draggedElement) {
+                draggedElement.style.display = 'none';
+            }
+            
+            console.log('✅ Dropped:', person, 'into', category);
+            console.log('Current answers:', fmkAnswers);
+            
+            updateFMKSubmitButton();
+        }
+        
+        function updateFMKSubmitButton() {
+            const submitBtn = document.getElementById('fmkSubmitBtn');
+            const allFilled = fmkAnswers.fuck && fmkAnswers.marry && fmkAnswers.kill;
+            submitBtn.disabled = !allFilled;
+        }
+        
+        function submitFMKAnswer() {
+            console.log('📤 Submitting FMK answer:', fmkAnswers);
+            
+            const answer = `F: ${fmkAnswers.fuck}, M: ${fmkAnswers.marry}, K: ${fmkAnswers.kill}`;
+            submitVote(answer);
+            
+            // Hide FMK container
+            document.getElementById('fmkContainer').classList.remove('active');
         }
         
         // Submit vote
