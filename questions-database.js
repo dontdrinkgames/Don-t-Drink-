@@ -1179,11 +1179,23 @@ class QuestionManager {
     const selectedQuestion = shuffledQuestions[0];
     
     // Create question object
-    const questionObj = {
-      id: ++this.currentQuestionId,
-      text: selectedQuestion,
-      isCustom: customQuestions.includes(selectedQuestion)
-    };
+    let questionObj;
+    
+    if (typeof selectedQuestion === 'string') {
+      // Simple text question (NHIE, Hot Takes)
+      questionObj = {
+        id: ++this.currentQuestionId,
+        text: selectedQuestion,
+        isCustom: customQuestions.includes(selectedQuestion)
+      };
+    } else {
+      // Object question (WYR, FMK)
+      questionObj = {
+        id: ++this.currentQuestionId,
+        ...selectedQuestion, // Spread the object (includes optionA, optionB, etc.)
+        isCustom: customQuestions.includes(selectedQuestion)
+      };
+    }
 
     // Add to used questions
     this.usedQuestions[game][intensity].push(selectedQuestion);

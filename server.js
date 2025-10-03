@@ -304,7 +304,8 @@ io.on('connection', (socket) => {
             if (questionManager) {
                 const question = questionManager.getRandomQuestion(game, intensity, mode, questionNumber);
                 
-                console.log('✅ Question fetched:', question.text.substring(0, 50) + '...');
+                const questionText = typeof question.text === 'string' ? question.text : (question.question || JSON.stringify(question));
+                console.log('✅ Question fetched:', questionText.substring(0, 50) + '...');
                 
                 // Send to all clients in room
                 io.to(roomCode).emit('new-question', {
