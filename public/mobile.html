@@ -784,10 +784,25 @@
             
             // Host disconnected
             socket.on('host-disconnected', () => {
-                showError('Hosten har forlatt spillet');
-                setTimeout(() => {
-                    window.location.href = '/';
-                }, 3000);
+                console.warn('⚠️ Host disconnected from room');
+                // Show message but DON'T redirect - host might come back!
+                const statusEl = document.querySelector('.waiting-subtext');
+                if (statusEl) {
+                    statusEl.textContent = 'Host disconnected. Waiting for reconnection...';
+                    statusEl.style.color = '#f44336';
+                }
+                showError('Hosten har forlatt spillet - venter på reconnect...');
+            });
+            
+            // Host reconnected
+            socket.on('host-reconnected', (data) => {
+                console.log('✅ Host reconnected!', data);
+                const statusEl = document.querySelector('.waiting-subtext');
+                if (statusEl) {
+                    statusEl.textContent = 'Venter på at hosten starter spillet...';
+                    statusEl.style.color = '#666';
+                }
+                hideError();
             });
         }
         
