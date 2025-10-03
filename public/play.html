@@ -536,6 +536,7 @@
                 console.log('❓ Question:', data.question);
                 console.log('🎮 Game:', data.game);
                 console.log('📱 Mode:', data.mode);
+                resultsRevealed = false; // Reset reveal state for new question
                 displayQuestion(data);
             });
             
@@ -683,34 +684,74 @@
             }
         }
         
+        // Track if results are revealed
+        let resultsRevealed = false;
+        
         // Update voting display
         function updateVotingDisplay(data) {
             const resultsEl = document.getElementById('votingResults');
             const { votes, voters, totalVotes, totalPlayers } = data;
             
-            // ONLY show results if everyone has voted
+            // Always show vote counter
+            const voteCounterHtml = `
+                <div style="color: rgba(255,255,255,0.9); margin-bottom: 15px; font-size: 1.1rem; font-weight: 600;">
+                    ${totalVotes} / ${totalPlayers} players have voted
+                </div>
+            `;
+            
+            // If not everyone has voted yet
             if (totalVotes < totalPlayers) {
-                // Show waiting message
                 resultsEl.innerHTML = `
                     <div style="text-align: center; padding: 20px;">
                         <div style="font-size: 2rem; margin-bottom: 10px;">⏳</div>
                         <div style="color: white; font-weight: 700; font-size: 1.2rem;">Waiting for votes...</div>
-                        <div style="color: rgba(255,255,255,0.8); margin-top: 10px; font-size: 1rem;">
-                            ${totalVotes} / ${totalPlayers} players have voted
-                        </div>
+                        ${voteCounterHtml}
+                    </div>
+                `;
+                resultsRevealed = false;
+                return;
+            }
+            
+            // Everyone has voted!
+            if (!resultsRevealed) {
+                // Show "Reveal the Truth" button
+                resultsEl.innerHTML = `
+                    <div style="text-align: center; padding: 30px;">
+                        <div style="font-size: 2rem; margin-bottom: 15px;">✅</div>
+                        ${voteCounterHtml}
+                        <button onclick="revealVotingResults()" style="
+                            background: linear-gradient(135deg, #FACC15, #FB923C);
+                            color: #1a1a1a;
+                            padding: 20px 40px;
+                            border: none;
+                            border-radius: 16px;
+                            font-size: 1.2rem;
+                            font-weight: 900;
+                            cursor: pointer;
+                            text-transform: uppercase;
+                            letter-spacing: 1px;
+                            filter: drop-shadow(4px 6px 0px #D97706);
+                            transition: all 0.2s;
+                        " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                            🔍 REVEAL THE TRUTH
+                        </button>
                     </div>
                 `;
                 return;
             }
             
-            // Everyone has voted - show results!
-            let html = '<h3 style="color: white; margin-bottom: 20px; font-size: 1.3rem;">📊 Results</h3>';
+            // Results revealed - show detailed breakdown
+            let html = '<h3 style="color: white; margin-bottom: 20px; font-size: 1.3rem;">📊 The Truth Revealed</h3>';
             
             // Sort votes by count (most votes first)
             const sortedVotes = Object.entries(votes).sort((a, b) => b[1] - a[1]);
             
             for (const [option, count] of sortedVotes) {
                 const percentage = totalPlayers > 0 ? (count / totalPlayers * 100).toFixed(0) : 0;
+                
+                // Get voters for this option - voters is now { "option": ["player1", "player2"] }
+                const votersForOption = voters[option] || [];
+                
                 html += `
                     <div class="vote-bar">
                         <div class="vote-label">
@@ -720,12 +761,26 @@
                         <div class="bar-container">
                             <div class="bar-fill" style="width: ${percentage}%">${percentage}%</div>
                         </div>
+                        ${votersForOption.length > 0 ? `
+                            <div style="margin-top: 10px; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px;">
+                                <div style="color: rgba(255,255,255,0.7); font-size: 0.85rem; margin-bottom: 5px; font-weight: 600;">Who voted for this:</div>
+                                <div style="color: white; font-weight: 700; display: flex; flex-wrap: wrap; gap: 8px;">
+                                    ${votersForOption.map(v => `<span style="background: rgba(255,255,255,0.2); padding: 5px 12px; border-radius: 8px;">${v}</span>`).join('')}
+                                </div>
+                            </div>
+                        ` : ''}
                     </div>
                 `;
             }
             
-            html += `<p style="color: rgba(255,255,255,0.9); margin-top: 15px; font-size: 0.95rem; font-weight: 600;">✅ All ${totalPlayers} players voted!</p>`;
             resultsEl.innerHTML = html;
+        }
+        
+        // Reveal voting results
+        function revealVotingResults() {
+            resultsRevealed = true;
+            // Re-trigger display update to show detailed results
+            socket.emit('request-vote-update', { roomCode: gameConfig.roomCode });
         }
         
         // Show spotlight

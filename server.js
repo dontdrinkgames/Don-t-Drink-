@@ -297,6 +297,10 @@ io.on('connection', (socket) => {
                 return;
             }
             
+            // Clear votes for new question
+            room.currentVotes = {};
+            room.voterDetails = {};
+            
             if (questionManager) {
                 const question = questionManager.getRandomQuestion(game, intensity, mode, questionNumber);
                 
@@ -347,9 +351,20 @@ io.on('connection', (socket) => {
             if (!room.currentVotes) {
                 room.currentVotes = {};
             }
+            if (!room.voterDetails) {
+                room.voterDetails = {};
+            }
             
-            // Store vote
+            // Store vote with player details
             room.currentVotes[playerName] = vote;
+            
+            // Find player to get avatar
+            const player = room.players.find(p => p.name === playerName);
+            const displayName = player ? `${player.avatar} ${player.name}` : playerName;
+            
+            // Store voter details for reveal
+            room.voterDetails[vote] = room.voterDetails[vote] || [];
+            room.voterDetails[vote].push(displayName);
             
             // Count votes
             const voteCounts = {};
@@ -363,7 +378,7 @@ io.on('connection', (socket) => {
             // Send vote update to host
             io.to(room.hostId).emit('vote-update', {
                 votes: voteCounts,
-                voters,
+                voters: room.voterDetails,
                 totalVotes: voters.length,
                 totalPlayers: room.players.length
             });
@@ -371,10 +386,34 @@ io.on('connection', (socket) => {
             // Confirm to voter
             socket.emit('vote-confirmed', { success: true });
             
-            console.log(`🗳️ Vote from ${playerName} in room ${roomCode}: ${vote}`);
+            console.log(`🗳️ Vote from ${displayName} in room ${roomCode}: ${vote}`);
         } catch (error) {
             console.error('Vote error:', error);
             socket.emit('error', { message: error.message });
+        }
+    });
+    
+    // Handle request for vote update (for reveal button)
+    socket.on('request-vote-update', (data) => {
+        try {
+            const { roomCode } = data;
+            const room = rooms[roomCode];
+            
+            if (!room) return;
+            
+            const voters = Object.keys(room.currentVotes || {});
+            
+            socket.emit('vote-update', {
+                votes: room.currentVotes ? Object.values(room.currentVotes).reduce((acc, vote) => {
+                    acc[vote] = (acc[vote] || 0) + 1;
+                    return acc;
+                }, {}) : {},
+                voters: room.voterDetails || {},
+                totalVotes: voters.length,
+                totalPlayers: room.players.length
+            });
+        } catch (error) {
+            console.error('Request vote update error:', error);
         }
     });
     
