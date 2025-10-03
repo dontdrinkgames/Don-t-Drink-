@@ -698,7 +698,7 @@
             
             // New question received
             socket.on('new-question', (data) => {
-                console.log('New question:', data);
+                console.log('📨 MOBILE: new-question received:', data);
                 handleNewQuestion(data);
             });
             
@@ -798,14 +798,33 @@
         
         // Handle new question
         function handleNewQuestion(data) {
+            console.log('📱 handleNewQuestion called with:', data);
             currentGameData = data;
             selectedAnswer = null;
             
+            // Show game screen
+            document.getElementById('waitingScreen').classList.remove('active');
+            document.getElementById('gameScreen').classList.add('active');
+            
             // Update question display
             document.getElementById('mobileQuestionNumber').textContent = `Question ${data.questionNumber || 1}`;
-            document.getElementById('mobileQuestionText').textContent = 
-                typeof data.question === 'string' ? data.question : 
-                (data.question.text || JSON.stringify(data.question));
+            
+            // Get question text - handle different formats
+            let questionText = '';
+            if (data.text) {
+                questionText = data.text;
+            } else if (data.optionA && data.optionB) {
+                questionText = `Would you rather: ${data.optionA} OR ${data.optionB}`;
+            } else if (typeof data.question === 'string') {
+                questionText = data.question;
+            } else if (data.question?.text) {
+                questionText = data.question.text;
+            } else {
+                questionText = 'Loading question...';
+            }
+            
+            console.log('📝 Mobile question text:', questionText);
+            document.getElementById('mobileQuestionText').textContent = questionText;
             
             // Hide all interaction views
             document.getElementById('votingButtons').classList.remove('active');

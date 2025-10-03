@@ -672,7 +672,7 @@
             // Show voting results if in voting mode
             if (currentMode === 'voting' || currentMode === 'mobile') {
                 document.getElementById('votingResults').classList.remove('hidden');
-                updateVotingDisplay({ votes: {}, voters: [], totalVotes: 0, totalPlayers: players.length });
+                updateVotingDisplay({ votes: {}, voters: {}, totalVotes: 0, totalPlayers: players.length });
             }
             
             // Set up spotlight if in spotlight mode
@@ -693,6 +693,8 @@
             const resultsEl = document.getElementById('votingResults');
             const { votes, voters, totalVotes, totalPlayers } = data;
             
+            console.log('📊 updateVotingDisplay:', { votes, voters, totalVotes, totalPlayers });
+            
             // Always show vote counter
             const voteCounterHtml = `
                 <div style="color: rgba(255,255,255,0.9); margin-bottom: 15px; font-size: 1.1rem; font-weight: 600;">
@@ -700,8 +702,8 @@
                 </div>
             `;
             
-            // If not everyone has voted yet
-            if (totalVotes < totalPlayers) {
+            // If not everyone has voted yet OR no votes at all
+            if (!totalVotes || totalVotes < totalPlayers) {
                 resultsEl.innerHTML = `
                     <div style="text-align: center; padding: 20px;">
                         <div style="font-size: 2rem; margin-bottom: 10px;">⏳</div>
