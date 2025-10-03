@@ -302,15 +302,16 @@
         }
         
         .fmk-category {
-            background: rgba(168, 85, 247, 0.2);
-            border: 2px dashed rgba(168, 85, 247, 0.5);
+            background: rgba(168, 85, 247, 0.5);
+            border: 2px dashed rgba(168, 85, 247, 0.8);
             border-radius: 16px;
             padding: 15px;
         }
         
         .fmk-category.drag-over {
-            background: rgba(168, 85, 247, 0.4);
+            background: rgba(168, 85, 247, 0.7);
             border-color: #A855F7;
+            border-style: solid;
         }
         
         .fmk-category-title {
@@ -324,20 +325,22 @@
         
         .fmk-drop-zone {
             min-height: 60px;
-            background: rgba(255,255,255,0.05);
+            background: rgba(124, 58, 237, 0.3);
             border-radius: 12px;
             padding: 10px;
             display: flex;
             align-items: center;
             justify-content: center;
-            color: rgba(255,255,255,0.5);
+            color: rgba(255,255,255,0.7);
             font-size: 0.9rem;
+            font-weight: 600;
         }
         
         .fmk-drop-zone.filled {
             background: #7C3AED;
             color: white;
             font-weight: 700;
+            font-size: 1rem;
         }
         
         .fmk-submit-btn {
@@ -1052,6 +1055,13 @@
             
             // Show appropriate UI based on mode
             if (data.mode === 'voting' || data.mode === 'mobile') {
+                // For FMK, hide the question box
+                if (data.game === 'fmk' || data.game === 'fuck_marry_kill') {
+                    document.getElementById('gameQuestion').style.display = 'none';
+                } else {
+                    document.getElementById('gameQuestion').style.display = 'flex';
+                }
+                
                 showVotingButtons(data.game);
             }
             // Spotlight mode is handled by 'spotlight-active' event
@@ -1087,9 +1097,13 @@
                     <button class="vote-btn disagree" onclick="submitVote('disagree')">❌ DISAGREE</button>
                 `;
             } else if (game === 'would_you_rather') {
+                // Get the actual option text from current question
+                const optionA = currentGameData?.optionA || 'Option A';
+                const optionB = currentGameData?.optionB || 'Option B';
+                
                 buttonsContainer.innerHTML = `
-                    <button class="vote-btn" style="background: linear-gradient(135deg, #A855F7, #7C3AED);" onclick="submitVote('optionA')">🅰️ OPTION A</button>
-                    <button class="vote-btn" style="background: linear-gradient(135deg, #F472B6, #EC4899);" onclick="submitVote('optionB')">🅱️ OPTION B</button>
+                    <button class="vote-btn" style="background: linear-gradient(135deg, #A855F7, #7C3AED);" onclick="submitVote('optionA')">${optionA}</button>
+                    <button class="vote-btn" style="background: linear-gradient(135deg, #F472B6, #EC4899);" onclick="submitVote('optionB')">${optionB}</button>
                 `;
             }
             
@@ -1137,6 +1151,11 @@
             draggables.forEach(draggable => {
                 draggable.addEventListener('dragstart', handleDragStart);
                 draggable.addEventListener('dragend', handleDragEnd);
+                
+                // Also add touch support for mobile
+                draggable.addEventListener('touchstart', handleTouchStart, { passive: false });
+                draggable.addEventListener('touchmove', handleTouchMove, { passive: false });
+                draggable.addEventListener('touchend', handleTouchEnd, { passive: false });
             });
             
             // Add drop zone listeners
@@ -1166,9 +1185,20 @@
         }
         
         function handleDragOver(e) {
+            if (!e) return;
             e.preventDefault();
-            e.dataTransfer.dropEffect = 'move';
-            e.currentTarget.closest('.fmk-category').classList.add('drag-over');
+            e.stopPropagation();
+            
+            if (e.dataTransfer) {
+                e.dataTransfer.dropEffect = 'move';
+            }
+            
+            const category = e.currentTarget.closest('.fmk-category');
+            if (category) {
+                category.classList.add('drag-over');
+            }
+            
+            return false;
         }
         
         function handleDragLeave(e) {
@@ -1206,6 +1236,81 @@
             const submitBtn = document.getElementById('fmkSubmitBtn');
             const allFilled = fmkAnswers.fuck && fmkAnswers.marry && fmkAnswers.kill;
             submitBtn.disabled = !allFilled;
+        }
+        
+        // Touch support for mobile drag-and-drop
+        let touchedElement = null;
+        let touchStartX = 0;
+        let touchStartY = 0;
+        
+        function handleTouchStart(e) {
+            touchedElement = e.target;
+            const touch = e.touches[0];
+            touchStartX = touch.clientX;
+            touchStartY = touch.clientY;
+            e.target.classList.add('dragging');
+            e.preventDefault();
+        }
+        
+        function handleTouchMove(e) {
+            if (!touchedElement) return;
+            e.preventDefault();
+            
+            const touch = e.touches[0];
+            const currentX = touch.clientX;
+            const currentY = touch.clientY;
+            
+            // Move the element
+            touchedElement.style.position = 'fixed';
+            touchedElement.style.left = currentX - (touchedElement.offsetWidth / 2) + 'px';
+            touchedElement.style.top = currentY - (touchedElement.offsetHeight / 2) + 'px';
+            touchedElement.style.zIndex = '1000';
+            touchedElement.style.opacity = '0.8';
+        }
+        
+        function handleTouchEnd(e) {
+            if (!touchedElement) return;
+            e.preventDefault();
+            
+            const touch = e.changedTouches[0];
+            const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
+            
+            // Find the drop zone
+            let dropZone = dropTarget;
+            if (dropTarget && !dropTarget.classList.contains('fmk-drop-zone')) {
+                dropZone = dropTarget.closest('.fmk-drop-zone');
+            }
+            
+            if (dropZone && dropZone.classList.contains('fmk-drop-zone')) {
+                const category = dropZone.id.replace('drop-', '');
+                const person = touchedElement.dataset.person;
+                
+                // Update answer
+                fmkAnswers[category] = person;
+                
+                // Update UI
+                dropZone.textContent = person;
+                dropZone.classList.add('filled');
+                dropZone.dataset.person = person;
+                
+                // Hide the dragged element
+                touchedElement.style.display = 'none';
+                
+                console.log('✅ Touch dropped:', person, 'into', category);
+                updateFMKSubmitButton();
+            }
+            
+            // Reset styles
+            if (touchedElement) {
+                touchedElement.classList.remove('dragging');
+                touchedElement.style.position = '';
+                touchedElement.style.left = '';
+                touchedElement.style.top = '';
+                touchedElement.style.zIndex = '';
+                touchedElement.style.opacity = '';
+            }
+            
+            touchedElement = null;
         }
         
         function submitFMKAnswer() {
