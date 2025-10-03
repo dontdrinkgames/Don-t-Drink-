@@ -483,10 +483,10 @@
         
         // Update game info display
         function updateGameInfo() {
-            document.getElementById('gameTitle').textContent = gameTitles[gameConfig.game] || gameConfig.game.toUpperCase();
-            document.getElementById('gameType').textContent = gameTitles[gameConfig.game] || gameConfig.game;
-            document.getElementById('gameMode').textContent = gameConfig.mode;
-            document.getElementById('gameIntensity').textContent = gameConfig.intensity;
+            const gameTitle = gameTitles[gameConfig.game] || gameConfig.game.toUpperCase();
+            document.getElementById('gameTitle').textContent = gameTitle;
+            document.getElementById('gameMode').textContent = gameConfig.mode.toUpperCase();
+            document.getElementById('gameIntensity').textContent = gameConfig.intensity.toUpperCase();
             document.getElementById('roomCode').textContent = gameConfig.roomCode;
             
             currentMode = gameConfig.mode;
