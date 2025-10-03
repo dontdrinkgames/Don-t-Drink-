@@ -28,12 +28,11 @@
         }
         
         .container {
-            background: rgba(255, 255, 255, 0.95);
-            border-radius: 30px;
-            padding: 40px 30px;
+            background: transparent;
+            border-radius: 0;
+            padding: 20px;
             max-width: 400px;
             width: 100%;
-            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
         
         .logo {
@@ -616,8 +615,8 @@
             </div>
             
             <!-- Vote Results Display -->
-            <div class="spectator-view" id="mobileResults" style="display: none;">
-                <div class="spectating-message" id="mobileResultsContent">
+            <div id="mobileResults" style="display: none; margin: 20px 0;">
+                <div id="mobileResultsContent">
                     <!-- Results will be injected here -->
                 </div>
             </div>
@@ -1380,21 +1379,30 @@
             
             dropZoneDragging = true;
             const person = dropZone.dataset.person;
+            const category = dropZone.id.replace('drop-', '');
+            
+            console.log('🔄 Dragging out:', person, 'from', category);
             
             // Create clone
             clone = document.createElement('div');
             clone.className = 'fmk-draggable';
             clone.textContent = person;
             clone.dataset.person = person;
+            clone.dataset.fromCategory = category; // Remember where it came from
             clone.style.position = 'fixed';
             clone.style.pointerEvents = 'none';
             clone.style.zIndex = '9999';
             clone.style.opacity = '0.9';
             clone.style.transform = 'scale(1.05)';
+            clone.style.background = '#9333EA';
+            clone.style.color = 'white';
+            clone.style.padding = '18px';
+            clone.style.borderRadius = '16px';
+            clone.style.fontWeight = '700';
+            clone.style.filter = 'drop-shadow(2px 3px 0px #7C3AED)';
             document.body.appendChild(clone);
             
-            // Clear the drop zone
-            const category = dropZone.id.replace('drop-', '');
+            // Temporarily clear the drop zone
             fmkAnswers[category] = null;
             dropZone.textContent = 'Drag here';
             dropZone.classList.remove('filled');
@@ -1436,6 +1444,7 @@
             const touch = e.changedTouches[0];
             const dropTarget = document.elementFromPoint(touch.clientX, touch.clientY);
             const person = clone.dataset.person;
+            const fromCategory = clone.dataset.fromCategory;
             
             // Find the drop zone
             let dropZone = null;
@@ -1447,33 +1456,41 @@
                 }
             }
             
-            if (dropZone) {
+            // Check if dropped back on options area
+            const droppedOnOptions = dropTarget && dropTarget.closest('#fmkOptions');
+            
+            if (dropZone && dropZone.id) {
+                // Dropped in a category
                 const category = dropZone.id.replace('drop-', '');
                 
-                // Update answer
                 fmkAnswers[category] = person;
                 dropZone.textContent = person;
                 dropZone.classList.add('filled');
                 dropZone.dataset.person = person;
                 
-                console.log('✅ Re-arranged:', person, 'to', category);
-            } else {
-                // Dropped outside - put it back in original spot
-                console.log('⚠️ Dropped outside, finding original category');
+                console.log('✅ Moved:', person, 'from', fromCategory, 'to', category);
+            } else if (droppedOnOptions) {
+                // Dropped back on top options area - restore original draggable!
+                console.log('🔙 Dropped back to options area');
                 
-                // Find which category this person was originally in and put it back
-                for (const [cat, val] of Object.entries(fmkAnswers)) {
-                    if (val === null) {
-                        const dropZoneToRestore = document.getElementById(`drop-${cat}`);
-                        if (dropZoneToRestore && !dropZoneToRestore.classList.contains('filled')) {
-                            fmkAnswers[cat] = person;
-                            dropZoneToRestore.textContent = person;
-                            dropZoneToRestore.classList.add('filled');
-                            dropZoneToRestore.dataset.person = person;
-                            console.log('✅ Restored', person, 'to', cat);
-                            break;
-                        }
+                // Find and show the original draggable element
+                const draggables = document.querySelectorAll('.fmk-draggable');
+                draggables.forEach(draggable => {
+                    if (draggable.dataset.person === person) {
+                        draggable.style.display = 'block';
+                        console.log('✅ Restored draggable:', person);
                     }
+                });
+            } else {
+                // Dropped somewhere else - put it back in original category
+                console.log('⚠️ Dropped outside, putting back in', fromCategory);
+                
+                const dropZoneToRestore = document.getElementById(`drop-${fromCategory}`);
+                if (dropZoneToRestore) {
+                    fmkAnswers[fromCategory] = person;
+                    dropZoneToRestore.textContent = person;
+                    dropZoneToRestore.classList.add('filled');
+                    dropZoneToRestore.dataset.person = person;
                 }
             }
             
@@ -1527,6 +1544,8 @@
         // Show mobile results (same design as host)
         function showMobileResults(data) {
             console.log('📊 Showing mobile results:', data);
+            console.log('   - votes:', data.votes);
+            console.log('   - voters:', data.voters);
             
             // Hide waiting screen
             document.getElementById('voteWaitingScreen').style.display = 'none';
@@ -1535,25 +1554,28 @@
             const resultsEl = document.getElementById('mobileResults');
             const contentEl = document.getElementById('mobileResultsContent');
             
-            let html = '<div style="padding: 15px;">';
-            html += '<h3 style="color: white; margin-bottom: 20px; font-size: 1.3rem; text-align: center;">📊 The Results</h3>';
+            let html = '<h3 style="color: white; margin-bottom: 20px; font-size: 1.3rem; text-align: center;">📊 The Results</h3>';
             
             // Sort by vote count
             const sortedVotes = Object.entries(data.votes).sort((a, b) => b[1] - a[1]);
+            
+            console.log('📊 Sorted votes:', sortedVotes);
             
             for (const [option, count] of sortedVotes) {
                 const percentage = data.totalPlayers > 0 ? (count / data.totalPlayers * 100).toFixed(0) : 0;
                 const votersForOption = data.voters[option] || [];
                 
+                console.log(`   - ${option}: ${count} votes (${percentage}%), voters:`, votersForOption);
+                
                 html += `
-                    <div style="background: rgba(255,255,255,0.1); padding: 15px; border-radius: 12px; margin-bottom: 15px;">
+                    <div style="background: rgba(168, 85, 247, 0.3); padding: 15px; border-radius: 12px; margin-bottom: 15px;">
                         <!-- Option name -->
                         <div style="text-align: center; font-size: 1rem; font-weight: 700; color: white; margin-bottom: 10px;">
                             ${option.toUpperCase()}
                         </div>
                         
                         <!-- Bar graph -->
-                        <div style="background: rgba(0,0,0,0.2); height: 40px; border-radius: 10px; overflow: hidden; margin-bottom: 10px; position: relative;">
+                        <div style="background: rgba(0,0,0,0.3); height: 40px; border-radius: 10px; overflow: hidden; margin-bottom: 10px; position: relative;">
                             <div style="
                                 background: linear-gradient(135deg, #A855F7, #9333EA);
                                 height: 100%;
@@ -1568,7 +1590,7 @@
                             ">
                                 ${percentage}%
                             </div>
-                            ${percentage < 20 ? `<div style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.7); font-weight: 700; font-size: 0.9rem;">${percentage}%</div>` : ''}
+                            ${percentage < 20 ? `<div style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: white; font-weight: 700; font-size: 0.9rem;">${percentage}%</div>` : ''}
                         </div>
                         
                         <!-- Player bubbles -->
@@ -1588,12 +1610,11 @@
                                     </div>
                                 `).join('')}
                             </div>
-                        ` : '<div style="text-align: center; color: rgba(255,255,255,0.5); font-size: 0.85rem;">No votes</div>'}
+                        ` : '<div style="text-align: center; color: rgba(255,255,255,0.7); font-size: 0.85rem;">No votes</div>'}
                     </div>
                 `;
             }
             
-            html += '</div>';
             contentEl.innerHTML = html;
             resultsEl.style.display = 'block';
         }
