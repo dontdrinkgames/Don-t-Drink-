@@ -1,533 +1,533 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="no">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
-    <title>Don't Drink! - Join Game</title>
-    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700&display=swap" rel="stylesheet">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Join Game - Don't Drink!</title>
+    
+    <!-- Socket.IO from CDN -->
+    <script src="https://cdn.socket.io/4.7.4/socket.io.min.js" crossorigin="anonymous"></script>
+    
     <style>
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
         }
         
         body {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             min-height: 100vh;
             display: flex;
-            flex-direction: column;
             align-items: center;
+            justify-content: center;
             padding: 20px;
-            color: white;
+            overflow-x: hidden;
         }
         
         .container {
-            width: 100%;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            padding: 40px 30px;
             max-width: 400px;
-            margin: 0 auto;
+            width: 100%;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
         }
         
         .logo {
             text-align: center;
-            margin: 40px 0;
+            margin-bottom: 30px;
         }
         
         .logo h1 {
-            font-size: 2.5em;
-            font-weight: 700;
-            text-transform: uppercase;
-            text-shadow: 3px 3px 10px rgba(0,0,0,0.3);
-            background: white;
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-            background-clip: text;
+            font-size: 32px;
+            font-weight: 800;
+            color: #667eea;
+            margin-bottom: 5px;
         }
         
-        .join-card {
-            background: rgba(255,255,255,0.95);
-            border-radius: 30px;
-            padding: 40px 30px;
-            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        .room-code {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        .room-code-label {
+            font-size: 14px;
+            color: #666;
+            margin-bottom: 8px;
+        }
+        
+        .room-code-display {
+            font-size: 36px;
+            font-weight: 800;
+            color: #667eea;
+            letter-spacing: 4px;
         }
         
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
         
-        .form-group label {
+        label {
             display: block;
-            color: #667eea;
+            margin-bottom: 8px;
             font-weight: 600;
-            margin-bottom: 10px;
-            font-size: 0.9em;
-            text-transform: uppercase;
-            letter-spacing: 1px;
+            color: #333;
+            font-size: 14px;
         }
         
-        .form-group input {
+        input[type="text"] {
             width: 100%;
-            padding: 15px;
+            padding: 15px 20px;
             border: 2px solid #e0e0e0;
             border-radius: 15px;
-            font-size: 1.1em;
-            font-family: 'Poppins', sans-serif;
-            transition: all 0.3s;
-        }
-        
-        .form-group input:focus {
+            font-size: 16px;
+            transition: all 0.3s ease;
             outline: none;
-            border-color: #667eea;
-            box-shadow: 0 0 0 3px rgba(102,126,234,0.1);
         }
         
-        .avatar-selector {
+        input[type="text"]:focus {
+            border-color: #667eea;
+            box-shadow: 0 0 0 4px rgba(102, 126, 234, 0.1);
+        }
+        
+        .avatar-section {
+            margin-bottom: 30px;
+        }
+        
+        .avatar-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 10px;
-            margin-top: 10px;
+            margin-top: 15px;
         }
         
         .avatar-option {
-            font-size: 2em;
-            padding: 10px;
-            background: #f5f5f5;
+            aspect-ratio: 1;
             border: 3px solid #e0e0e0;
             border-radius: 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
             cursor: pointer;
-            transition: all 0.3s;
-            text-align: center;
+            transition: all 0.3s ease;
+            background: white;
         }
         
-        .avatar-option:hover {
-            transform: scale(1.1);
-            border-color: #667eea;
+        .avatar-option:active {
+            transform: scale(0.95);
         }
         
         .avatar-option.selected {
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            border-color: #764ba2;
-            transform: scale(1.1);
+            border-color: #667eea;
+            background: rgba(102, 126, 234, 0.1);
+            transform: scale(1.05);
         }
         
-        .btn {
+        .join-btn {
             width: 100%;
             padding: 18px;
             background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
             color: white;
             border: none;
-            border-radius: 20px;
-            font-size: 1.2em;
-            font-weight: 600;
+            border-radius: 15px;
+            font-size: 18px;
+            font-weight: 700;
             cursor: pointer;
-            transition: all 0.3s;
+            transition: all 0.3s ease;
             text-transform: uppercase;
             letter-spacing: 1px;
-            margin-top: 10px;
         }
         
-        .btn:hover:not(:disabled) {
-            transform: translateY(-2px);
-            box-shadow: 0 10px 30px rgba(102,126,234,0.4);
+        .join-btn:active {
+            transform: scale(0.98);
         }
         
-        .btn:disabled {
+        .join-btn:disabled {
             opacity: 0.5;
             cursor: not-allowed;
         }
         
         .error-message {
-            background: #ff4444;
-            color: white;
+            background: #fee;
+            color: #c33;
             padding: 15px;
             border-radius: 10px;
-            margin-bottom: 20px;
+            margin-top: 20px;
             text-align: center;
+            font-size: 14px;
             display: none;
         }
         
-        .success-message {
-            background: #4ade80;
-            color: white;
-            padding: 15px;
-            border-radius: 10px;
-            margin-bottom: 20px;
-            text-align: center;
-            display: none;
-        }
-        
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-        }
-        
-        .loading.active {
+        .error-message.show {
             display: block;
         }
         
-        .spinner {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid #667eea;
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 20px;
+        .connection-status {
+            text-align: center;
+            font-size: 12px;
+            color: #999;
+            margin-top: 15px;
         }
         
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .connection-status.connected {
+            color: #4caf50;
         }
         
-        /* Waiting screen */
+        .connection-status.disconnected {
+            color: #f44336;
+        }
+        
+        /* Waiting Screen */
         .waiting-screen {
             display: none;
             text-align: center;
-            padding: 30px;
         }
         
         .waiting-screen.active {
             display: block;
         }
         
-        .player-avatar {
-            font-size: 5em;
-            margin: 20px 0;
-            animation: bounce 2s infinite;
+        .join-screen.hidden {
+            display: none;
         }
         
-        @keyframes bounce {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-20px); }
+        .waiting-animation {
+            font-size: 48px;
+            margin: 30px 0;
+            animation: pulse 2s ease-in-out infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.1); opacity: 0.8; }
         }
         
         .waiting-text {
-            color: #333;
-            font-size: 1.2em;
-            margin: 20px 0;
+            font-size: 24px;
+            font-weight: 700;
+            color: #667eea;
+            margin-bottom: 10px;
         }
         
-        .room-info {
-            background: rgba(102,126,234,0.1);
-            border: 2px solid #667eea;
+        .waiting-subtext {
+            font-size: 16px;
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .player-info {
+            background: rgba(102, 126, 234, 0.1);
+            padding: 20px;
             border-radius: 15px;
-            padding: 15px;
             margin: 20px 0;
+        }
+        
+        .player-avatar {
+            font-size: 64px;
+            margin-bottom: 10px;
+        }
+        
+        .player-name {
+            font-size: 20px;
+            font-weight: 600;
             color: #333;
-        }
-        
-        .connection-status {
-            position: fixed;
-            top: 10px;
-            right: 10px;
-            padding: 8px 15px;
-            border-radius: 20px;
-            font-size: 0.85em;
-            background: rgba(255,255,255,0.9);
-            color: #333;
-            display: flex;
-            align-items: center;
-            gap: 5px;
-        }
-        
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background: #ff4444;
-        }
-        
-        .status-dot.connected {
-            background: #4ade80;
         }
     </style>
-    <script src="/socket.io/socket.io.js"></script>
 </head>
 <body>
-    <div class="connection-status" id="connectionStatus">
-        <span class="status-dot" id="statusDot"></span>
-        <span id="statusText">Connecting...</span>
-    </div>
-    
     <div class="container">
-        <div class="logo">
-            <h1>Don't Drink!</h1>
+        <!-- Join Screen -->
+        <div class="join-screen" id="joinScreen">
+            <div class="logo">
+                <h1>DON'T DRINK!</h1>
+            </div>
+            
+            <div class="room-code">
+                <div class="room-code-label">Romkode</div>
+                <div class="room-code-display" id="roomCodeDisplay">------</div>
+            </div>
+            
+            <div class="form-group">
+                <label for="playerName">Ditt Navn</label>
+                <input type="text" id="playerName" placeholder="Skriv inn navnet ditt" maxlength="15" autocomplete="off">
+            </div>
+            
+            <div class="avatar-section">
+                <label>Velg Avatar</label>
+                <div class="avatar-grid">
+                    <div class="avatar-option selected" data-avatar="🍆">🍆</div>
+                    <div class="avatar-option" data-avatar="🍑">🍑</div>
+                    <div class="avatar-option" data-avatar="💋">💋</div>
+                    <div class="avatar-option" data-avatar="😈">😈</div>
+                    <div class="avatar-option" data-avatar="🔥">🔥</div>
+                    <div class="avatar-option" data-avatar="💦">💦</div>
+                    <div class="avatar-option" data-avatar="🌶️">🌶️</div>
+                    <div class="avatar-option" data-avatar="🌮">🌮</div>
+                    <div class="avatar-option" data-avatar="🥵">🥵</div>
+                    <div class="avatar-option" data-avatar="😏">😏</div>
+                    <div class="avatar-option" data-avatar="🕺">🕺</div>
+                    <div class="avatar-option" data-avatar="💃">💃</div>
+                    <div class="avatar-option" data-avatar="👅">👅</div>
+                    <div class="avatar-option" data-avatar="🤤">🤤</div>
+                    <div class="avatar-option" data-avatar="🍯">🍯</div>
+                    <div class="avatar-option" data-avatar="😎">😎</div>
+                </div>
+            </div>
+            
+            <button class="join-btn" id="joinBtn" disabled>JOIN GAME</button>
+            
+            <div class="connection-status" id="connectionStatus">Kobler til server...</div>
+            <div class="error-message" id="errorMessage"></div>
         </div>
         
-        <div class="error-message" id="errorMessage"></div>
-        <div class="success-message" id="successMessage"></div>
-        
-        <div class="join-card">
-            <!-- Join Form -->
-            <div id="joinForm">
-                <form onsubmit="joinGame(event)">
-                    <div class="form-group">
-                        <label for="playerName">Your Name</label>
-                        <input type="text" id="playerName" name="playerName" required 
-                               placeholder="Enter your name" maxlength="20">
-                    </div>
-                    
-                    <div class="form-group">
-                        <label>Choose Your Avatar</label>
-                        <div class="avatar-selector" id="avatarSelector">
-                            <div class="avatar-option" data-avatar="😎">😎</div>
-                            <div class="avatar-option" data-avatar="🤪">🤪</div>
-                            <div class="avatar-option" data-avatar="😈">😈</div>
-                            <div class="avatar-option" data-avatar="🥳">🥳</div>
-                            <div class="avatar-option" data-avatar="🤠">🤠</div>
-                            <div class="avatar-option" data-avatar="🦄">🦄</div>
-                            <div class="avatar-option" data-avatar="🔥">🔥</div>
-                            <div class="avatar-option" data-avatar="💀">💀</div>
-                            <div class="avatar-option" data-avatar="👽">👽</div>
-                            <div class="avatar-option" data-avatar="🎭">🎭</div>
-                        </div>
-                    </div>
-                    
-                    <button type="submit" class="btn" id="joinBtn">Join Game</button>
-                </form>
+        <!-- Waiting Screen -->
+        <div class="waiting-screen" id="waitingScreen">
+            <div class="logo">
+                <h1>DON'T DRINK!</h1>
             </div>
             
-            <!-- Loading Screen -->
-            <div class="loading" id="loadingScreen">
-                <div class="spinner"></div>
-                <p>Connecting to game...</p>
+            <div class="waiting-animation">⏳</div>
+            
+            <div class="waiting-text">Du er med!</div>
+            <div class="waiting-subtext">Venter på at hosten starter spillet...</div>
+            
+            <div class="player-info">
+                <div class="player-avatar" id="waitingAvatar">🍆</div>
+                <div class="player-name" id="waitingName">Player Name</div>
             </div>
             
-            <!-- Waiting Screen -->
-            <div class="waiting-screen" id="waitingScreen">
-                <div class="player-avatar" id="playerAvatarDisplay">😎</div>
-                <h2 id="playerNameDisplay">Player</h2>
-                <div class="waiting-text">Waiting for host to start the game...</div>
-                <div class="room-info">
-                    <strong>Room Code:</strong> <span id="roomCodeDisplay">------</span>
-                </div>
-                <button class="btn" onclick="leaveGame()">Leave Game</button>
+            <div class="room-code">
+                <div class="room-code-label">Romkode</div>
+                <div class="room-code-display" id="waitingRoomCode">------</div>
             </div>
         </div>
     </div>
-    
+
     <script>
         let socket = null;
         let playerData = {
             name: '',
-            avatar: '😎',
-            roomCode: ''
+            avatar: '🍆',
+            roomCode: null
         };
+        let connectionAttempts = 0;
+        const MAX_CONNECTION_ATTEMPTS = 10;
         
         // Get room code from URL
-        const pathParts = window.location.pathname.split('/');
-        const roomCode = pathParts[pathParts.length - 1];
+        function getRoomCodeFromURL() {
+            const path = window.location.pathname;
+            const code = path.substring(1);
+            return code && code.length === 6 ? code.toUpperCase() : null;
+        }
         
-        // Initialize connection when page loads
-        window.addEventListener('DOMContentLoaded', function() {
-            console.log('Page loaded, room code:', roomCode);
+        // Show/hide error message
+        function showError(message) {
+            const errorEl = document.getElementById('errorMessage');
+            errorEl.textContent = message;
+            errorEl.classList.add('show');
+        }
+        
+        function hideError() {
+            document.getElementById('errorMessage').classList.remove('show');
+        }
+        
+        // Update connection status
+        function updateConnectionStatus(connected) {
+            const statusEl = document.getElementById('connectionStatus');
+            if (connected) {
+                statusEl.textContent = '✓ Tilkoblet';
+                statusEl.className = 'connection-status connected';
+                hideError();
+            } else {
+                statusEl.textContent = '✗ Frakoblet';
+                statusEl.className = 'connection-status disconnected';
+            }
+        }
+        
+        // Show waiting screen
+        function showWaitingScreen() {
+            document.getElementById('joinScreen').classList.add('hidden');
+            document.getElementById('waitingScreen').classList.add('active');
+            document.getElementById('waitingAvatar').textContent = playerData.avatar;
+            document.getElementById('waitingName').textContent = playerData.name;
+            document.getElementById('waitingRoomCode').textContent = playerData.roomCode;
+        }
+        
+        // Initialize on load
+        window.addEventListener('load', () => {
+            const roomCode = getRoomCodeFromURL();
             
-            if (!roomCode || roomCode.length !== 6) {
-                showError('Invalid room code. Please check the URL.');
+            if (!roomCode) {
+                showError('Ugyldig romkode. Sjekk URL-en.');
                 document.getElementById('joinBtn').disabled = true;
                 return;
             }
             
             playerData.roomCode = roomCode;
+            document.getElementById('roomCodeDisplay').textContent = roomCode;
+            
+            // Initialize Socket.IO connection
             initSocketConnection();
         });
         
-        // Initialize Socket.IO connection
+        // Initialize Socket.IO
         function initSocketConnection() {
             // Determine server URL
             let socketUrl;
             
             if (window.location.hostname === 'localhost' || 
-                window.location.hostname === '127.0.0.1' ||
-                window.location.hostname.includes('192.168')) {
-                // Local development
-                socketUrl = `http://${window.location.hostname}:3000`;
+                window.location.hostname === '127.0.0.1') {
+                socketUrl = 'http://localhost:3000';
             } else {
-                // Production (dontdrinkgames.com)
                 socketUrl = window.location.origin;
             }
             
-            console.log('Connecting to server:', socketUrl);
+            console.log('Connecting to:', socketUrl);
+            updateConnectionStatus(false);
             
-            // Connect with options
+            // Create Socket.IO connection with comprehensive options
             socket = io(socketUrl, {
-                transports: ['websocket', 'polling'],
+                transports: ['polling', 'websocket'], // Polling first for mobile reliability
                 reconnection: true,
+                reconnectionAttempts: Infinity,
                 reconnectionDelay: 1000,
-                reconnectionDelayMax: 5000,
-                reconnectionAttempts: 10,
-                timeout: 20000,
-                autoConnect: true
+                reconnectionDelayMax: 10000,
+                randomizationFactor: 0.5,
+                timeout: 30000,
+                autoConnect: true,
+                forceNew: true,
+                withCredentials: false
             });
             
-            // Connection events
+            // Connection successful
             socket.on('connect', () => {
-                console.log('Connected to server!');
+                console.log('✓ Connected to server!', socket.id);
+                connectionAttempts = 0;
                 updateConnectionStatus(true);
                 document.getElementById('joinBtn').disabled = false;
             });
             
-            socket.on('disconnect', () => {
-                console.log('Disconnected from server');
+            // Connection error
+            socket.on('connect_error', (error) => {
+                console.error('Connection error:', error);
+                connectionAttempts++;
                 updateConnectionStatus(false);
-                if (document.getElementById('waitingScreen').classList.contains('active')) {
-                    showError('Lost connection to server. Please refresh and try again.');
+                
+                if (connectionAttempts >= MAX_CONNECTION_ATTEMPTS) {
+                    showError('Kunne ikke koble til serveren. Vennligst sjekk internettforbindelsen din og prøv igjen.');
+                } else {
+                    showError(`Prøver å koble til... (forsøk ${connectionAttempts}/${MAX_CONNECTION_ATTEMPTS})`);
                 }
             });
             
-            socket.on('connect_error', (error) => {
-                console.error('Connection error:', error.message);
+            // Disconnected
+            socket.on('disconnect', (reason) => {
+                console.log('Disconnected:', reason);
                 updateConnectionStatus(false);
-                showError('Connection failed. Please try again.');
+                
+                if (reason === 'io server disconnect') {
+                    // Server disconnected us, reconnect manually
+                    socket.connect();
+                }
             });
             
-            // Game events
-            socket.on('player-joined', (data) => {
-                console.log('Successfully joined game!', data);
+            // Reconnecting
+            socket.on('reconnect_attempt', (attemptNumber) => {
+                console.log('Reconnect attempt:', attemptNumber);
+                showError(`Gjenoppretter tilkobling... (forsøk ${attemptNumber})`);
+            });
+            
+            // Successfully reconnected
+            socket.on('reconnect', (attemptNumber) => {
+                console.log('Reconnected after', attemptNumber, 'attempts');
+                hideError();
+                updateConnectionStatus(true);
+            });
+            
+            // Join events
+            socket.on('join-success', (data) => {
+                console.log('✓ Successfully joined room!', data);
+                hideError();
                 showWaitingScreen();
             });
             
-            socket.on('game-started', (gameData) => {
-                console.log('Game started!', gameData);
-                showSuccess('Game is starting!');
-                // Redirect to player game view
+            socket.on('join-error', (error) => {
+                console.error('Join error:', error);
+                showError(error.message || 'Kunne ikke bli med i rommet');
+                document.getElementById('joinBtn').disabled = false;
+            });
+            
+            // Game started
+            socket.on('game-started', (data) => {
+                console.log('Game started!', data);
+                // Navigate to play page or handle game start
+                window.location.href = '/play';
+            });
+            
+            // Host disconnected
+            socket.on('host-disconnected', () => {
+                showError('Hosten har forlatt spillet');
                 setTimeout(() => {
-                    window.location.href = `/player.html?room=${roomCode}`;
-                }, 1000);
-            });
-            
-            socket.on('error', (error) => {
-                console.error('Server error:', error);
-                showError(error.message || 'An error occurred');
-                hideLoading();
-            });
-            
-            socket.on('room-not-found', () => {
-                showError('Room not found. Please check the room code.');
-                hideLoading();
-            });
-            
-            socket.on('room-full', () => {
-                showError('This room is full.');
-                hideLoading();
+                    window.location.href = '/';
+                }, 3000);
             });
         }
         
         // Avatar selection
         document.querySelectorAll('.avatar-option').forEach(option => {
-            option.addEventListener('click', function() {
-                document.querySelectorAll('.avatar-option').forEach(opt => {
-                    opt.classList.remove('selected');
-                });
-                this.classList.add('selected');
-                playerData.avatar = this.dataset.avatar;
+            option.addEventListener('click', () => {
+                document.querySelectorAll('.avatar-option').forEach(o => o.classList.remove('selected'));
+                option.classList.add('selected');
+                playerData.avatar = option.dataset.avatar;
             });
         });
         
-        // Select first avatar by default
-        document.querySelector('.avatar-option').click();
-        
-        // Join game function
-        function joinGame(event) {
-            event.preventDefault();
-            
+        // Join button
+        document.getElementById('joinBtn').addEventListener('click', () => {
             const name = document.getElementById('playerName').value.trim();
             
             if (!name) {
-                showError('Please enter your name');
+                showError('Vennligst skriv inn navnet ditt');
                 return;
             }
             
             if (!socket || !socket.connected) {
-                showError('Not connected to server. Please refresh and try again.');
+                showError('Ikke tilkoblet serveren. Vennligst vent...');
                 return;
             }
             
             playerData.name = name;
+            document.getElementById('joinBtn').disabled = true;
+            hideError();
             
-            console.log('Joining game with:', playerData);
+            console.log('Sending join request:', playerData);
             
-            // Show loading
-            showLoading();
-            
-            // Emit join event
+            // Send join request
             socket.emit('join-room', {
                 roomCode: playerData.roomCode,
                 playerName: playerData.name,
                 avatar: playerData.avatar
             });
             
-            // Timeout if no response
+            // Timeout fallback
             setTimeout(() => {
-                if (document.getElementById('loadingScreen').classList.contains('active')) {
-                    hideLoading();
-                    showError('Failed to join game. Please try again.');
+                if (!document.getElementById('waitingScreen').classList.contains('active')) {
+                    document.getElementById('joinBtn').disabled = false;
+                    showError('Joining timeout. Please try again.');
                 }
             }, 10000);
-        }
+        });
         
-        // Show waiting screen
-        function showWaitingScreen() {
-            hideLoading();
-            document.getElementById('joinForm').style.display = 'none';
-            document.getElementById('waitingScreen').classList.add('active');
-            document.getElementById('playerAvatarDisplay').textContent = playerData.avatar;
-            document.getElementById('playerNameDisplay').textContent = playerData.name;
-            document.getElementById('roomCodeDisplay').textContent = playerData.roomCode;
-        }
-        
-        // Leave game
-        function leaveGame() {
-            if (socket && socket.connected) {
-                socket.emit('leave-room');
+        // Enter key to join
+        document.getElementById('playerName').addEventListener('keypress', (e) => {
+            if (e.key === 'Enter' && !document.getElementById('joinBtn').disabled) {
+                document.getElementById('joinBtn').click();
             }
-            window.location.href = '/';
-        }
-        
-        // UI Helper functions
-        function showError(message) {
-            const errorEl = document.getElementById('errorMessage');
-            errorEl.textContent = message;
-            errorEl.style.display = 'block';
-            setTimeout(() => {
-                errorEl.style.display = 'none';
-            }, 5000);
-        }
-        
-        function showSuccess(message) {
-            const successEl = document.getElementById('successMessage');
-            successEl.textContent = message;
-            successEl.style.display = 'block';
-            setTimeout(() => {
-                successEl.style.display = 'none';
-            }, 3000);
-        }
-        
-        function showLoading() {
-            document.getElementById('loadingScreen').classList.add('active');
-            document.getElementById('joinForm').style.display = 'none';
-        }
-        
-        function hideLoading() {
-            document.getElementById('loadingScreen').classList.remove('active');
-            document.getElementById('joinForm').style.display = 'block';
-        }
-        
-        function updateConnectionStatus(connected) {
-            const statusDot = document.getElementById('statusDot');
-            const statusText = document.getElementById('statusText');
-            
-            if (connected) {
-                statusDot.classList.add('connected');
-                statusText.textContent = 'Connected';
-            } else {
-                statusDot.classList.remove('connected');
-                statusText.textContent = 'Disconnected';
-            }
-        }
+        });
     </script>
 </body>
 </html>

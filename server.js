@@ -2,42 +2,51 @@ const express = require('express');
 const http = require('http');
 const socketIo = require('socket.io');
 const path = require('path');
-const cors = require('cors');
 
 const app = express();
 const server = http.createServer(app);
+
+// Socket.IO with comprehensive CORS configuration
 const io = socketIo(server, {
     cors: {
         origin: "*",
-        methods: ["GET", "POST"]
-    }
+        methods: ["GET", "POST"],
+        credentials: false
+    },
+    transports: ['polling', 'websocket'],
+    pingTimeout: 60000,
+    pingInterval: 25000,
+    upgradeTimeout: 30000,
+    allowUpgrades: true
 });
 
 // Import questions database
 let questionManager = null;
 try {
-    const QuestionManager = require('./public/questions-database.js');
+    const QuestionManager = require('./questions-database.js');
     questionManager = new QuestionManager();
-    console.log('✅ Questions database loaded successfully');
+    console.log('✅ Questions database loaded');
 } catch (error) {
     console.warn('⚠️ Questions database not loaded:', error.message);
 }
 
-// Store active rooms and players
+// Store active rooms
 const rooms = {};
 
 // Middleware
-app.use(cors());
 app.use(express.static('public'));
 app.use(express.json());
 
-// Generate room code
+// Generate unique room code
 function generateRoomCode() {
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    let code = '';
-    for (let i = 0; i < 6; i++) {
-        code += chars.charAt(Math.floor(Math.random() * chars.length));
-    }
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789'; // Excluding similar characters
+    let code;
+    do {
+        code = '';
+        for (let i = 0; i < 6; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+    } while (rooms[code]); // Ensure uniqueness
     return code;
 }
 
@@ -64,16 +73,14 @@ app.get('/player', (req, res) => {
 
 // Health check for Render
 app.get('/health', (req, res) => {
-    res.status(200).send('OK');
+    res.status(200).json({ status: 'ok', rooms: Object.keys(rooms).length });
 });
 
-// IMPORTANT: Room code route must be LAST
+// Room code routing - MUST be last
 app.get('/:roomCode', (req, res) => {
     const roomCode = req.params.roomCode.toUpperCase();
     
-    // Validate room code format (6 alphanumeric characters)
     if (/^[A-Z0-9]{6}$/.test(roomCode)) {
-        // Serve mobile.html for room codes
         res.sendFile(path.join(__dirname, 'public', 'mobile.html'));
     } else {
         res.status(404).send('Invalid room code');
@@ -84,7 +91,7 @@ app.get('/:roomCode', (req, res) => {
 io.on('connection', (socket) => {
     console.log('🔌 User connected:', socket.id);
     
-    // Create room (from host)
+    // Create room
     socket.on('create-room', (data, callback) => {
         try {
             const roomCode = generateRoomCode();
@@ -93,40 +100,46 @@ io.on('connection', (socket) => {
                 hostId: socket.id,
                 players: [],
                 gameState: 'waiting',
+                gameConfig: null,
                 createdAt: Date.now()
             };
             
             socket.join(roomCode);
-            console.log(`🏠 Room created: ${roomCode} by host ${socket.id}`);
+            socket.roomCode = roomCode;
             
-            // Support BOTH callback and emit patterns
+            console.log(`🏠 Room ${roomCode} created by ${socket.id}`);
+            
+            const response = { success: true, roomCode };
+            
+            // Support both callback and emit patterns
             if (typeof callback === 'function') {
-                // New pattern - using callback
-                callback({ success: true, roomCode: roomCode });
+                callback(response);
             }
-            
-            // ALWAYS emit room-created for backward compatibility
-            socket.emit('room-created', { roomCode: roomCode });
+            socket.emit('room-created', response);
             
         } catch (error) {
-            console.error('Error creating room:', error);
+            console.error('Create room error:', error);
+            const errorResponse = { success: false, error: error.message };
             if (typeof callback === 'function') {
-                callback({ success: false, error: error.message });
+                callback(errorResponse);
             }
-            socket.emit('error', { message: 'Failed to create room' });
+            socket.emit('error', errorResponse);
         }
     });
     
-    // Join room (from mobile/player)
+    // Join room
     socket.on('join-room', (data, callback) => {
         try {
             const { roomCode, playerName, avatar } = data;
             
-            console.log(`👤 Player ${playerName} trying to join room ${roomCode}`);
+            if (!roomCode || !playerName) {
+                throw new Error('Room code and player name required');
+            }
             
-            if (!rooms[roomCode]) {
+            const room = rooms[roomCode.toUpperCase()];
+            
+            if (!room) {
                 const error = { message: 'Room not found' };
-                
                 if (typeof callback === 'function') {
                     callback({ success: false, error: error.message });
                 }
@@ -134,131 +147,170 @@ io.on('connection', (socket) => {
                 return;
             }
             
+            // Remove any existing player with same name (rejoin support)
+            room.players = room.players.filter(p => 
+                p.name !== playerName && p.id !== socket.id
+            );
+            
             const player = {
                 id: socket.id,
                 name: playerName,
                 avatar: avatar || '🎮',
-                score: 0
+                score: 0,
+                joinedAt: Date.now()
             };
             
-            // Remove duplicates (same player rejoining)
-            rooms[roomCode].players = rooms[roomCode].players.filter(p => p.name !== playerName);
-            rooms[roomCode].players.push(player);
-            
-            socket.join(roomCode);
-            socket.roomCode = roomCode; // Store room code for disconnect handling
+            room.players.push(player);
+            socket.join(roomCode.toUpperCase());
+            socket.roomCode = roomCode.toUpperCase();
             
             console.log(`✅ ${playerName} joined room ${roomCode}`);
             
-            // Notify host that player joined
-            io.to(rooms[roomCode].hostId).emit('player-joined', player);
-            
-            // Notify all in room of updated player list
-            io.to(roomCode).emit('players-updated', rooms[roomCode].players);
-            
-            // Send success to joining player - CRITICAL!
-            if (typeof callback === 'function') {
-                callback({ 
-                    success: true, 
-                    roomCode: roomCode,
-                    players: rooms[roomCode].players 
-                });
-            }
-            
-            // ALWAYS emit join-success for mobile.html compatibility
-            socket.emit('join-success', {
-                roomCode: roomCode,
-                players: rooms[roomCode].players
+            // Notify everyone
+            io.to(room.hostId).emit('player-joined', player);
+            io.to(roomCode.toUpperCase()).emit('players-updated', {
+                players: room.players,
+                count: room.players.length
             });
             
+            const response = {
+                success: true,
+                roomCode: roomCode.toUpperCase(),
+                players: room.players,
+                gameState: room.gameState
+            };
+            
+            if (typeof callback === 'function') {
+                callback(response);
+            }
+            socket.emit('join-success', response);
+            
         } catch (error) {
-            console.error('Error joining room:', error);
+            console.error('Join room error:', error);
+            const errorResponse = { message: error.message };
             if (typeof callback === 'function') {
                 callback({ success: false, error: error.message });
             }
-            socket.emit('join-error', { message: error.message });
+            socket.emit('join-error', errorResponse);
         }
     });
     
     // Start game
     socket.on('start-game', (data) => {
-        const { roomCode, gameConfig } = data;
-        
-        if (rooms[roomCode] && rooms[roomCode].hostId === socket.id) {
-            rooms[roomCode].gameState = 'playing';
-            rooms[roomCode].gameConfig = gameConfig;
+        try {
+            const { roomCode, gameConfig } = data;
+            const room = rooms[roomCode];
+            
+            if (!room) {
+                socket.emit('error', { message: 'Room not found' });
+                return;
+            }
+            
+            if (room.hostId !== socket.id) {
+                socket.emit('error', { message: 'Only host can start game' });
+                return;
+            }
+            
+            room.gameState = 'playing';
+            room.gameConfig = gameConfig;
             
             io.to(roomCode).emit('game-started', {
                 game: gameConfig.game,
                 mode: gameConfig.mode,
-                intensity: gameConfig.intensity
+                intensity: gameConfig.intensity,
+                players: room.players
             });
             
             console.log(`🎮 Game started in room ${roomCode}`);
+            
+        } catch (error) {
+            console.error('Start game error:', error);
+            socket.emit('error', { message: error.message });
         }
     });
     
     // Get question
     socket.on('get-question', (data, callback) => {
-        const { game, intensity } = data;
-        
-        if (questionManager) {
-            const question = questionManager.getRandomQuestion(game, intensity);
-            if (typeof callback === 'function') {
-                callback(question);
+        try {
+            const { game, intensity } = data;
+            
+            if (questionManager) {
+                const question = questionManager.getRandomQuestion(game, intensity);
+                if (typeof callback === 'function') {
+                    callback({ success: true, question });
+                }
+                socket.emit('question', question);
+            } else {
+                const error = 'Question database not available';
+                if (typeof callback === 'function') {
+                    callback({ success: false, error });
+                }
+                socket.emit('error', { message: error });
             }
-        } else {
+        } catch (error) {
+            console.error('Get question error:', error);
             if (typeof callback === 'function') {
-                callback({ 
-                    text: "Question database not loaded", 
-                    game: game,
-                    intensity: intensity 
-                });
+                callback({ success: false, error: error.message });
             }
         }
     });
     
-    // Disconnect
-    socket.on('disconnect', () => {
-        console.log('🔌 User disconnected:', socket.id);
+    // Disconnect handling
+    socket.on('disconnect', (reason) => {
+        console.log('🔌 User disconnected:', socket.id, 'Reason:', reason);
         
         // Remove player from their room
         if (socket.roomCode) {
             const room = rooms[socket.roomCode];
             if (room) {
                 room.players = room.players.filter(p => p.id !== socket.id);
-                io.to(socket.roomCode).emit('players-updated', room.players);
-            }
-        }
-        
-        // Clean up empty rooms
-        for (const [code, room] of Object.entries(rooms)) {
-            if (room.hostId === socket.id) {
-                io.to(code).emit('host-disconnected');
-                delete rooms[code];
-                console.log(`🗑️ Room ${code} deleted (host left)`);
+                io.to(socket.roomCode).emit('players-updated', {
+                    players: room.players,
+                    count: room.players.length
+                });
+                
+                // If host disconnects, notify players and delete room
+                if (room.hostId === socket.id) {
+                    io.to(socket.roomCode).emit('host-disconnected');
+                    delete rooms[socket.roomCode];
+                    console.log(`🗑️ Room ${socket.roomCode} deleted (host left)`);
+                }
             }
         }
     });
 });
+
+// Clean up old rooms periodically (every hour)
+setInterval(() => {
+    const now = Date.now();
+    const MAX_ROOM_AGE = 6 * 60 * 60 * 1000; // 6 hours
+    
+    Object.keys(rooms).forEach(roomCode => {
+        if (now - rooms[roomCode].createdAt > MAX_ROOM_AGE) {
+            io.to(roomCode).emit('room-expired');
+            delete rooms[roomCode];
+            console.log(`🗑️ Room ${roomCode} expired and deleted`);
+        }
+    });
+}, 60 * 60 * 1000);
 
 // Start server
 const PORT = process.env.PORT || 3000;
 server.listen(PORT, () => {
     console.log(`
 ╔════════════════════════════════════════╗
-║         DON'T DRINK! SERVER RUNNING    ║
+║       DON'T DRINK! SERVER RUNNING      ║
 ╠════════════════════════════════════════╣
-║  Port: ${PORT}                              ║
-║  URL: http://localhost:${PORT}              ║
+║  Port: ${PORT.toString().padEnd(33)}║
+║  URL: http://localhost:${PORT}${' '.repeat(33 - PORT.toString().length - 24)}║
 ╠════════════════════════════════════════╣
 ║  Pages:                                ║
 ║  • / → Landing page                    ║
-║  • /host → Host control panel          ║  
+║  • /host → Host control panel          ║
 ║  • /mobile → Player mobile interface   ║
-║  • /player → Alternative player page   ║
+║  • /play → Play screen                 ║
 ╠════════════════════════════════════════╣
-║  Status: ✅ Questions loaded            ║
+║  Status: ${questionManager ? '✅ Questions loaded' : '⚠️  No questions'}${' '.repeat(questionManager ? 9 : 15)}║
 ╚════════════════════════════════════════╝
     `);
-});	
+});
