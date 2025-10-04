@@ -773,16 +773,153 @@
             // Results revealed - SEPARATE SCOREBOARD CARDS for each option
             let html = '<h3 style="color: white; margin-bottom: 25px; font-size: 1.5rem; text-align: center;">📊 The Results</h3>';
             
-            // Get ALL options (maintain order, don't sort)
+            // Detect if this is FMK (votes are in format "F: X, M: Y, K: Z")
             const allOptions = Object.keys(votes);
+            const isFMK = allOptions.length > 0 && allOptions[0].startsWith('F:');
             
             console.log('📊 Building separate scoreboard cards for:', allOptions);
+            console.log('   - Is FMK format?', isFMK);
             
             // Grid container for cards
             html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 25px; max-width: 1200px; margin: 0 auto;">';
             
-            // Create SEPARATE CARD for each option
-            for (const option of allOptions) {
+            if (isFMK) {
+                // FMK SPECIAL HANDLING
+                // Parse all votes to count F/M/K per person
+                const fmkData = {}; // { "Pete Davidson": { F: 2, M: 0, K: 1, voters: {...} } }
+                
+                for (const [voteString, count] of Object.entries(votes)) {
+                    // Parse "F: Pete, M: Colin, K: Andy"
+                    const parts = voteString.split(',').map(p => p.trim());
+                    const fPart = parts.find(p => p.startsWith('F:'));
+                    const mPart = parts.find(p => p.startsWith('M:'));
+                    const kPart = parts.find(p => p.startsWith('K:'));
+                    
+                    if (fPart) {
+                        const person = fPart.substring(2).trim();
+                        if (!fmkData[person]) fmkData[person] = { F: 0, M: 0, K: 0, voters: { F: [], M: [], K: [] } };
+                        fmkData[person].F += count;
+                        const votersForThis = voters[voteString] || [];
+                        fmkData[person].voters.F.push(...votersForThis);
+                    }
+                    if (mPart) {
+                        const person = mPart.substring(2).trim();
+                        if (!fmkData[person]) fmkData[person] = { F: 0, M: 0, K: 0, voters: { F: [], M: [], K: [] } };
+                        fmkData[person].M += count;
+                        const votersForThis = voters[voteString] || [];
+                        fmkData[person].voters.M.push(...votersForThis);
+                    }
+                    if (kPart) {
+                        const person = kPart.substring(2).trim();
+                        if (!fmkData[person]) fmkData[person] = { F: 0, M: 0, K: 0, voters: { F: [], M: [], K: [] } };
+                        fmkData[person].K += count;
+                        const votersForThis = voters[voteString] || [];
+                        fmkData[person].voters.K.push(...votersForThis);
+                    }
+                }
+                
+                console.log('📊 FMK parsed data:', fmkData);
+                
+                // Create card for each person
+                for (const [person, data] of Object.entries(fmkData)) {
+                    const total = data.F + data.M + data.K;
+                    
+                    html += `
+                        <div style="
+                            background: linear-gradient(135deg, rgba(124, 58, 237, 0.25), rgba(168, 85, 247, 0.2));
+                            border: 2px solid rgba(168, 85, 247, 0.3);
+                            border-radius: 20px;
+                            padding: 25px;
+                            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+                            display: flex;
+                            flex-direction: column;
+                            align-items: center;
+                        ">
+                            <!-- Person Name -->
+                            <h4 style="
+                                color: white;
+                                font-size: 1.3rem;
+                                font-weight: 700;
+                                margin: 0 0 20px 0;
+                                text-align: center;
+                                word-break: break-word;
+                            ">
+                                ${person}
+                            </h4>
+                            
+                            <!-- 3 Mini Bars for F/M/K -->
+                            <div style="display: flex; gap: 15px; width: 100%; justify-content: space-around; margin-bottom: 20px;">
+                                ${['F', 'M', 'K'].map(category => {
+                                    const count = data[category];
+                                    const percentage = total > 0 ? Math.round((count / total) * 100) : 0;
+                                    const barHeight = Math.max(percentage * 1.2, 15); // Max 120px
+                                    const color = category === 'F' ? '#EC4899' : category === 'M' ? '#10B981' : '#EF4444';
+                                    
+                                    return `
+                                        <div style="flex: 1; display: flex; flex-direction: column; align-items: center;">
+                                            <div style="color: ${color}; font-weight: 700; font-size: 1.5rem; margin-bottom: 8px;">${category}</div>
+                                            <div style="
+                                                width: 60px;
+                                                height: 120px;
+                                                background: rgba(0,0,0,0.3);
+                                                border-radius: 8px;
+                                                display: flex;
+                                                flex-direction: column;
+                                                justify-content: flex-end;
+                                                overflow: hidden;
+                                                margin-bottom: 8px;
+                                            ">
+                                                <div style="
+                                                    background: ${color};
+                                                    width: 100%;
+                                                    height: ${barHeight}px;
+                                                    transition: height 0.7s ease;
+                                                    display: flex;
+                                                    align-items: center;
+                                                    justify-content: center;
+                                                    color: white;
+                                                    font-weight: 700;
+                                                    font-size: 0.9rem;
+                                                ">
+                                                    ${count > 0 ? count : ''}
+                                                </div>
+                                            </div>
+                                            <div style="color: rgba(255,255,255,0.7); font-size: 0.85rem;">${count}</div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                            
+                            <!-- Player details per category -->
+                            <div style="width: 100%; display: flex; flex-direction: column; gap: 10px;">
+                                ${['F', 'M', 'K'].map(category => {
+                                    const votersList = data.voters[category];
+                                    if (votersList.length === 0) return '';
+                                    return `
+                                        <div style="text-align: center;">
+                                            <div style="color: rgba(255,255,255,0.6); font-size: 0.8rem; margin-bottom: 5px;">${category === 'F' ? 'Would Fuck:' : category === 'M' ? 'Would Marry:' : 'Would Kill:'}</div>
+                                            <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;">
+                                                ${votersList.map(voter => `
+                                                    <div style="
+                                                        background: #7C3AED;
+                                                        color: white;
+                                                        padding: 4px 10px;
+                                                        border-radius: 10px;
+                                                        font-size: 0.75rem;
+                                                        font-weight: 600;
+                                                    ">${voter}</div>
+                                                `).join('')}
+                                            </div>
+                                        </div>
+                                    `;
+                                }).join('')}
+                            </div>
+                        </div>
+                    `;
+                }
+            } else {
+                // NORMAL (WYR, NHIE, etc) - Create SEPARATE CARD for each option
+                for (const option of allOptions) {
                 const count = votes[option] || 0;
                 const percentage = totalPlayers > 0 ? Math.round((count / totalPlayers) * 100) : 0;
                 const votersForOption = voters[option] || [];
@@ -898,6 +1035,7 @@
                         </div>
                     </div>
                 `;
+                }
             }
             
             html += '</div>'; // Close grid
