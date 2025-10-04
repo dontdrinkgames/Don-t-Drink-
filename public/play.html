@@ -758,10 +758,11 @@
                 return;
             }
             
-            // Results revealed - show detailed breakdown
+            // Results revealed - show detailed breakdown with VERTICAL bars
             let html = '<h3 style="color: white; margin-bottom: 25px; font-size: 1.4rem; text-align: center;">📊 The Results</h3>';
             
-            html += '<div style="display: flex; flex-direction: column; gap: 30px;">';
+            // Display all options in a row with vertical bars
+            html += '<div style="display: flex; gap: 30px; justify-content: center; align-items: flex-end;">';
             
             // Sort votes by count (most votes first)
             const sortedVotes = Object.entries(votes).sort((a, b) => b[1] - a[1]);
@@ -770,42 +771,57 @@
                 const percentage = totalPlayers > 0 ? (count / totalPlayers * 100).toFixed(0) : 0;
                 const votersForOption = voters[option] || [];
                 
+                // Calculate bar height (max 300px)
+                const barHeight = percentage * 3; // 100% = 300px
+                
                 html += `
-                    <div style="background: rgba(255,255,255,0.1); padding: 20px; border-radius: 16px;">
-                        <!-- Option name -->
-                        <div style="text-align: center; font-size: 1.2rem; font-weight: 700; color: white; margin-bottom: 15px;">
-                            ${option.toUpperCase()}
+                    <div style="flex: 1; text-align: center;">
+                        <!-- Percentage label above bar -->
+                        <div style="color: white; font-weight: 700; font-size: 1.5rem; margin-bottom: 12px;">
+                            ${percentage}%
                         </div>
                         
-                        <!-- Bar graph -->
-                        <div style="background: rgba(0,0,0,0.2); height: 50px; border-radius: 12px; overflow: hidden; margin-bottom: 15px; position: relative;">
+                        <!-- Vertical bar -->
+                        <div style="
+                            background: rgba(0,0,0,0.3);
+                            width: 100%;
+                            height: 300px;
+                            border-radius: 16px;
+                            overflow: hidden;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: flex-end;
+                            align-items: center;
+                            margin-bottom: 15px;
+                        ">
                             <div style="
-                                background: linear-gradient(135deg, #A855F7, #9333EA);
-                                height: 100%;
-                                width: ${percentage}%;
+                                background: linear-gradient(to top, #9333EA, #A855F7);
+                                width: 100%;
+                                height: ${barHeight}px;
                                 display: flex;
                                 align-items: center;
                                 justify-content: center;
-                                color: white;
-                                font-weight: 700;
-                                font-size: 1.1rem;
-                                transition: width 0.5s ease;
+                                transition: height 0.8s ease;
+                                border-radius: 0 0 16px 16px;
                             ">
-                                ${percentage}%
                             </div>
-                            ${percentage < 20 ? `<div style="position: absolute; right: 10px; top: 50%; transform: translateY(-50%); color: rgba(255,255,255,0.7); font-weight: 700;">${percentage}%</div>` : ''}
                         </div>
                         
-                        <!-- Player bubbles -->
+                        <!-- Option name below bar -->
+                        <div style="font-size: 1.1rem; font-weight: 700; color: white; margin-bottom: 15px; word-break: break-word;">
+                            ${option.toUpperCase()}
+                        </div>
+                        
+                        <!-- Player bubbles below -->
                         ${votersForOption.length > 0 ? `
-                            <div style="display: flex; flex-wrap: wrap; gap: 10px; justify-content: center;">
+                            <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
                                 ${votersForOption.map(voter => `
                                     <div style="
                                         background: #7C3AED;
                                         color: white;
-                                        padding: 8px 16px;
-                                        border-radius: 20px;
-                                        font-size: 0.9rem;
+                                        padding: 8px 14px;
+                                        border-radius: 16px;
+                                        font-size: 0.85rem;
                                         font-weight: 600;
                                         filter: drop-shadow(2px 2px 0px #6D28D9);
                                     ">
@@ -813,7 +829,7 @@
                                     </div>
                                 `).join('')}
                             </div>
-                        ` : '<div style="text-align: center; color: rgba(255,255,255,0.5); font-size: 0.9rem;">No votes</div>'}
+                        ` : '<div style="color: rgba(255,255,255,0.5); font-size: 0.85rem;">No votes</div>'}
                     </div>
                 `;
             }

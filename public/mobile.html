@@ -43,7 +43,7 @@
         .logo h1 {
             font-size: 32px;
             font-weight: 800;
-            color: #667eea;
+            color: white;
             margin-bottom: 5px;
         }
         
@@ -54,14 +54,14 @@
         
         .room-code-label {
             font-size: 14px;
-            color: #666;
+            color: white;
             margin-bottom: 8px;
         }
         
         .room-code-display {
             font-size: 36px;
             font-weight: 800;
-            color: #667eea;
+            color: white;
             letter-spacing: 4px;
         }
         
@@ -73,7 +73,7 @@
             display: block;
             margin-bottom: 8px;
             font-weight: 600;
-            color: #333;
+            color: white;
             font-size: 14px;
         }
         
@@ -214,7 +214,7 @@
         
         .waiting-subtext {
             font-size: 16px;
-            color: #666;
+            color: white;
             margin-bottom: 20px;
         }
         
@@ -949,7 +949,7 @@
                 const statusEl = document.querySelector('.waiting-subtext');
                 if (statusEl) {
                     statusEl.textContent = 'Venter på at hosten starter spillet...';
-                    statusEl.style.color = '#666';
+                    statusEl.style.color = 'white';
                 }
                 hideError();
             });
@@ -1541,7 +1541,7 @@
             console.log('📨 Vote submitted:', vote);
         }
         
-        // Show mobile results (same design as host)
+        // Show mobile results with VERTICAL bar graphs
         function showMobileResults(data) {
             console.log('📊 Showing mobile results:', data);
             console.log('   - votes:', data.votes);
@@ -1556,6 +1556,9 @@
             
             let html = '<h3 style="color: white; margin-bottom: 20px; font-size: 1.3rem; text-align: center;">📊 The Results</h3>';
             
+            // Display all options in a row with vertical bars
+            html += '<div style="display: flex; gap: 15px; justify-content: center; align-items: flex-end; margin-bottom: 20px;">';
+            
             // Sort by vote count
             const sortedVotes = Object.entries(data.votes).sort((a, b) => b[1] - a[1]);
             
@@ -1567,42 +1570,57 @@
                 
                 console.log(`   - ${option}: ${count} votes (${percentage}%), voters:`, votersForOption);
                 
+                // Calculate bar height (max 200px)
+                const barHeight = percentage * 2; // 100% = 200px
+                
                 html += `
-                    <div style="background: rgba(168, 85, 247, 0.3); padding: 15px; border-radius: 12px; margin-bottom: 15px;">
-                        <!-- Option name -->
-                        <div style="text-align: center; font-size: 1rem; font-weight: 700; color: white; margin-bottom: 10px;">
-                            ${option.toUpperCase()}
+                    <div style="flex: 1; text-align: center;">
+                        <!-- Percentage label above bar -->
+                        <div style="color: white; font-weight: 700; font-size: 1.1rem; margin-bottom: 8px;">
+                            ${percentage}%
                         </div>
                         
-                        <!-- Bar graph -->
-                        <div style="background: rgba(0,0,0,0.3); height: 40px; border-radius: 10px; overflow: hidden; margin-bottom: 10px; position: relative;">
+                        <!-- Vertical bar -->
+                        <div style="
+                            background: rgba(0,0,0,0.3);
+                            width: 100%;
+                            height: 200px;
+                            border-radius: 12px;
+                            overflow: hidden;
+                            display: flex;
+                            flex-direction: column;
+                            justify-content: flex-end;
+                            align-items: center;
+                            margin-bottom: 10px;
+                        ">
                             <div style="
-                                background: linear-gradient(135deg, #A855F7, #9333EA);
-                                height: 100%;
-                                width: ${percentage}%;
+                                background: linear-gradient(to top, #9333EA, #A855F7);
+                                width: 100%;
+                                height: ${barHeight}px;
                                 display: flex;
                                 align-items: center;
                                 justify-content: center;
-                                color: white;
-                                font-weight: 700;
-                                font-size: 0.95rem;
-                                transition: width 0.5s ease;
+                                transition: height 0.8s ease;
+                                border-radius: 0 0 12px 12px;
                             ">
-                                ${percentage}%
                             </div>
-                            ${percentage < 20 ? `<div style="position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: white; font-weight: 700; font-size: 0.9rem;">${percentage}%</div>` : ''}
                         </div>
                         
-                        <!-- Player bubbles -->
+                        <!-- Option name below bar -->
+                        <div style="font-size: 0.9rem; font-weight: 700; color: white; margin-bottom: 10px; word-break: break-word;">
+                            ${option.toUpperCase()}
+                        </div>
+                        
+                        <!-- Player bubbles below -->
                         ${votersForOption.length > 0 ? `
-                            <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
+                            <div style="display: flex; flex-wrap: wrap; gap: 5px; justify-content: center;">
                                 ${votersForOption.map(voter => `
                                     <div style="
                                         background: #7C3AED;
                                         color: white;
-                                        padding: 6px 12px;
-                                        border-radius: 16px;
-                                        font-size: 0.8rem;
+                                        padding: 4px 8px;
+                                        border-radius: 12px;
+                                        font-size: 0.7rem;
                                         font-weight: 600;
                                         filter: drop-shadow(2px 2px 0px #6D28D9);
                                     ">
@@ -1610,10 +1628,12 @@
                                     </div>
                                 `).join('')}
                             </div>
-                        ` : '<div style="text-align: center; color: rgba(255,255,255,0.7); font-size: 0.85rem;">No votes</div>'}
+                        ` : '<div style="color: rgba(255,255,255,0.5); font-size: 0.75rem;">No votes</div>'}
                     </div>
                 `;
             }
+            
+            html += '</div>';
             
             contentEl.innerHTML = html;
             resultsEl.style.display = 'block';
