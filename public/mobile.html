@@ -1541,7 +1541,7 @@
             console.log('📨 Vote submitted:', vote);
         }
         
-        // Show mobile results with separate bar graphs for each option
+        // Show mobile results - ONE bar graph with columns
         function showMobileResults(data) {
             console.log('📊 Showing mobile results:', data);
             console.log('   - votes:', data.votes);
@@ -1559,85 +1559,96 @@
             // Get ALL options
             const allOptions = Object.keys(data.votes);
             
-            console.log('📊 Building mobile separate bars for:', allOptions);
+            console.log('📊 Building mobile bar graph with columns:', allOptions);
             
-            // Each option gets its own card with bar graph
+            // Container for the entire bar graph
+            html += '<div style="background: rgba(168, 85, 247, 0.15); padding: 20px; border-radius: 16px;">';
+            
+            // Top: Percentages row
+            html += '<div style="display: flex; gap: 10px; justify-content: space-around; margin-bottom: 12px;">';
             for (const option of allOptions) {
                 const count = data.votes[option] || 0;
                 const percentage = data.totalPlayers > 0 ? (count / data.totalPlayers * 100).toFixed(0) : 0;
-                const votersForOption = data.voters[option] || [];
-                
-                console.log(`   - ${option}: ${count} votes (${percentage}%), voters:`, votersForOption);
-                
-                // Calculate bar width (max 80%)
-                const barWidth = Math.max(percentage, 5); // Minimum 5% so bar is visible
                 
                 html += `
-                    <div style="
-                        background: rgba(168, 85, 247, 0.2);
-                        padding: 15px;
-                        border-radius: 14px;
-                        margin-bottom: 15px;
-                    ">
-                        <!-- Option name at top -->
-                        <div style="
-                            font-size: 1rem; 
-                            font-weight: 700; 
-                            color: white; 
-                            margin-bottom: 12px; 
-                            text-align: center;
-                        ">
-                            ${option}
-                        </div>
-                        
-                        <!-- Horizontal bar graph -->
-                        <div style="
-                            background: rgba(0,0,0,0.3);
-                            height: 50px;
-                            border-radius: 10px;
-                            overflow: hidden;
-                            position: relative;
-                            margin-bottom: 12px;
-                        ">
-                            <div style="
-                                background: linear-gradient(135deg, #9333EA, #A855F7);
-                                height: 100%;
-                                width: ${barWidth}%;
-                                display: flex;
-                                align-items: center;
-                                padding-left: 15px;
-                                transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-                            ">
-                                <span style="color: white; font-weight: 700; font-size: 1.1rem;">
-                                    ${percentage}%
-                                </span>
-                            </div>
-                        </div>
-                        
-                        <!-- Player bubbles below bar -->
-                        <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;">
-                            ${votersForOption.length > 0 ? votersForOption.map(voter => `
-                                <div style="
-                                    background: #7C3AED;
-                                    color: white;
-                                    padding: 6px 12px;
-                                    border-radius: 12px;
-                                    font-size: 0.75rem;
-                                    font-weight: 600;
-                                    filter: drop-shadow(1px 1px 0px #6D28D9);
-                                ">
-                                    ${voter}
-                                </div>
-                            `).join('') : '<div style="color: rgba(255,255,255,0.5); font-size: 0.8rem; text-align: center; width: 100%;">No votes</div>'}
+                    <div style="flex: 1; text-align: center;">
+                        <div style="color: white; font-weight: 700; font-size: 1.5rem; text-shadow: 1px 1px 2px rgba(0,0,0,0.3);">
+                            ${percentage}%
                         </div>
                     </div>
                 `;
             }
+            html += '</div>';
+            
+            // Middle: Vertical bars
+            html += '<div style="display: flex; gap: 10px; justify-content: space-around; align-items: flex-end; height: 200px; margin-bottom: 15px;">';
+            for (const option of allOptions) {
+                const count = data.votes[option] || 0;
+                const percentage = data.totalPlayers > 0 ? (count / data.totalPlayers * 100).toFixed(0) : 0;
+                
+                const barHeight = Math.max(percentage * 1.9, 20);
+                
+                html += `
+                    <div style="flex: 1; display: flex; flex-direction: column; justify-content: flex-end; align-items: center; height: 100%;">
+                        <div style="
+                            background: linear-gradient(to top, #7C3AED, #A855F7, #C084FC);
+                            width: 100%;
+                            max-width: 80px;
+                            height: ${barHeight}px;
+                            border-radius: 10px 10px 0 0;
+                            box-shadow: 0 -3px 15px rgba(124, 58, 237, 0.4);
+                            transition: height 0.8s cubic-bezier(0.34, 1.56, 0.64, 1);
+                        "></div>
+                    </div>
+                `;
+            }
+            html += '</div>';
+            
+            // Bottom: Option names
+            html += '<div style="display: flex; gap: 10px; justify-content: space-around; margin-bottom: 15px; border-top: 2px solid rgba(255,255,255,0.2); padding-top: 15px;">';
+            for (const option of allOptions) {
+                html += `
+                    <div style="flex: 1; text-align: center;">
+                        <div style="color: white; font-weight: 700; font-size: 0.85rem; line-height: 1.2; word-break: break-word;">
+                            ${option}
+                        </div>
+                    </div>
+                `;
+            }
+            html += '</div>';
+            
+            // Bottom: Player bubbles
+            html += '<div style="display: flex; gap: 10px; justify-content: space-around;">';
+            for (const option of allOptions) {
+                const votersForOption = data.voters[option] || [];
+                
+                html += `
+                    <div style="flex: 1; display: flex; flex-direction: column; gap: 6px; align-items: center;">
+                        ${votersForOption.length > 0 ? votersForOption.map(voter => `
+                            <div style="
+                                background: #7C3AED;
+                                color: white;
+                                padding: 5px 10px;
+                                border-radius: 12px;
+                                font-size: 0.7rem;
+                                font-weight: 600;
+                                box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+                                white-space: nowrap;
+                            ">
+                                ${voter}
+                            </div>
+                        `).join('') : '<div style="color: rgba(255,255,255,0.3); font-size: 0.75rem;">-</div>'}
+                    </div>
+                `;
+            }
+            html += '</div>';
+            
+            html += '</div>'; // Close container
             
             contentEl.innerHTML = html;
             resultsEl.style.display = 'block';
             
-            console.log('✅ Mobile separate bars rendered!');
+            console.log('✅ Mobile bar graph with columns rendered!');
         }
         
         // Handle spotlight
