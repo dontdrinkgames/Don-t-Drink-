@@ -504,6 +504,13 @@ io.on('connection', (socket) => {
                 return acc;
             }, {});
             
+            console.log(`🔍 Results revealed in room ${roomCode}:`);
+            console.log('   - currentVotes:', room.currentVotes);
+            console.log('   - voteCounts:', voteCounts);
+            console.log('   - voterDetails:', room.voterDetails);
+            console.log('   - totalVotes:', voters.length);
+            console.log('   - totalPlayers:', room.players.length);
+            
             // Send to ALL players in room
             io.to(roomCode).emit('vote-update', {
                 votes: voteCounts,
@@ -513,7 +520,6 @@ io.on('connection', (socket) => {
                 revealed: true
             });
             
-            console.log(`🔍 Results revealed in room ${roomCode}`);
         } catch (error) {
             console.error('Reveal results error:', error);
         }

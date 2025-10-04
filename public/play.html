@@ -551,7 +551,19 @@
             });
             
             socket.on('vote-update', (data) => {
-                console.log('Vote update:', data);
+                console.log('📨 Vote update received:', data);
+                console.log('   - votes:', data.votes);
+                console.log('   - voters:', data.voters);
+                console.log('   - totalVotes:', data.totalVotes);
+                console.log('   - totalPlayers:', data.totalPlayers);
+                console.log('   - revealed:', data.revealed);
+                console.log('   - resultsRevealed local:', resultsRevealed);
+                
+                // If server says revealed, update local state
+                if (data.revealed) {
+                    resultsRevealed = true;
+                }
+                
                 updateVotingDisplay(data);
             });
             
@@ -708,7 +720,7 @@
             const resultsEl = document.getElementById('votingResults');
             const { votes, voters, totalVotes, totalPlayers } = data;
             
-            console.log('📊 updateVotingDisplay:', { votes, voters, totalVotes, totalPlayers });
+            console.log('📊 updateVotingDisplay called:', { votes, voters, totalVotes, totalPlayers, resultsRevealed });
             
             // Always show vote counter
             const voteCounterHtml = `
@@ -840,13 +852,14 @@
         
         // Reveal voting results
         function revealVotingResults() {
+            console.log('🔍 Revealing results...');
             resultsRevealed = true;
             
             // Notify server that results are revealed
             socket.emit('reveal-results', { roomCode: gameConfig.roomCode });
             
-            // Re-trigger display update to show detailed results
-            socket.emit('request-vote-update', { roomCode: gameConfig.roomCode });
+            console.log('   - Emitted reveal-results');
+            console.log('   - resultsRevealed is now:', resultsRevealed);
         }
         
         // Show spotlight
