@@ -1541,7 +1541,7 @@
             console.log('📨 Vote submitted:', vote);
         }
         
-        // Show mobile results with VERTICAL bar graphs
+        // Show mobile results with separate bar graphs for each option
         function showMobileResults(data) {
             console.log('📊 Showing mobile results:', data);
             console.log('   - votes:', data.votes);
@@ -1554,16 +1554,14 @@
             const resultsEl = document.getElementById('mobileResults');
             const contentEl = document.getElementById('mobileResultsContent');
             
-            let html = '<h3 style="color: white; margin-bottom: 15px; font-size: 1.2rem; text-align: center;">📊 The Results</h3>';
+            let html = '<h3 style="color: white; margin-bottom: 15px; font-size: 1.1rem; text-align: center;">📊 The Results</h3>';
             
             // Get ALL options
             const allOptions = Object.keys(data.votes);
             
-            console.log('📊 Building mobile vertical bars for:', allOptions);
+            console.log('📊 Building mobile separate bars for:', allOptions);
             
-            // Display all options in a row with vertical bars
-            html += '<div style="display: flex; gap: 12px; justify-content: center; align-items: flex-end; padding: 10px;">';
-            
+            // Each option gets its own card with bar graph
             for (const option of allOptions) {
                 const count = data.votes[option] || 0;
                 const percentage = data.totalPlayers > 0 ? (count / data.totalPlayers * 100).toFixed(0) : 0;
@@ -1571,81 +1569,75 @@
                 
                 console.log(`   - ${option}: ${count} votes (${percentage}%), voters:`, votersForOption);
                 
-                // Calculate bar height (max 180px on mobile)
-                const barHeight = Math.max(percentage * 1.8, 15); // Minimum 15px
+                // Calculate bar width (max 80%)
+                const barWidth = Math.max(percentage, 5); // Minimum 5% so bar is visible
                 
                 html += `
-                    <div style="flex: 1; max-width: 150px; text-align: center;">
-                        <!-- Percentage label above bar -->
-                        <div style="color: white; font-weight: 700; font-size: 1.3rem; margin-bottom: 6px; min-height: 30px; display: flex; align-items: center; justify-content: center;">
-                            ${percentage}%
-                        </div>
-                        
-                        <!-- Vertical bar container -->
+                    <div style="
+                        background: rgba(168, 85, 247, 0.2);
+                        padding: 15px;
+                        border-radius: 14px;
+                        margin-bottom: 15px;
+                    ">
+                        <!-- Option name at top -->
                         <div style="
-                            background: rgba(0,0,0,0.3);
-                            width: 100%;
-                            height: 180px;
-                            border-radius: 12px;
-                            overflow: hidden;
-                            display: flex;
-                            flex-direction: column;
-                            justify-content: flex-end;
-                            align-items: stretch;
-                            margin-bottom: 8px;
-                        ">
-                            <!-- The actual bar -->
-                            <div style="
-                                background: linear-gradient(to top, #9333EA, #A855F7);
-                                width: 100%;
-                                height: ${barHeight}px;
-                                transition: height 0.8s ease;
-                                border-radius: 0 0 12px 12px;
-                            "></div>
-                        </div>
-                        
-                        <!-- Option name below bar -->
-                        <div style="
-                            font-size: 0.85rem; 
+                            font-size: 1rem; 
                             font-weight: 700; 
                             color: white; 
-                            margin-bottom: 8px; 
-                            word-break: break-word;
-                            min-height: 35px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
+                            margin-bottom: 12px; 
+                            text-align: center;
                         ">
                             ${option}
                         </div>
                         
-                        <!-- Player bubbles below -->
-                        <div style="min-height: 30px; display: flex; flex-direction: column; gap: 4px; align-items: center;">
+                        <!-- Horizontal bar graph -->
+                        <div style="
+                            background: rgba(0,0,0,0.3);
+                            height: 50px;
+                            border-radius: 10px;
+                            overflow: hidden;
+                            position: relative;
+                            margin-bottom: 12px;
+                        ">
+                            <div style="
+                                background: linear-gradient(135deg, #9333EA, #A855F7);
+                                height: 100%;
+                                width: ${barWidth}%;
+                                display: flex;
+                                align-items: center;
+                                padding-left: 15px;
+                                transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+                            ">
+                                <span style="color: white; font-weight: 700; font-size: 1.1rem;">
+                                    ${percentage}%
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Player bubbles below bar -->
+                        <div style="display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;">
                             ${votersForOption.length > 0 ? votersForOption.map(voter => `
                                 <div style="
                                     background: #7C3AED;
                                     color: white;
-                                    padding: 4px 8px;
-                                    border-radius: 10px;
-                                    font-size: 0.65rem;
+                                    padding: 6px 12px;
+                                    border-radius: 12px;
+                                    font-size: 0.75rem;
                                     font-weight: 600;
                                     filter: drop-shadow(1px 1px 0px #6D28D9);
-                                    white-space: nowrap;
                                 ">
                                     ${voter}
                                 </div>
-                            `).join('') : '<div style="color: rgba(255,255,255,0.4); font-size: 0.7rem;">-</div>'}
+                            `).join('') : '<div style="color: rgba(255,255,255,0.5); font-size: 0.8rem; text-align: center; width: 100%;">No votes</div>'}
                         </div>
                     </div>
                 `;
             }
             
-            html += '</div>';
-            
             contentEl.innerHTML = html;
             resultsEl.style.display = 'block';
             
-            console.log('✅ Mobile vertical bars rendered!');
+            console.log('✅ Mobile separate bars rendered!');
         }
         
         // Handle spotlight

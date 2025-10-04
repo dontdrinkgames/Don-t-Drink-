@@ -771,16 +771,14 @@
             }
             
             // Results revealed - show detailed breakdown with VERTICAL bars
-            let html = '<h3 style="color: white; margin-bottom: 25px; font-size: 1.4rem; text-align: center;">📊 The Results</h3>';
+            let html = '<h3 style="color: white; margin-bottom: 20px; font-size: 1.4rem; text-align: center;">📊 The Results</h3>';
             
             // Get ALL options (not just sorted by votes)
             const allOptions = Object.keys(votes);
             
-            console.log('📊 Building vertical bars for options:', allOptions);
+            console.log('📊 Building separate bar graphs for options:', allOptions);
             
-            // Display all options in a row with vertical bars
-            html += '<div style="display: flex; gap: 40px; justify-content: center; align-items: flex-end; padding: 20px;">';
-            
+            // Each option gets its own card with bar graph
             for (const option of allOptions) {
                 const count = votes[option] || 0;
                 const percentage = totalPlayers > 0 ? (count / totalPlayers * 100).toFixed(0) : 0;
@@ -788,80 +786,74 @@
                 
                 console.log(`   - ${option}: ${count} votes (${percentage}%), voters:`, votersForOption);
                 
-                // Calculate bar height (max 250px)
-                const barHeight = Math.max(percentage * 2.5, 20); // Minimum 20px so bar is visible
+                // Calculate bar width (max 80%)
+                const barWidth = Math.max(percentage, 5); // Minimum 5% so bar is visible
                 
                 html += `
-                    <div style="flex: 1; max-width: 200px; text-align: center;">
-                        <!-- Percentage label above bar -->
-                        <div style="color: white; font-weight: 700; font-size: 1.8rem; margin-bottom: 10px; min-height: 40px; display: flex; align-items: center; justify-content: center;">
-                            ${percentage}%
-                        </div>
-                        
-                        <!-- Vertical bar container -->
+                    <div style="
+                        background: rgba(168, 85, 247, 0.2);
+                        padding: 20px;
+                        border-radius: 16px;
+                        margin-bottom: 20px;
+                    ">
+                        <!-- Option name at top -->
                         <div style="
-                            background: rgba(0,0,0,0.3);
-                            width: 100%;
-                            height: 250px;
-                            border-radius: 16px;
-                            overflow: hidden;
-                            display: flex;
-                            flex-direction: column;
-                            justify-content: flex-end;
-                            align-items: stretch;
-                            margin-bottom: 12px;
-                            position: relative;
-                        ">
-                            <!-- The actual bar that grows upward -->
-                            <div style="
-                                background: linear-gradient(to top, #9333EA, #A855F7);
-                                width: 100%;
-                                height: ${barHeight}px;
-                                transition: height 0.8s cubic-bezier(0.4, 0, 0.2, 1);
-                                border-radius: 0 0 16px 16px;
-                            "></div>
-                        </div>
-                        
-                        <!-- Option name below bar -->
-                        <div style="
-                            font-size: 1rem; 
+                            font-size: 1.2rem; 
                             font-weight: 700; 
                             color: white; 
-                            margin-bottom: 12px; 
-                            word-break: break-word;
-                            min-height: 45px;
-                            display: flex;
-                            align-items: center;
-                            justify-content: center;
+                            margin-bottom: 15px; 
+                            text-align: center;
                         ">
                             ${option}
                         </div>
                         
-                        <!-- Player bubbles below -->
-                        <div style="min-height: 40px; display: flex; flex-direction: column; gap: 6px; align-items: center;">
+                        <!-- Horizontal bar graph -->
+                        <div style="
+                            background: rgba(0,0,0,0.3);
+                            height: 60px;
+                            border-radius: 12px;
+                            overflow: hidden;
+                            position: relative;
+                            margin-bottom: 15px;
+                        ">
+                            <div style="
+                                background: linear-gradient(135deg, #9333EA, #A855F7);
+                                height: 100%;
+                                width: ${barWidth}%;
+                                display: flex;
+                                align-items: center;
+                                padding-left: 20px;
+                                transition: width 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+                            ">
+                                <span style="color: white; font-weight: 700; font-size: 1.3rem;">
+                                    ${percentage}%
+                                </span>
+                            </div>
+                        </div>
+                        
+                        <!-- Player bubbles below bar -->
+                        <div style="display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;">
                             ${votersForOption.length > 0 ? votersForOption.map(voter => `
                                 <div style="
                                     background: #7C3AED;
                                     color: white;
-                                    padding: 6px 12px;
-                                    border-radius: 14px;
-                                    font-size: 0.8rem;
+                                    padding: 8px 16px;
+                                    border-radius: 16px;
+                                    font-size: 0.9rem;
                                     font-weight: 600;
                                     filter: drop-shadow(2px 2px 0px #6D28D9);
-                                    white-space: nowrap;
                                 ">
                                     ${voter}
                                 </div>
-                            `).join('') : '<div style="color: rgba(255,255,255,0.4); font-size: 0.8rem;">-</div>'}
+                            `).join('') : '<div style="color: rgba(255,255,255,0.5); font-size: 0.9rem; text-align: center; width: 100%;">No votes</div>'}
                         </div>
                     </div>
                 `;
             }
             
-            html += '</div>';
             resultsEl.innerHTML = html;
             
-            console.log('✅ Vertical bars rendered!');
+            console.log('✅ Separate bar graphs rendered!');
         }
         
         // Reveal voting results
