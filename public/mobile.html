@@ -18,7 +18,8 @@
         
         body {
             font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            background: url('/hostbackground.png') no-repeat center center fixed;
+            background-size: cover;
             min-height: 100vh;
             display: flex;
             align-items: center;
@@ -398,28 +399,23 @@
         }
         
         .vote-btn {
-            padding: 20px;
+            padding: 40px;
             border: none;
-            border-radius: 15px;
-            font-size: 18px;
+            border-radius: 20px;
+            font-size: 24px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
             text-transform: uppercase;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
         }
         
         .vote-btn:active {
             transform: scale(0.98);
-        }
-        
-        .vote-btn.agree {
-            background: linear-gradient(135deg, #10B981, #059669);
-            color: white;
-        }
-        
-        .vote-btn.disagree {
-            background: linear-gradient(135deg, #DC2626, #991B1B);
-            color: white;
         }
         
         /* Spotlight Views */
@@ -451,13 +447,18 @@
         }
         
         .answer-btn {
-            padding: 20px;
+            padding: 40px;
             border: none;
-            border-radius: 15px;
-            font-size: 18px;
+            border-radius: 20px;
+            font-size: 24px;
             font-weight: 700;
             cursor: pointer;
             transition: all 0.3s ease;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            color: white;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
         }
         
         .answer-btn.selected {
@@ -1111,8 +1112,8 @@
                 const optionB = currentGameData?.optionB || 'Option B';
                 
                 buttonsContainer.innerHTML = `
-                    <button class="vote-btn" style="background: linear-gradient(135deg, #A855F7, #7C3AED);" onclick="submitVote('optionA')">${optionA}</button>
-                    <button class="vote-btn" style="background: linear-gradient(135deg, #F472B6, #EC4899);" onclick="submitVote('optionB')">${optionB}</button>
+                    <button class="vote-btn" onclick="submitVote('optionA')">${optionA}</button>
+                    <button class="vote-btn" onclick="submitVote('optionB')">${optionB}</button>
                 `;
             }
             
@@ -1735,8 +1736,8 @@
                 `;
             } else if (game === 'would_you_rather') {
                 container.innerHTML = `
-                    <button class="answer-btn" style="background: #A855F7; color: white;" onclick="selectSpotlightAnswer('optionA')">🅰️ OPTION A</button>
-                    <button class="answer-btn" style="background: #F472B6; color: white;" onclick="selectSpotlightAnswer('optionB')">🅱️ OPTION B</button>
+                    <button class="answer-btn" onclick="selectSpotlightAnswer('optionA')">🅰️ OPTION A</button>
+                    <button class="answer-btn" onclick="selectSpotlightAnswer('optionB')">🅱️ OPTION B</button>
                 `;
             }
         }
