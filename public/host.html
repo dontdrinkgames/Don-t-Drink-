@@ -292,6 +292,40 @@
         .hidden {
             display: none !important;
         }
+        
+        /* Logo Header */
+        .logo-header {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+        }
+        
+        .logo-link {
+            display: block;
+            width: 60px;
+            height: 60px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            padding: 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+        }
+        
+        .logo-link:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.25);
+            box-shadow: 0 6px 24px rgba(0, 0, 0, 0.3);
+        }
+        
+        .logo-link img {
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+        }
+        
         /* Responsive */
         @media (max-width: 1024px) {
             .setup-grid {
@@ -308,6 +342,13 @@
     </style>
 </head>
 <body>
+    <!-- Logo Header -->
+    <div class="logo-header">
+        <a href="/" class="logo-link" title="Back to Home">
+            <img src="/dontdrinklogo.png" alt="Don't Drink! Logo">
+        </a>
+    </div>
+    
     <div class="container">
         <!-- Room section -->
         <div class="room-section">

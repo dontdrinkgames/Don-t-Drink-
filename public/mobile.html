@@ -1037,6 +1037,9 @@
             document.getElementById('mobileResults').style.display = 'none';
             console.log('✅ Hidden previous screens');
             
+            // Show game title (in case it was hidden by results)
+            document.getElementById('mobileGameTitle').style.display = 'block';
+            
             // Set game title
             const gameTitles = {
                 'nhie': 'Never Have I Ever',
@@ -1550,6 +1553,10 @@
             
             // Hide waiting screen
             document.getElementById('voteWaitingScreen').style.display = 'none';
+            
+            // Hide game title and question to save space
+            document.getElementById('mobileGameTitle').style.display = 'none';
+            document.getElementById('gameQuestion').style.display = 'none';
             
             // Show results
             const resultsEl = document.getElementById('mobileResults');
