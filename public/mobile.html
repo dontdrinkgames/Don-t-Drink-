@@ -18,14 +18,20 @@
         
         body {
             font-family: 'SF Pro Display', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-            background: url('/hostbackground.png') no-repeat center center fixed;
+            background: url('/hostbackground.png') no-repeat center center;
             background-size: cover;
+            background-attachment: fixed;
             min-height: 100vh;
+            min-height: -webkit-fill-available;
             display: flex;
             align-items: center;
             justify-content: center;
             padding: 20px;
             overflow-x: hidden;
+        }
+        
+        html {
+            height: -webkit-fill-available;
         }
         
         .container {
