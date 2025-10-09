@@ -683,7 +683,8 @@
                 document.getElementById('wyrOptions').classList.remove('hidden');
             } else if ((game === 'fmk' || gameConfig.game === 'fmk') && typeof question === 'string' && question.includes(',')) {
                 console.log('✅ Displaying FMK question');
-                textEl.textContent = 'Choose wisely...';
+                // Hide the question text - just show the person boxes
+                textEl.style.display = 'none';
                 const people = question.split(',').map(p => p.trim());
                 const fmkGrid = document.getElementById('fmkGrid');
                 fmkGrid.innerHTML = people.map((person, i) => `
