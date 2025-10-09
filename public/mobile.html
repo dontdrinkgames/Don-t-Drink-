@@ -1073,7 +1073,14 @@
                 document.getElementById('gameQuestion').style.display = 'block';
                 const questionEl = document.getElementById('mobileQuestionText');
                 if (questionEl) {
-                    questionEl.textContent = data.text || 'Loading question...';
+                    let questionText = data.text || 'Loading question...';
+                    
+                    // For NHIE, remove "Never have I ever" from the beginning and add "..."
+                    if (data.game === 'never_have_i_ever' || data.game === 'nhie') {
+                        questionText = questionText.replace(/^Never have I ever\s*/i, '...');
+                    }
+                    
+                    questionEl.textContent = questionText;
                 }
             }
             
