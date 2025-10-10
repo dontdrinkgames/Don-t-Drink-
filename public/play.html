@@ -678,9 +678,8 @@
                 if (questionText && questionText.includes(',')) {
                     const people = questionText.split(',').map(p => p.trim());
                     const fmkGrid = document.getElementById('fmkGrid');
-                    fmkGrid.innerHTML = people.map((person, i) => `
+                    fmkGrid.innerHTML = people.map((person) => `
                         <div class="fmk-person">
-                            <div class="person-number">${i + 1}</div>
                             <div class="person-name">${person}</div>
                         </div>
                     `).join('');
