@@ -665,8 +665,30 @@
             textEl.classList.remove('hidden');
             
             // Display based on game type
-            // WYR: data has optionA and optionB properties directly
-            if (game === 'would_you_rather' && data.optionA && data.optionB) {
+            // FMK: Check first (before WYR)
+            if (game === 'fmk' || gameConfig.game === 'fmk') {
+                console.log('✅ Displaying FMK question');
+                // Hide the question text - just show the person boxes
+                textEl.style.display = 'none';
+                
+                // Get the question text (can be in data.text or question)
+                const questionText = data.text || (typeof question === 'string' ? question : question?.text) || '';
+                console.log('📝 FMK Question text:', questionText);
+                
+                if (questionText && questionText.includes(',')) {
+                    const people = questionText.split(',').map(p => p.trim());
+                    const fmkGrid = document.getElementById('fmkGrid');
+                    fmkGrid.innerHTML = people.map((person, i) => `
+                        <div class="fmk-person">
+                            <div class="person-number">${i + 1}</div>
+                            <div class="person-name">${person}</div>
+                        </div>
+                    `).join('');
+                    fmkGrid.classList.remove('hidden');
+                } else {
+                    console.error('❌ FMK question format invalid:', questionText);
+                }
+            } else if (game === 'would_you_rather' && data.optionA && data.optionB) {
                 console.log('✅ Displaying WYR question');
                 
                 // Hide the regular question text
@@ -681,18 +703,6 @@
                 optionBEl.innerHTML = data.optionB;
                 
                 document.getElementById('wyrOptions').classList.remove('hidden');
-            } else if ((game === 'fmk' || gameConfig.game === 'fmk') && typeof question === 'string' && question.includes(',')) {
-                console.log('✅ Displaying FMK question');
-                // Hide the question text - just show the person boxes
-                textEl.style.display = 'none';
-                const people = question.split(',').map(p => p.trim());
-                const fmkGrid = document.getElementById('fmkGrid');
-                fmkGrid.innerHTML = people.map((person) => `
-                    <div class="fmk-person">
-                        <div class="person-name">${person}</div>
-                    </div>
-                `).join('');
-                fmkGrid.classList.remove('hidden');
             } else {
                 console.log('✅ Displaying standard question');
                 // Show question text for NHIE and Hot Takes
