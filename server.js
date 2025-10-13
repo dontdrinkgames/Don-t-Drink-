@@ -344,7 +344,24 @@ io.on('connection', (socket) => {
             room.resultsRevealed = false;
             
             if (questionManager) {
-                const question = questionManager.getRandomQuestion(game, intensity, mode, questionNumber);
+                // Mixmaster support on server-side as well
+                let resolvedGame = game;
+                if (game === 'mixmaster' || (typeof game === 'string' && game.startsWith('mixmaster'))) {
+                    const candidates = ['never_have_i_ever', 'would_you_rather', 'hot_takes', 'fmk'];
+                    resolvedGame = candidates[(questionNumber - 1) % candidates.length];
+                }
+
+                // Fetch question; if none found, try a safe fallback intensity
+                let question = questionManager.getRandomQuestion(resolvedGame, intensity, mode, questionNumber);
+                if (question && question.id === 'fallback') {
+                    const fallbackIntensities = ['medium', 'spicy', 'cancelled'];
+                    for (const alt of fallbackIntensities) {
+                        if (alt !== intensity) {
+                            const tryQ = questionManager.getRandomQuestion(resolvedGame, alt, mode, questionNumber);
+                            if (tryQ && tryQ.id !== 'fallback') { question = tryQ; break; }
+                        }
+                    }
+                }
                 
                 console.log('✅ Question fetched:', question);
                 
@@ -352,7 +369,7 @@ io.on('connection', (socket) => {
                 io.to(roomCode).emit('new-question', {
                     ...question, // Spread all question properties (text, optionA, optionB, etc.)
                     questionNumber,
-                    game,
+                    game: resolvedGame,
                     mode,
                     intensity
                 });
@@ -361,7 +378,7 @@ io.on('connection', (socket) => {
                 socket.emit('new-question', {
                     ...question, // Spread all question properties
                     questionNumber,
-                    game,
+                    game: resolvedGame,
                     mode,
                     intensity
                 });
