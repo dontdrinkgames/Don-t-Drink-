@@ -471,6 +471,20 @@
             font-weight: 700;
             margin: 20px 0;
         }
+
+        .spotlight-question {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 25px;
+            margin: 20px 0;
+            text-align: center;
+            color: white;
+            font-size: 1.1rem;
+            line-height: 1.4;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
         
         .spotlight-answer-buttons {
             display: flex;
@@ -797,6 +811,7 @@
             <!-- Spotlight Player View -->
             <div class="spotlight-player-view" id="spotlightPlayerView">
                 <div class="spotlight-badge">🎯 You're in the Spotlight!</div>
+                <div class="spotlight-question" id="spotlightQuestion">Question will appear here</div>
                 <div class="spotlight-answer-buttons" id="spotlightAnswerButtons">
                     <!-- Dynamic buttons will be inserted here -->
                 </div>
@@ -1274,14 +1289,18 @@
                 }
             }
             
-            // Hide all interaction views
+            // Hide all interaction views (except spotlight views - they're managed by spotlight events)
             document.getElementById('votingButtons').classList.remove('active');
             document.getElementById('fmkContainer').classList.remove('active');
-            document.getElementById('spotlightPlayerView').classList.remove('active');
-            document.getElementById('spectatorView').classList.remove('active');
-            document.getElementById('spotlightGuessingView').classList.remove('active');
             document.getElementById('confirmationMessage').classList.remove('show');
             document.getElementById('revealBtn').classList.remove('active');
+            
+            // Only hide spotlight views if not in spotlight mode
+            if (data.mode !== 'spotlight') {
+                document.getElementById('spotlightPlayerView').classList.remove('active');
+                document.getElementById('spectatorView').classList.remove('active');
+                document.getElementById('spotlightGuessingView').classList.remove('active');
+            }
             
             // Show appropriate UI based on mode
             if (data.mode === 'voting' || data.mode === 'mobile') {
@@ -2044,7 +2063,20 @@
         // Setup spotlight answer buttons
         function setupSpotlightAnswerButtons(game) {
             const container = document.getElementById('spotlightAnswerButtons');
+            const questionEl = document.getElementById('spotlightQuestion');
             container.innerHTML = '';
+            
+            // Show the question
+            if (currentGameData) {
+                let questionText = currentGameData.text || 'Loading question...';
+                
+                // For NHIE, remove "Never have I ever" from the beginning
+                if (game === 'never_have_i_ever' || game === 'nhie') {
+                    questionText = questionText.replace(/^Never have I ever\s*/i, '...');
+                }
+                
+                questionEl.textContent = questionText;
+            }
             
             if (game === 'never_have_i_ever') {
                 container.innerHTML = `
@@ -2058,8 +2090,8 @@
                 `;
             } else if (game === 'would_you_rather') {
                 container.innerHTML = `
-                    <button class="answer-btn" onclick="selectSpotlightAnswer('optionA')">🅰️ OPTION A</button>
-                    <button class="answer-btn" onclick="selectSpotlightAnswer('optionB')">🅱️ OPTION B</button>
+                    <button class="answer-btn" onclick="selectSpotlightAnswer('optionA')">🅰️ ${currentGameData?.optionA || 'OPTION A'}</button>
+                    <button class="answer-btn" onclick="selectSpotlightAnswer('optionB')">🅱️ ${currentGameData?.optionB || 'OPTION B'}</button>
                 `;
             }
         }
