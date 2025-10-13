@@ -703,6 +703,9 @@
             
             const { question, game, mode } = data;
             
+            // Store current question for downvote functionality
+            currentQuestion = data;
+            
             // Update title per question (important for mixmaster)
             try {
                 const title = gameTitles[game] || (game || '').toString().toUpperCase();
