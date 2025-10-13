@@ -675,6 +675,13 @@
             
             const { question, game, mode } = data;
             
+            // Update title per question (important for mixmaster)
+            try {
+                const title = gameTitles[game] || (game || '').toString().toUpperCase();
+                const titleEl = document.getElementById('gameTitle');
+                if (titleEl && title) titleEl.textContent = title;
+            } catch (_) {}
+
             console.log('📝 Question type:', typeof question);
             console.log('📝 Question value:', question);
             console.log('🎮 Game:', game);

@@ -667,38 +667,25 @@ io.on('connection', (socket) => {
                     count: room.players.length
                 });
                 
-                // If host disconnects, DON'T delete room immediately
-                // Give them 30 seconds to reconnect (for page navigation)
+                // If host disconnects, DO NOT delete room; keep room alive and notify players
                 if (room.hostId === socket.id) {
-                    console.log(`⚠️ Host disconnected from room ${socket.roomCode} - waiting for reconnect...`);
-                    
+                    console.log(`⚠️ Host disconnected from room ${socket.roomCode} - keeping room alive for reconnect.`);
+                    io.to(socket.roomCode).emit('host-disconnected');
                     room.hostDisconnectedAt = Date.now();
-                    
-                    // Only delete after 30 seconds if no reconnect
-                    setTimeout(() => {
-                        const currentRoom = rooms[socket.roomCode];
-                        if (currentRoom && currentRoom.hostDisconnectedAt) {
-                            io.to(socket.roomCode).emit('host-disconnected');
-                            delete rooms[socket.roomCode];
-                            console.log(`🗑️ Room ${socket.roomCode} deleted (host didn't reconnect)`);
-                        }
-                    }, 30000); // 30 seconds grace period
                 }
             }
         }
     });
 });
 
-// Clean up old rooms periodically (every hour)
+// Clean up very old rooms (disabled deletion for stability; only notify)
 setInterval(() => {
     const now = Date.now();
-    const MAX_ROOM_AGE = 6 * 60 * 60 * 1000; // 6 hours
-    
+    const MAX_ROOM_AGE = 12 * 60 * 60 * 1000; // 12 hours
     Object.keys(rooms).forEach(roomCode => {
         if (now - rooms[roomCode].createdAt > MAX_ROOM_AGE) {
             io.to(roomCode).emit('room-expired');
-            delete rooms[roomCode];
-            console.log(`🗑️ Room ${roomCode} expired and deleted`);
+            console.log(`⚠️ Room ${roomCode} exceeded max age; keeping for now.`);
         }
     });
 }, 60 * 60 * 1000);
