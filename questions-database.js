@@ -1106,6 +1106,60 @@ class QuestionManager {
 
     this.questionRatings = new Map();
     this.currentQuestionId = 0;
+    
+    // Load permanently removed questions
+    this.removedQuestionsFile = path.join(__dirname, 'data', 'removed-questions.json');
+    this.removedQuestions = this.loadRemovedQuestions();
+    
+    // Filter out removed questions from database on startup
+    this.filterRemovedQuestions();
+  }
+
+  // Load permanently removed questions from file
+  loadRemovedQuestions() {
+    try {
+      if (fs.existsSync(this.removedQuestionsFile)) {
+        const data = fs.readFileSync(this.removedQuestionsFile, 'utf8');
+        return JSON.parse(data);
+      }
+    } catch (error) {
+      console.warn('Could not load removed questions file:', error.message);
+    }
+    return [];
+  }
+
+  // Save permanently removed questions to file
+  saveRemovedQuestions() {
+    try {
+      // Ensure data directory exists
+      const dataDir = path.dirname(this.removedQuestionsFile);
+      if (!fs.existsSync(dataDir)) {
+        fs.mkdirSync(dataDir, { recursive: true });
+      }
+      
+      fs.writeFileSync(this.removedQuestionsFile, JSON.stringify(this.removedQuestions, null, 2));
+      console.log('💾 Saved removed questions to file');
+    } catch (error) {
+      console.error('Could not save removed questions:', error.message);
+    }
+  }
+
+  // Filter out removed questions from database on startup
+  filterRemovedQuestions() {
+    for (const removedQ of this.removedQuestions) {
+      const { game, intensity, questionText } = removedQ;
+      if (questionsDatabase[game] && questionsDatabase[game][intensity]) {
+        const questions = questionsDatabase[game][intensity];
+        const index = questions.findIndex(q => {
+          const text = typeof q === 'string' ? q : (q.optionA ? `${q.optionA} OR ${q.optionB}` : q.text);
+          return text === questionText;
+        });
+        if (index !== -1) {
+          questions.splice(index, 1);
+          console.log(`🗑️ Permanently removed question from ${game}/${intensity}`);
+        }
+      }
+    }
   }
 
   // Safety check method to ensure structure exists
@@ -1219,22 +1273,10 @@ class QuestionManager {
       timestamp: Date.now()
     });
 
-    // If downvoted, remove the question permanently from the database and reset caches
+    // If downvoted, remove the question permanently from the database and save to file
     if (!isThumbsUp) {
       try {
         // Find the question in databases by current id by scanning all categories
-        const removeFrom = (gameKey, intensityKey) => {
-          const list = questionsDatabase[gameKey] && questionsDatabase[gameKey][intensityKey];
-          if (!Array.isArray(list)) return false;
-          const idx = list.findIndex(q => {
-            if (typeof q === 'string') {
-              return this.currentQuestionId === questionId && q; // id-based removal handled separately
-            }
-            return this.currentQuestionId === questionId && q; // placeholder, we will map by id below
-          });
-          return false;
-        };
-        // Since questions don't store id in the DB, remove the last served question matching id from usedQuestions cache
         for (const gameKey of Object.keys(this.usedQuestions)) {
           for (const intensityKey of Object.keys(this.usedQuestions[gameKey])) {
             const usedList = this.usedQuestions[gameKey][intensityKey];
@@ -1244,17 +1286,27 @@ class QuestionManager {
             });
             if (idx !== -1) {
               const q = usedList[idx];
+              const questionText = typeof q === 'string' ? q : (q.optionA ? `${q.optionA} OR ${q.optionB}` : q.text);
+              
               // Remove from master database
               const dbList = questionsDatabase[gameKey] && questionsDatabase[gameKey][intensityKey];
               if (Array.isArray(dbList)) {
                 const matchIndex = dbList.findIndex(entry => {
                   const text = typeof entry === 'string' ? entry : (entry.optionA ? `${entry.optionA} OR ${entry.optionB}` : entry.text);
-                  const qText = typeof q === 'string' ? q : (q.optionA ? `${q.optionA} OR ${q.optionB}` : q.text);
-                  return text === qText;
+                  return text === questionText;
                 });
                 if (matchIndex !== -1) {
                   dbList.splice(matchIndex, 1);
                   console.log(`🗑️ Question removed from ${gameKey}/${intensityKey}`);
+                  
+                  // Add to permanently removed list and save to file
+                  this.removedQuestions.push({
+                    game: gameKey,
+                    intensity: intensityKey,
+                    questionText: questionText,
+                    timestamp: Date.now()
+                  });
+                  this.saveRemovedQuestions();
                 }
               }
               // Also remove from used cache so it won't show again
