@@ -460,12 +460,14 @@
         
         /* Spotlight Views */
         .spotlight-player-view,
-        .spectator-view {
+        .spectator-view,
+        .spotlight-guessing-view {
             display: none;
         }
         
         .spotlight-player-view.active,
-        .spectator-view.active {
+        .spectator-view.active,
+        .spotlight-guessing-view.active {
             display: block;
         }
         
@@ -549,6 +551,43 @@
             font-size: 16px;
             color: rgba(255,255,255,0.95);
             font-weight: 600;
+        }
+        
+        /* Spotlight Guessing View */
+        .guessing-header {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+        
+        .guessing-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #FACC15;
+            margin-bottom: 8px;
+        }
+        
+        .guessing-subtitle {
+            color: rgba(255,255,255,0.9);
+            font-size: 16px;
+        }
+        
+        .guessing-question {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            color: white;
+            font-size: 16px;
+            line-height: 1.4;
+            text-align: center;
+        }
+        
+        .guessing-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
         }
         
         /* Confirmation Message */
@@ -711,6 +750,18 @@
                         <strong id="spectatingPlayerName">Player</strong> is in the spotlight
                     </div>
                     <div class="spectating-status" id="spectatingStatus">Thinking...</div>
+                </div>
+            </div>
+            
+            <!-- Spotlight Guessing View (Guess what spotlight player answered) -->
+            <div class="spotlight-guessing-view" id="spotlightGuessingView">
+                <div class="guessing-header">
+                    <div class="guessing-title">🎯 Guess what they answered!</div>
+                    <div class="guessing-subtitle">What do you think <span id="guessingPlayerName">Player</span> chose?</div>
+                </div>
+                <div class="guessing-question" id="guessingQuestion">Question will appear here</div>
+                <div class="guessing-buttons" id="guessingButtons">
+                    <!-- Dynamic buttons will be inserted here -->
                 </div>
             </div>
             
@@ -975,6 +1026,31 @@
                 // Hide spotlight views
                 document.getElementById('spotlightPlayerView').classList.remove('active');
                 document.getElementById('spectatorView').classList.remove('active');
+                document.getElementById('spotlightGuessingView').classList.remove('active');
+            });
+
+            // Spotlight guessing phase - show question to all after spotlight answers
+            socket.on('spotlight-guessing-phase', (data) => {
+                console.log('Spotlight guessing phase:', data);
+                const { question, spotlightPlayer } = data;
+                
+                // Hide other views
+                document.getElementById('spotlightPlayerView').classList.remove('active');
+                document.getElementById('spectatorView').classList.remove('active');
+                
+                // Show guessing view for non-spotlight players
+                if (playerData.name !== spotlightPlayer) {
+                    document.getElementById('spotlightGuessingView').classList.add('active');
+                    setupSpotlightGuessingButtons(question);
+                }
+            });
+
+            // All players have guessed, show reveal button
+            socket.on('all-guessed-received', (data) => {
+                console.log('All guessed received:', data);
+                if (data.readyToReveal) {
+                    document.getElementById('revealAnswerBtn').classList.add('active');
+                }
             });
             
             // Vote confirmed
@@ -1128,6 +1204,7 @@
             document.getElementById('fmkContainer').classList.remove('active');
             document.getElementById('spotlightPlayerView').classList.remove('active');
             document.getElementById('spectatorView').classList.remove('active');
+            document.getElementById('spotlightGuessingView').classList.remove('active');
             document.getElementById('confirmationMessage').classList.remove('show');
             document.getElementById('revealBtn').classList.remove('active');
             
@@ -1911,6 +1988,57 @@
                 `;
             }
         }
+
+        // Setup spotlight guessing buttons
+        function setupSpotlightGuessingButtons(questionData) {
+            const container = document.getElementById('guessingButtons');
+            const questionEl = document.getElementById('guessingQuestion');
+            const playerNameEl = document.getElementById('guessingPlayerName');
+            
+            // Update question text
+            if (questionData.text) {
+                questionEl.textContent = questionData.text;
+            } else if (questionData.optionA && questionData.optionB) {
+                questionEl.textContent = `${questionData.optionA} OR ${questionData.optionB}`;
+            }
+            
+            // Update player name
+            playerNameEl.textContent = questionData.spotlightPlayer || 'Player';
+            
+            // Setup buttons based on game type
+            container.innerHTML = '';
+            
+            if (questionData.game === 'never_have_i_ever') {
+                container.innerHTML = `
+                    <button class="vote-btn" onclick="submitSpotlightGuess('have')">✅ I HAVE</button>
+                    <button class="vote-btn" onclick="submitSpotlightGuess('havent')">❌ I HAVE NEVER</button>
+                `;
+            } else if (questionData.game === 'hot_takes') {
+                container.innerHTML = `
+                    <button class="vote-btn" onclick="submitSpotlightGuess('agree')">✅ AGREE</button>
+                    <button class="vote-btn" onclick="submitSpotlightGuess('disagree')">❌ DISAGREE</button>
+                `;
+            } else if (questionData.game === 'would_you_rather') {
+                container.innerHTML = `
+                    <button class="vote-btn" onclick="submitSpotlightGuess('optionA')">🅰️ OPTION A</button>
+                    <button class="vote-btn" onclick="submitSpotlightGuess('optionB')">🅱️ OPTION B</button>
+                `;
+            }
+        }
+
+        // Submit spotlight guess
+        function submitSpotlightGuess(guess) {
+            if (socket && socket.connected) {
+                socket.emit('spotlight-guess', {
+                    roomCode: gameConfig.roomCode,
+                    guess: guess
+                });
+                console.log('🎯 Submitted spotlight guess:', guess);
+                
+                // Show confirmation
+                showConfirmation();
+            }
+        }
         
         // Select spotlight answer
         function selectSpotlightAnswer(answer) {
@@ -1924,7 +2052,8 @@
             // Send answer to server (private)
             socket.emit('spotlight-answer', {
                 roomCode: playerData.roomCode,
-                answer: answer
+                answer: answer,
+                playerName: playerData.name
             });
         }
         

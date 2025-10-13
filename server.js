@@ -365,6 +365,9 @@ io.on('connection', (socket) => {
                 
                 console.log('✅ Question fetched:', question);
                 
+                // Store current question in room for spotlight mode
+                room.currentQuestion = question;
+                
                 // Send to all clients in room - send the FULL question object
                 io.to(roomCode).emit('new-question', {
                     ...question, // Spread all question properties (text, optionA, optionB, etc.)
@@ -585,12 +588,26 @@ io.on('connection', (socket) => {
                 return;
             }
             
-            // Store answer privately
+            // Store answer privately and spotlight player
             room.spotlightAnswer = answer;
+            room.spotlightPlayer = data.playerName;
+            room.spotlightGuesses = {}; // Reset guesses
             
             // Update status to ready (but don't reveal answer yet)
             io.to(roomCode).emit('spotlight-status', {
                 status: 'ready-to-reveal'
+            });
+
+            // Trigger spotlight guessing phase - show question to all
+            socket.emit('spotlight-show-question', {
+                roomCode: roomCode,
+                questionData: {
+                    text: room.currentQuestion?.text,
+                    optionA: room.currentQuestion?.optionA,
+                    optionB: room.currentQuestion?.optionB,
+                    game: room.game,
+                    spotlightPlayer: data.playerName
+                }
             });
             
             console.log(`💭 Spotlight answer saved for room ${roomCode}`);
@@ -620,6 +637,63 @@ io.on('connection', (socket) => {
         } catch (error) {
             console.error('Reveal answer error:', error);
             socket.emit('error', { message: error.message });
+        }
+    });
+
+    // Spotlight guessing phase - show question to all after spotlight answers
+    socket.on('spotlight-show-question', (data) => {
+        try {
+            const { roomCode, questionData } = data;
+            const room = rooms[roomCode];
+            
+            if (!room) {
+                socket.emit('error', { message: 'Room not found' });
+                return;
+            }
+            
+            // Show question and voting options to all players (except spotlight)
+            io.to(roomCode).emit('spotlight-guessing-phase', {
+                question: questionData,
+                spotlightPlayer: room.spotlightPlayer
+            });
+            
+            console.log(`🎯 Spotlight guessing phase started in room ${roomCode}`);
+        } catch (error) {
+            console.error('Spotlight show question error:', error);
+        }
+    });
+
+    // Handle guessing votes in spotlight mode
+    socket.on('spotlight-guess', (data) => {
+        try {
+            const { roomCode, guess } = data;
+            const room = rooms[roomCode];
+            
+            if (!room) {
+                socket.emit('error', { message: 'Room not found' });
+                return;
+            }
+            
+            // Store the guess
+            if (!room.spotlightGuesses) {
+                room.spotlightGuesses = {};
+            }
+            room.spotlightGuesses[socket.id] = guess;
+            
+            // Check if all non-spotlight players have guessed
+            const nonSpotlightPlayers = room.players.filter(p => p.name !== room.spotlightPlayer);
+            const guessesReceived = Object.keys(room.spotlightGuesses).length;
+            
+            if (guessesReceived >= nonSpotlightPlayers.length) {
+                // All players have guessed, show reveal button
+                io.to(roomCode).emit('all-guessed-received', {
+                    readyToReveal: true
+                });
+            }
+            
+            console.log(`🎯 Guess received from ${socket.id} in room ${roomCode}`);
+        } catch (error) {
+            console.error('Spotlight guess error:', error);
         }
     });
     

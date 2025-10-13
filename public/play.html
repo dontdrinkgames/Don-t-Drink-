@@ -272,6 +272,74 @@
             font-weight: 700;
             color: #1a1a1a;
         }
+
+        /* Spotlight Guessing Phase */
+        .spotlight-guessing-phase {
+            margin: 30px 0;
+            padding: 30px;
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+
+        .guessing-header {
+            margin-bottom: 20px;
+        }
+
+        .guessing-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #FACC15;
+            margin-bottom: 8px;
+        }
+
+        .guessing-subtitle {
+            color: rgba(255,255,255,0.9);
+            font-size: 1.1rem;
+        }
+
+        .guessing-question {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            padding: 20px;
+            margin: 20px 0;
+            color: white;
+            font-size: 1.1rem;
+            line-height: 1.4;
+        }
+
+        .guessing-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .reveal-answer-btn {
+            background: #F59E0B;
+            color: white;
+            border: none;
+            padding: 16px 32px;
+            border-radius: 18px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            filter: drop-shadow(4px 6px 0px #D97706);
+            transition: all 0.3s;
+            margin-top: 20px;
+        }
+
+        .reveal-answer-btn:hover {
+            transform: translateY(-4px);
+            filter: drop-shadow(6px 8px 0px #D97706);
+        }
+
+        .reveal-answer-btn.active {
+            display: block;
+        }
         
         /* Buttons */
         .button-group {
@@ -441,6 +509,19 @@
             <div class="spotlight-status" id="spotlightStatus">In the Spotlight</div>
             <div class="spotlight-answer hidden" id="spotlightAnswer"></div>
         </div>
+
+        <!-- Spotlight Guessing Phase (hidden by default) -->
+        <div class="spotlight-guessing-phase hidden" id="spotlightGuessingPhase">
+            <div class="guessing-header">
+                <div class="guessing-title">🎯 Guess what they answered!</div>
+                <div class="guessing-subtitle">What do you think <span id="guessingPlayerName">Player</span> chose?</div>
+            </div>
+            <div class="guessing-question" id="guessingQuestion">Question will appear here</div>
+            <div class="guessing-buttons" id="guessingButtons">
+                <!-- Dynamic buttons will be inserted here -->
+            </div>
+            <button class="reveal-answer-btn hidden" id="revealAnswerBtn">🍺 Reveal Answer</button>
+        </div>
         
         <!-- Button Group -->
         <div class="button-group">
@@ -525,6 +606,7 @@
             document.getElementById('nextBtn').onclick = loadNextQuestion;
             document.getElementById('downvoteBtn').onclick = downvoteCurrentQuestion;
             document.getElementById('endBtn').onclick = endGame;
+            document.getElementById('revealAnswerBtn').onclick = revealSpotlightAnswer;
         });
         
         // Update game info display
@@ -623,6 +705,20 @@
             socket.on('spotlight-active', (data) => {
                 console.log('Spotlight active:', data);
                 showSpotlight(data);
+            });
+
+            // Spotlight guessing phase - show question to all after spotlight answers
+            socket.on('spotlight-guessing-phase', (data) => {
+                console.log('Spotlight guessing phase:', data);
+                showSpotlightGuessingPhase(data);
+            });
+
+            // All players have guessed, show reveal button
+            socket.on('all-guessed-received', (data) => {
+                console.log('All guessed received:', data);
+                if (data.readyToReveal) {
+                    document.getElementById('revealAnswerBtn').classList.add('active');
+                }
             });
             
             socket.on('answer-revealed', (data) => {
@@ -1185,19 +1281,100 @@
         function showSpotlight(data) {
             const { player, avatar, status } = data;
             
+            // Hide other displays
+            document.getElementById('votingResults').classList.add('hidden');
+            document.getElementById('fmkGrid').classList.add('hidden');
+            document.getElementById('wyrOptions').classList.add('hidden');
+            document.getElementById('spotlightGuessingPhase').classList.add('hidden');
+            
             document.getElementById('spotlightEmoji').textContent = avatar || '🎯';
             document.getElementById('spotlightPlayerName').textContent = player;
             document.getElementById('spotlightStatus').textContent = status === 'thinking' ? 'Thinking...' : 'Ready to reveal...';
             document.getElementById('spotlightDisplay').classList.remove('hidden');
             document.getElementById('spotlightAnswer').classList.add('hidden');
         }
+
+        // Show spotlight guessing phase
+        function showSpotlightGuessingPhase(data) {
+            const { question, spotlightPlayer } = data;
+            
+            // Hide other displays
+            document.getElementById('votingResults').classList.add('hidden');
+            document.getElementById('fmkGrid').classList.add('hidden');
+            document.getElementById('wyrOptions').classList.add('hidden');
+            document.getElementById('spotlightDisplay').classList.add('hidden');
+            
+            // Show guessing phase
+            const guessingPhase = document.getElementById('spotlightGuessingPhase');
+            guessingPhase.classList.remove('hidden');
+            
+            // Update question and player info
+            const questionEl = document.getElementById('guessingQuestion');
+            const playerNameEl = document.getElementById('guessingPlayerName');
+            
+            if (question.text) {
+                questionEl.textContent = question.text;
+            } else if (question.optionA && question.optionB) {
+                questionEl.textContent = `${question.optionA} OR ${question.optionB}`;
+            }
+            
+            playerNameEl.textContent = spotlightPlayer;
+            
+            // Setup guessing buttons
+            setupSpotlightGuessingButtons(question);
+        }
+
+        // Setup spotlight guessing buttons
+        function setupSpotlightGuessingButtons(question) {
+            const container = document.getElementById('guessingButtons');
+            container.innerHTML = '';
+            
+            if (question.game === 'never_have_i_ever') {
+                container.innerHTML = `
+                    <button class="wyr-option" onclick="submitHostSpotlightGuess('have')">✅ I HAVE</button>
+                    <button class="wyr-option" onclick="submitHostSpotlightGuess('havent')">❌ I HAVE NEVER</button>
+                `;
+            } else if (question.game === 'hot_takes') {
+                container.innerHTML = `
+                    <button class="wyr-option" onclick="submitHostSpotlightGuess('agree')">✅ AGREE</button>
+                    <button class="wyr-option" onclick="submitHostSpotlightGuess('disagree')">❌ DISAGREE</button>
+                `;
+            } else if (question.game === 'would_you_rather') {
+                container.innerHTML = `
+                    <button class="wyr-option" onclick="submitHostSpotlightGuess('optionA')">🅰️ OPTION A</button>
+                    <button class="wyr-option" onclick="submitHostSpotlightGuess('optionB')">🅱️ OPTION B</button>
+                `;
+            }
+        }
+
+        // Submit host spotlight guess
+        function submitHostSpotlightGuess(guess) {
+            if (socket && socket.connected) {
+                socket.emit('spotlight-guess', {
+                    roomCode: gameConfig.roomCode,
+                    guess: guess
+                });
+                console.log('🎯 Host submitted spotlight guess:', guess);
+            }
+        }
         
         // Reveal spotlight answer
         function revealSpotlightAnswer(data) {
-            const answerEl = document.getElementById('spotlightAnswer');
-            answerEl.textContent = data.answer || 'Answer revealed!';
-            answerEl.classList.remove('hidden');
-            document.getElementById('spotlightStatus').textContent = 'Answer revealed!';
+            if (typeof data === 'object' && data.answer) {
+                // Called from socket event
+                const answerEl = document.getElementById('spotlightAnswer');
+                answerEl.textContent = data.answer || 'Answer revealed!';
+                answerEl.classList.remove('hidden');
+                document.getElementById('spotlightStatus').textContent = 'Answer revealed!';
+            } else {
+                // Called from button click
+                if (socket && socket.connected) {
+                    socket.emit('reveal-answer', {
+                        roomCode: gameConfig.roomCode
+                    });
+                    console.log('🍺 Revealing spotlight answer');
+                }
+            }
         }
         
         // Update players display
