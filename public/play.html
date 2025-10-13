@@ -435,6 +435,7 @@
         let currentQuestion = null;
         let players = [];
         let currentMode = null; // For mixmaster
+        let lastVoteData = null; // cache last vote snapshot for reveal
         
         // Game title mappings
         const gameTitles = {
@@ -580,6 +581,7 @@
                     resultsRevealed = true;
                 }
                 
+                lastVoteData = data;
                 updateVotingDisplay(data);
             });
             
@@ -890,21 +892,86 @@
                 html += '</div>';
             } else {
                 // NORMAL (WYR, NHIE, etc)
-                // If this is WYR and votes use labels like "Option A/B", remap to actual option text
-                const optionLabelMap = {};
-                if (document.getElementById('wyrOptions') && !document.getElementById('wyrOptions').classList.contains('hidden')) {
+                const wyrActive = document.getElementById('wyrOptions') && !document.getElementById('wyrOptions').classList.contains('hidden');
+
+                if (wyrActive) {
                     const aText = (document.getElementById('optionA')?.textContent || '').trim();
                     const bText = (document.getElementById('optionB')?.textContent || '').trim();
-                    if (aText) optionLabelMap['Option A'] = aText;
-                    if (bText) optionLabelMap['Option B'] = bText;
-                }
 
-                // Build cards using remapped labels when present
-                for (const rawOption of allOptions) {
-                const displayOption = optionLabelMap[rawOption] || rawOption;
-                const count = votes[rawOption] || 0;
-                const percentage = totalPlayers > 0 ? Math.round((count / totalPlayers) * 100) : 0;
-                const votersForOption = voters[rawOption] || [];
+                    // Normalize vote keys into A/B buckets
+                    const isKeyForA = (k) => {
+                        const key = String(k).trim().toLowerCase();
+                        return key === 'a' || key === 'option a' || key === 'option_a' || key === 'optiona' || key === aText.trim().toLowerCase();
+                    };
+                    const isKeyForB = (k) => {
+                        const key = String(k).trim().toLowerCase();
+                        return key === 'b' || key === 'option b' || key === 'option_b' || key === 'optionb' || key === bText.trim().toLowerCase();
+                    };
+
+                    // Aggregate counts and voters
+                    let countA = 0, countB = 0;
+                    let votersA = [], votersB = [];
+                    for (const [k, c] of Object.entries(votes)) {
+                        if (isKeyForA(k)) countA += c || 0;
+                        if (isKeyForB(k)) countB += c || 0;
+                    }
+                    for (const [k, list] of Object.entries(voters || {})) {
+                        if (isKeyForA(k)) votersA.push(...list);
+                        if (isKeyForB(k)) votersB.push(...list);
+                    }
+
+                    // Render exactly two cards: A and B (even if zero)
+                    const optionsToRender = [
+                        { label: aText || 'Option A', count: countA, voters: votersA },
+                        { label: bText || 'Option B', count: countB, voters: votersB }
+                    ];
+
+                    html += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 15px; width: 100%;">';
+                    for (const item of optionsToRender) {
+                        const percentage = totalPlayers > 0 ? Math.round(((item.count || 0) / totalPlayers) * 100) : 0;
+                        html += `
+                            <div style="
+                                background: linear-gradient(135deg, rgba(124, 58, 237, 0.25), rgba(168, 85, 247, 0.2));
+                                border: 2px solid rgba(168, 85, 247, 0.3);
+                                border-radius: 16px;
+                                padding: 15px;
+                                box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+                                display: flex;
+                                flex-direction: column;
+                                align-items: center;
+                            ">
+                                <h4 style="color: white; font-size: 1.1rem; font-weight: 700; margin: 0 0 12px 0; text-align: center; word-break: break-word;">${item.label}</h4>
+                                <div style="
+                                    width: 100%; max-width: 100px; height: 120px; background: rgba(0, 0, 0, 0.3);
+                                    border-radius: 12px; position: relative; display: flex; flex-direction: column;
+                                    justify-content: flex-end; overflow: hidden; margin-bottom: 10px;">
+                                    <div style="
+                                        background: linear-gradient(to top, #7C3AED, #A855F7, #C084FC);
+                                        width: 100%; height: ${Math.max(percentage * 1.2, 15)}px; border-radius: 0 0 12px 12px;
+                                        transition: height 0.7s cubic-bezier(0.34, 1.56, 0.64, 1); box-shadow: 0 -4px 20px rgba(168, 85, 247, 0.5);
+                                        display: flex; align-items: center; justify-content: center;" aria-label="${item.label}: ${item.count || 0} votes, ${percentage}%">
+                                        ${percentage > 15 ? `<span style="color: white; font-weight: 700; font-size: 1rem;">${percentage}%</span>` : ''}
+                                    </div>
+                                    ${percentage <= 15 ? `<div style="position: absolute; top: -30px; left: 50%; transform: translateX(-50%); color: white; font-weight: 700; font-size: 1rem;">${percentage}%</div>` : ''}
+                                </div>
+                                <div style="color: rgba(255, 255, 255, 0.8); font-size: 0.85rem; margin-bottom: 10px; font-weight: 600;">
+                                    ${(item.count || 0)} vote${(item.count || 0) !== 1 ? 's' : ''}
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 8px; width: 100%; align-items: center;">
+                                    ${item.voters.length > 0 ? item.voters.map(voter => `
+                                        <div style="background: #7C3AED; color: white; padding: 8px 16px; border-radius: 14px; font-size: 0.9rem; font-weight: 600; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2); white-space: nowrap; max-width: 100%; overflow: hidden; text-overflow: ellipsis;">${voter}</div>
+                                    `).join('') : '<div style="color: rgba(255, 255, 255, 0.4); font-size: 0.9rem; font-style: italic;">No votes</div>'}
+                                </div>
+                            </div>
+                        `;
+                    }
+                    html += '</div>';
+                } else {
+                    // Default: render a card per vote option key
+                    for (const option of allOptions) {
+                        const count = votes[option] || 0;
+                        const percentage = totalPlayers > 0 ? Math.round((count / totalPlayers) * 100) : 0;
+                        const votersForOption = voters[option] || [];
                 
                 console.log(`   - Card for "${option}": ${count} votes (${percentage}%), voters:`, votersForOption);
                 
@@ -931,7 +998,7 @@
                             text-align: center;
                             word-break: break-word;
                         ">
-                            ${displayOption}
+                            ${option}
                         </h4>
                         
                         <!-- Vertical Bar Container -->
@@ -1017,6 +1084,7 @@
                         </div>
                     </div>
                 `;
+                    }
                 }
             }
             
@@ -1037,6 +1105,10 @@
             
             console.log('   - Emitted reveal-results');
             console.log('   - resultsRevealed is now:', resultsRevealed);
+            // Immediately render locally using last snapshot so host shows results even before server re-emits
+            if (lastVoteData) {
+                updateVotingDisplay(lastVoteData);
+            }
         }
         
         // Show spotlight
