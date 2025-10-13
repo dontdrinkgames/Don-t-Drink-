@@ -238,7 +238,7 @@
         .waiting-text {
             font-size: 24px;
             font-weight: 700;
-            color: #667eea;
+            color: white;
             margin-bottom: 10px;
         }
         
@@ -926,8 +926,8 @@
                     console.log('✅ Updated vote counter');
                 }
                 
-                // If all voted and results revealed, show results on mobile too
-                if (data.totalVotes === data.totalPlayers && data.revealed) {
+                // If results revealed, show results on mobile too (even if not everyone voted)
+                if (data.revealed) {
                     console.log('🎯 All voted and revealed - showing results!');
                     showMobileResults(data);
                 } else {
@@ -1598,21 +1598,80 @@
             const resultsEl = document.getElementById('mobileResults');
             const contentEl = document.getElementById('mobileResultsContent');
             
-            let html = '<h3 style="color: white; margin-bottom: 20px; font-size: 1.2rem; text-align: center;">📊 The Results</h3>';
+            let html = '<h3 style="color: white; margin-bottom: 20px; font-size: 1.2rem; text-align: center;">The Results</h3>';
             
             // Get ALL options (maintain order)
             const allOptions = Object.keys(data.votes);
             
             console.log('📊 Building mobile scoreboard cards for:', allOptions);
             
-            // Stack cards vertically on mobile
-            html += '<div style="display: flex; flex-direction: column; gap: 20px;">';
-            
-            // Create SEPARATE CARD for each option
-            for (const option of allOptions) {
-                const count = data.votes[option] || 0;
-                const percentage = data.totalPlayers > 0 ? Math.round((count / data.totalPlayers) * 100) : 0;
-                const votersForOption = data.voters[option] || [];
+            // If this is FMK (votes like "F: X, M: Y, K: Z"), build stacked person cards
+            const fmkFormat = allOptions.length > 0 && allOptions[0].includes('F:');
+            if (fmkFormat) {
+                // Tally per person: raw counts of F/M/K and voter names
+                const personTallies = {};
+                for (const [voteString, count] of Object.entries(data.votes)) {
+                    const parts = voteString.split(',').map(p => p.trim());
+                    const fPart = parts.find(p => p.startsWith('F:'));
+                    const mPart = parts.find(p => p.startsWith('M:'));
+                    const kPart = parts.find(p => p.startsWith('K:'));
+                    const votersForThis = data.voters[voteString] || [];
+                    if (fPart) {
+                        const person = fPart.substring(2).trim();
+                        if (!personTallies[person]) personTallies[person] = { F: 0, M: 0, K: 0, votersF: [], votersM: [], votersK: [] };
+                        personTallies[person].F += count || 0;
+                        personTallies[person].votersF.push(...votersForThis);
+                    }
+                    if (mPart) {
+                        const person = mPart.substring(2).trim();
+                        if (!personTallies[person]) personTallies[person] = { F: 0, M: 0, K: 0, votersF: [], votersM: [], votersK: [] };
+                        personTallies[person].M += count || 0;
+                        personTallies[person].votersM.push(...votersForThis);
+                    }
+                    if (kPart) {
+                        const person = kPart.substring(2).trim();
+                        if (!personTallies[person]) personTallies[person] = { F: 0, M: 0, K: 0, votersF: [], votersM: [], votersK: [] };
+                        personTallies[person].K += count || 0;
+                        personTallies[person].votersK.push(...votersForThis);
+                    }
+                }
+                html += '<div style="display:flex; flex-direction: column; gap: 16px;">';
+                for (const [person, t] of Object.entries(personTallies)) {
+                    html += `
+                        <div style="background: linear-gradient(135deg, rgba(124,58,237,0.25), rgba(168,85,247,0.2)); border: 2px solid rgba(168,85,247,0.3); border-radius: 16px; padding: 16px; box-shadow: 0 6px 20px rgba(0,0,0,0.3);">
+                            <h4 style="color:white; font-size:1.2rem; font-weight:800; margin:0 0 10px 0;">${person}</h4>
+                            <div style="display:grid; grid-template-columns: repeat(3,1fr); gap:10px; margin-bottom: 8px;">
+                                <div style="background:#7C3AED; border-radius:12px; padding:10px; text-align:center;">
+                                    <div style="color:white; font-weight:900;">F</div>
+                                    <div style="color:white; font-size:1.1rem; font-weight:900;">${t.F || 0}</div>
+                                </div>
+                                <div style="background:#10B981; border-radius:12px; padding:10px; text-align:center;">
+                                    <div style="color:white; font-weight:900;">M</div>
+                                    <div style="color:white; font-size:1.1rem; font-weight:900;">${t.M || 0}</div>
+                                </div>
+                                <div style="background:#DC2626; border-radius:12px; padding:10px; text-align:center;">
+                                    <div style="color:white; font-weight:900;">K</div>
+                                    <div style="color:white; font-size:1.1rem; font-weight:900;">${t.K || 0}</div>
+                                </div>
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:6px;">
+                                ${t.votersF.length ? `<div><span style=\"background:#7C3AED; color:white; padding:4px 8px; border-radius:10px; font-weight:700; margin-right:6px;\">F</span>${t.votersF.map(v=>`<span style=\\"background:rgba(255,255,255,0.15); color:white; padding:4px 8px; border-radius:10px; margin-right:6px;\\">${v}</span>`).join('')}</div>` : ''}
+                                ${t.votersM.length ? `<div><span style=\"background:#10B981; color:white; padding:4px 8px; border-radius:10px; font-weight:700; margin-right:6px;\">M</span>${t.votersM.map(v=>`<span style=\\"background:rgba(255,255,255,0.15); color:white; padding:4px 8px; border-radius:10px; margin-right:6px;\\">${v}</span>`).join('')}</div>` : ''}
+                                ${t.votersK.length ? `<div><span style=\"background:#DC2626; color:white; padding:4px 8px; border-radius:10px; font-weight:700; margin-right:6px;\">K</span>${t.votersK.map(v=>`<span style=\\"background:rgba(255,255,255,0.15); color:white; padding:4px 8px; border-radius:10px; margin-right:6px;\\">${v}</span>`).join('')}</div>` : ''}
+                            </div>
+                        </div>
+                    `;
+                }
+                html += '</div>';
+            } else {
+                // Stack cards vertically on mobile
+                html += '<div style="display: flex; flex-direction: column; gap: 20px;">';
+                
+                // Create SEPARATE CARD for each option
+                for (const option of allOptions) {
+                    const count = data.votes[option] || 0;
+                    const percentage = data.totalPlayers > 0 ? Math.round((count / data.totalPlayers) * 100) : 0;
+                    const votersForOption = data.voters[option] || [];
                 
                 console.log(`   - Mobile card for "${option}": ${count} votes (${percentage}%)`);
                 
@@ -1725,6 +1784,7 @@
                         </div>
                     </div>
                 `;
+                }
             }
             
             html += '</div>'; // Close container
