@@ -664,6 +664,17 @@ io.on('connection', (socket) => {
             console.error('Rate question error:', error);
         }
     });
+
+    // Get removed questions for review
+    socket.on('get-removed-questions', (data) => {
+        try {
+            if (!questionManager) return;
+            const removedQuestions = questionManager.getRemovedQuestions();
+            socket.emit('removed-questions-list', { removedQuestions });
+        } catch (error) {
+            console.error('Get removed questions error:', error);
+        }
+    });
     
     // Clear votes for new question
     socket.on('clear-votes', (data) => {

@@ -62,6 +62,7 @@
             border: 1px solid rgba(255,255,255,0.18);
             box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
             margin-bottom: 12px;
+            position: relative;
         }
         
         .question-number {
@@ -306,20 +307,28 @@
         }
         
         .downvote-btn {
+            position: absolute;
+            top: 20px;
+            right: 20px;
             background: #F59E0B;
             color: white;
             border: none;
-            padding: 16px 38px;
-            border-radius: 18px;
-            font-size: 1.1rem;
+            padding: 12px 16px;
+            border-radius: 50%;
+            font-size: 2rem;
             font-weight: 700;
             cursor: pointer;
             filter: drop-shadow(4px 6px 0px #D97706);
             transition: all 0.3s;
+            width: 60px;
+            height: 60px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
         
         .downvote-btn:hover {
-            transform: translateY(-4px);
+            transform: translateY(-4px) scale(1.1);
             filter: drop-shadow(6px 8px 0px #D97706);
         }
         
@@ -411,6 +420,7 @@
         <div class="mode-indicator" id="modeIndicator">🎲 Mixmaster Mode</div>
         
         <div class="question-text" id="questionText">Loading question...</div>
+        <button class="downvote-btn" id="downvoteBtn" title="Remove this question permanently">👎</button>
         
         <!-- WYR Options (hidden by default) -->
         <div class="wyr-options hidden" id="wyrOptions">
@@ -435,7 +445,6 @@
         <!-- Button Group -->
         <div class="button-group">
             <button class="next-btn" id="nextBtn">Next Question</button>
-            <button class="downvote-btn" id="downvoteBtn">👎 Downvote</button>
             <button class="end-btn" id="endBtn">End Game</button>
         </div>
     </div>
@@ -1154,11 +1163,18 @@
             }
         }
 
-        // Downvote current question: instruct server to remove it
+        // Downvote current question: show confirmation dialog first
         function downvoteCurrentQuestion() {
-            if (socket && socket.connected) {
-                socket.emit('rate-question', { roomCode: gameConfig.roomCode, questionId: currentQuestion?.id, upvote: false });
-                console.log('👎 Downvoted question', currentQuestion?.id);
+            if (!currentQuestion) return;
+            
+            const questionText = currentQuestion.text || `${currentQuestion.optionA} OR ${currentQuestion.optionB}`;
+            const confirmMessage = `If you click this button, this question will be deleted forever:\n\n"${questionText}"\n\nAre you sure?`;
+            
+            if (confirm(confirmMessage)) {
+                if (socket && socket.connected) {
+                    socket.emit('rate-question', { roomCode: gameConfig.roomCode, questionId: currentQuestion?.id, upvote: false });
+                    console.log('👎 Downvoted question', currentQuestion?.id);
+                }
             }
         }
         

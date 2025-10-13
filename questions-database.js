@@ -1107,59 +1107,13 @@ class QuestionManager {
     this.questionRatings = new Map();
     this.currentQuestionId = 0;
     
-    // Load permanently removed questions
-    this.removedQuestionsFile = path.join(__dirname, 'data', 'removed-questions.json');
-    this.removedQuestions = this.loadRemovedQuestions();
-    
-    // Filter out removed questions from database on startup
-    this.filterRemovedQuestions();
+    // Internal list of removed questions for review (not persistent)
+    this.removedQuestions = [];
   }
 
-  // Load permanently removed questions from file
-  loadRemovedQuestions() {
-    try {
-      if (fs.existsSync(this.removedQuestionsFile)) {
-        const data = fs.readFileSync(this.removedQuestionsFile, 'utf8');
-        return JSON.parse(data);
-      }
-    } catch (error) {
-      console.warn('Could not load removed questions file:', error.message);
-    }
-    return [];
-  }
-
-  // Save permanently removed questions to file
-  saveRemovedQuestions() {
-    try {
-      // Ensure data directory exists
-      const dataDir = path.dirname(this.removedQuestionsFile);
-      if (!fs.existsSync(dataDir)) {
-        fs.mkdirSync(dataDir, { recursive: true });
-      }
-      
-      fs.writeFileSync(this.removedQuestionsFile, JSON.stringify(this.removedQuestions, null, 2));
-      console.log('💾 Saved removed questions to file');
-    } catch (error) {
-      console.error('Could not save removed questions:', error.message);
-    }
-  }
-
-  // Filter out removed questions from database on startup
-  filterRemovedQuestions() {
-    for (const removedQ of this.removedQuestions) {
-      const { game, intensity, questionText } = removedQ;
-      if (questionsDatabase[game] && questionsDatabase[game][intensity]) {
-        const questions = questionsDatabase[game][intensity];
-        const index = questions.findIndex(q => {
-          const text = typeof q === 'string' ? q : (q.optionA ? `${q.optionA} OR ${q.optionB}` : q.text);
-          return text === questionText;
-        });
-        if (index !== -1) {
-          questions.splice(index, 1);
-          console.log(`🗑️ Permanently removed question from ${game}/${intensity}`);
-        }
-      }
-    }
+  // Get list of removed questions for review
+  getRemovedQuestions() {
+    return this.removedQuestions;
   }
 
   // Safety check method to ensure structure exists
@@ -1299,14 +1253,13 @@ class QuestionManager {
                   dbList.splice(matchIndex, 1);
                   console.log(`🗑️ Question removed from ${gameKey}/${intensityKey}`);
                   
-                  // Add to permanently removed list and save to file
+                  // Add to internal removed list for review
                   this.removedQuestions.push({
                     game: gameKey,
                     intensity: intensityKey,
                     questionText: questionText,
                     timestamp: Date.now()
                   });
-                  this.saveRemovedQuestions();
                 }
               }
               // Also remove from used cache so it won't show again
