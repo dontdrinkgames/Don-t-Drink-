@@ -15,6 +15,15 @@
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
+
+        // Client keepalive pings to reduce disconnects on mobile
+        setInterval(() => {
+            try {
+                if (socket && socket.connected) {
+                    socket.emit('ping');
+                }
+            } catch (_) {}
+        }, 20000);
         
         html {
             height: 100%;
@@ -278,15 +287,18 @@
         }
         
         .game-question {
-            background: #A855F7;
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             padding: 40px 30px;
             border-radius: 24px;
+            border: 1px solid rgba(255,255,255,0.18);
             margin: 20px 0;
             min-height: 180px;
             display: flex;
             flex-direction: column;
             justify-content: center;
-            filter: drop-shadow(4px 6px 0px #7C3AED);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
         }
         
         /* FMK Drag and Drop */
@@ -514,11 +526,14 @@
         }
         
         .spectating-message {
-            background: #A855F7;
+            background: rgba(255, 255, 255, 0.12);
+            border: 1px solid rgba(255,255,255,0.18);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
             padding: 30px;
             border-radius: 24px;
             margin: 20px 0;
-            filter: drop-shadow(4px 6px 0px #7C3AED);
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
         }
         
         .spectating-emoji {
@@ -797,10 +812,10 @@
                 transports: ['polling', 'websocket'], // Polling first for mobile reliability
                 reconnection: true,
                 reconnectionAttempts: Infinity,
-                reconnectionDelay: 1000,
+                reconnectionDelay: 800,
                 reconnectionDelayMax: 10000,
                 randomizationFactor: 0.5,
-                timeout: 30000,
+                timeout: 45000,
                 autoConnect: true,
                 forceNew: true,
                 withCredentials: false
@@ -849,6 +864,16 @@
                 console.log('Reconnected after', attemptNumber, 'attempts');
                 hideError();
                 updateConnectionStatus(true);
+                // Auto-rejoin room after reconnect
+                if (playerData.roomCode && playerData.name) {
+                    socket.emit('join-room', {
+                        roomCode: playerData.roomCode,
+                        playerName: playerData.name,
+                        avatar: playerData.avatar
+                    }, (response) => {
+                        console.log('Auto-rejoin response:', response);
+                    });
+                }
             });
             
             // Join events
