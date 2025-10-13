@@ -1663,6 +1663,51 @@
                     `;
                 }
                 html += '</div>';
+            } else if (currentGameData && (currentGameData.game === 'would_you_rather' || currentGameData.game === 'wyr')) {
+                // Would You Rather: normalize keys to A/B and render exactly two cards with the actual option texts
+                const aText = (currentGameData.optionA || 'Option A').trim();
+                const bText = (currentGameData.optionB || 'Option B').trim();
+                const isKeyForA = (k) => {
+                    const key = String(k).trim().toLowerCase();
+                    return key === 'a' || key === 'option a' || key === 'optiona' || key === 'option_a' || key === aText.toLowerCase();
+                };
+                const isKeyForB = (k) => {
+                    const key = String(k).trim().toLowerCase();
+                    return key === 'b' || key === 'option b' || key === 'optionb' || key === 'option_b' || key === bText.toLowerCase();
+                };
+                let countA = 0, countB = 0;
+                let votersA = [], votersB = [];
+                for (const [k, c] of Object.entries(data.votes)) {
+                    if (isKeyForA(k)) countA += c || 0;
+                    if (isKeyForB(k)) countB += c || 0;
+                }
+                for (const [k, list] of Object.entries(data.voters || {})) {
+                    if (isKeyForA(k)) votersA.push(...list);
+                    if (isKeyForB(k)) votersB.push(...list);
+                }
+                const optionsToRender = [
+                    { label: aText, count: countA, voters: votersA },
+                    { label: bText, count: countB, voters: votersB }
+                ];
+                html += '<div style="display: flex; flex-direction: column; gap: 20px;">';
+                for (const item of optionsToRender) {
+                    const percentage = data.totalPlayers > 0 ? Math.round(((item.count || 0) / data.totalPlayers) * 100) : 0;
+                    const barHeight = Math.max(percentage * 1.5, 15);
+                    html += `
+                        <div style="background: linear-gradient(135deg, rgba(124, 58, 237, 0.25), rgba(168, 85, 247, 0.2)); border: 2px solid rgba(168, 85, 247, 0.3); border-radius: 16px; padding: 20px; box-shadow: 0 6px 20px rgba(0,0,0,0.3); display: flex; flex-direction: column; align-items: center;">
+                            <h4 style="color:white; font-size:1.1rem; font-weight:700; margin:0 0 15px 0; text-align:center; word-break:break-word;">${item.label}</h4>
+                            <div style="width:100%; max-width:100px; height:150px; background:rgba(0,0,0,0.3); border-radius:10px; position:relative; display:flex; flex-direction:column; justify-content:flex-end; overflow:hidden; margin-bottom:12px;">
+                                <div style="background: linear-gradient(to top, #7C3AED, #A855F7, #C084FC); width:100%; height:${barHeight}px; border-radius:0 0 10px 10px; transition:height 0.7s cubic-bezier(0.34,1.56,0.64,1); box-shadow:0 -3px 15px rgba(168,85,247,0.5); display:flex; align-items:center; justify-content:center;">${percentage > 20 ? `<span style=\"color:white; font-weight:700; font-size:1rem;\">${percentage}%</span>` : ''}</div>
+                                ${percentage <= 20 ? `<div style=\"position:absolute; top:-25px; left:50%; transform:translateX(-50%); color:white; font-weight:700; font-size:1rem;\">${percentage}%</div>` : ''}
+                            </div>
+                            <div style="color: rgba(255,255,255,0.8); font-size:0.85rem; margin-bottom:12px; font-weight:600;">${item.count || 0} vote${(item.count || 0) !== 1 ? 's' : ''}</div>
+                            <div style="display:flex; flex-direction:column; gap:6px; width:100%; align-items:center;">
+                                ${item.voters.length > 0 ? item.voters.map(voter => `<div style=\"background:#7C3AED; color:white; padding:6px 12px; border-radius:12px; font-size:0.8rem; font-weight:600; box-shadow:0 2px 6px rgba(0,0,0,0.2); white-space:nowrap; max-width:100%; overflow:hidden; text-overflow:ellipsis;\">${voter}</div>`).join('') : '<div style="color: rgba(255, 255, 255, 0.4); font-size: 0.8rem; font-style: italic;">No votes</div>'}
+                            </div>
+                        </div>
+                    `;
+                }
+                html += '</div>';
             } else {
                 // Stack cards vertically on mobile
                 html += '<div style="display: flex; flex-direction: column; gap: 20px;">';

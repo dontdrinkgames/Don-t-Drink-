@@ -629,7 +629,13 @@
                 'fmk': 'fmk'
             };
             
-            const mappedGame = gameMap[gameConfig.game] || gameConfig.game;
+            // In mixmaster game mode, randomly choose a game per question
+            let selectedGameKey = gameConfig.game;
+            if (gameConfig.game === 'mixmaster') {
+                const candidates = ['never_have_i_ever', 'would_you_rather', 'hot_takes', 'fmk'];
+                selectedGameKey = candidates[(questionCounter - 1) % candidates.length];
+            }
+            const mappedGame = gameMap[selectedGameKey] || selectedGameKey;
             
             console.log('Requesting question:', {
                 game: mappedGame,
@@ -718,7 +724,11 @@
                 console.log('✅ Displaying standard question');
                 // Show question text for NHIE and Hot Takes
                 textEl.style.display = 'flex';
-                const questionText = data.text || (typeof question === 'string' ? question : question?.text) || 'Question data missing';
+                let questionText = data.text || (typeof question === 'string' ? question : question?.text) || 'Question data missing';
+                // Remove leading "Never have I ever" for NHIE to avoid duplication with header
+                if (game === 'never_have_i_ever' || gameConfig.game === 'nhie') {
+                    questionText = questionText.replace(/^\s*Never have I ever\s*/i, '...');
+                }
                 console.log('📝 Final text:', questionText);
                 textEl.textContent = questionText;
             }
