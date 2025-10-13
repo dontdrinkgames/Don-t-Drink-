@@ -653,6 +653,17 @@ io.on('connection', (socket) => {
             socket.emit('error', { message: error.message });
         }
     });
+
+    // Rate question (downvote deletes it from DB)
+    socket.on('rate-question', (data) => {
+        try {
+            const { questionId, upvote } = data;
+            if (!questionManager || !questionId) return;
+            questionManager.rateQuestion(questionId, !!upvote);
+        } catch (error) {
+            console.error('Rate question error:', error);
+        }
+    });
     
     // Clear votes for new question
     socket.on('clear-votes', (data) => {

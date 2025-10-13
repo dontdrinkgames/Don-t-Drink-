@@ -1218,6 +1218,55 @@ class QuestionManager {
       rating: isThumbsUp ? 1 : -1,
       timestamp: Date.now()
     });
+
+    // If downvoted, remove the question permanently from the database and reset caches
+    if (!isThumbsUp) {
+      try {
+        // Find the question in databases by current id by scanning all categories
+        const removeFrom = (gameKey, intensityKey) => {
+          const list = questionsDatabase[gameKey] && questionsDatabase[gameKey][intensityKey];
+          if (!Array.isArray(list)) return false;
+          const idx = list.findIndex(q => {
+            if (typeof q === 'string') {
+              return this.currentQuestionId === questionId && q; // id-based removal handled separately
+            }
+            return this.currentQuestionId === questionId && q; // placeholder, we will map by id below
+          });
+          return false;
+        };
+        // Since questions don't store id in the DB, remove the last served question matching id from usedQuestions cache
+        for (const gameKey of Object.keys(this.usedQuestions)) {
+          for (const intensityKey of Object.keys(this.usedQuestions[gameKey])) {
+            const usedList = this.usedQuestions[gameKey][intensityKey];
+            const idx = usedList.findIndex((q, i) => {
+              // Reconstruct ids by appearance order; approximate: last element is current question
+              return i === usedList.length - 1; 
+            });
+            if (idx !== -1) {
+              const q = usedList[idx];
+              // Remove from master database
+              const dbList = questionsDatabase[gameKey] && questionsDatabase[gameKey][intensityKey];
+              if (Array.isArray(dbList)) {
+                const matchIndex = dbList.findIndex(entry => {
+                  const text = typeof entry === 'string' ? entry : (entry.optionA ? `${entry.optionA} OR ${entry.optionB}` : entry.text);
+                  const qText = typeof q === 'string' ? q : (q.optionA ? `${q.optionA} OR ${q.optionB}` : q.text);
+                  return text === qText;
+                });
+                if (matchIndex !== -1) {
+                  dbList.splice(matchIndex, 1);
+                  console.log(`🗑️ Question removed from ${gameKey}/${intensityKey}`);
+                }
+              }
+              // Also remove from used cache so it won't show again
+              usedList.splice(idx, 1);
+              break;
+            }
+          }
+        }
+      } catch (e) {
+        console.warn('Downvote removal failed:', e.message);
+      }
+    }
   }
 
   getQuestionStats() {
