@@ -305,6 +305,24 @@
             cursor: not-allowed;
         }
         
+        .downvote-btn {
+            background: #F59E0B;
+            color: white;
+            border: none;
+            padding: 16px 38px;
+            border-radius: 18px;
+            font-size: 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            filter: drop-shadow(4px 6px 0px #D97706);
+            transition: all 0.3s;
+        }
+        
+        .downvote-btn:hover {
+            transform: translateY(-4px);
+            filter: drop-shadow(6px 8px 0px #D97706);
+        }
+        
         .end-btn {
             background: #DC2626;
             color: white;
@@ -417,6 +435,7 @@
         <!-- Button Group -->
         <div class="button-group">
             <button class="next-btn" id="nextBtn">Next Question</button>
+            <button class="downvote-btn" id="downvoteBtn">👎 Downvote</button>
             <button class="end-btn" id="endBtn">End Game</button>
         </div>
     </div>
@@ -495,6 +514,7 @@
             
             // Event listeners
             document.getElementById('nextBtn').onclick = loadNextQuestion;
+            document.getElementById('downvoteBtn').onclick = downvoteCurrentQuestion;
             document.getElementById('endBtn').onclick = endGame;
         });
         
@@ -680,7 +700,7 @@
                 const titleEl = document.getElementById('gameTitle');
                 if (titleEl && title) titleEl.textContent = title;
             } catch (_) {}
-
+            
             console.log('📝 Question type:', typeof question);
             console.log('📝 Question value:', question);
             console.log('🎮 Game:', game);
