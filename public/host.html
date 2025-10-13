@@ -699,6 +699,15 @@
                 // Offline mode doesn't need players - can start immediately
                 startBtn.textContent = 'Start Game (Offline Mode)';
                 startBtn.disabled = false;
+            } else if (gameState.selectedMode === 'spotlight') {
+                // Spotlight mode can start with 1 player
+                if (players.length === 0) {
+                    startBtn.textContent = 'Waiting for players to join...';
+                    startBtn.disabled = true;
+                } else {
+                    startBtn.textContent = `Start Game (${players.length} player${players.length > 1 ? 's' : ''})`;
+                    startBtn.disabled = false;
+                }
             } else if (players.length === 0) {
                 startBtn.textContent = 'Waiting for players to join...';
                 startBtn.disabled = true;
@@ -710,8 +719,8 @@
         
         // Start game
         document.getElementById('startBtn').addEventListener('click', () => {
-            // Offline mode doesn't require players
-            const hasEnoughPlayers = gameState.selectedMode === 'offline' || players.length > 0;
+            // Offline mode and spotlight mode don't require multiple players
+            const hasEnoughPlayers = gameState.selectedMode === 'offline' || gameState.selectedMode === 'spotlight' || players.length > 0;
             
             if (gameState.selectedGame && gameState.selectedMode && 
                 gameState.selectedIntensity && hasEnoughPlayers) {

@@ -15,15 +15,6 @@
             box-sizing: border-box;
             -webkit-tap-highlight-color: transparent;
         }
-
-        // Client keepalive pings to reduce disconnects on mobile
-        setInterval(() => {
-            try {
-                if (socket && socket.connected) {
-                    socket.emit('ping');
-                }
-            } catch (_) {}
-        }, 20000);
         
         html {
             height: 100%;
@@ -851,6 +842,15 @@
         };
         let connectionAttempts = 0;
         const MAX_CONNECTION_ATTEMPTS = 10;
+        
+        // Client keepalive pings to reduce disconnects on mobile
+        setInterval(() => {
+            try {
+                if (socket && socket.connected) {
+                    socket.emit('ping');
+                }
+            } catch (_) {}
+        }, 20000);
         
         // Get room code from URL
         function getRoomCodeFromURL() {
@@ -2126,22 +2126,31 @@
                     <div class="correct-answer">Correct Answer: <strong>${correctAnswer}</strong></div>
             `;
             
-            // Show if this player got a beer emoji
-            const playerBeerCount = beerScores[playerData.name] || 0;
-            if (playerBeerCount > 0) {
-                const beerEmojis = '🍺'.repeat(playerBeerCount);
+            // Check if this is a 1-player game (no guesses)
+            if (Object.keys(guesses || {}).length === 0) {
                 resultsHtml += `
-                    <div class="your-beer-result">
-                        <div class="beer-message">You got ${playerBeerCount} beer emoji${playerBeerCount > 1 ? 's' : ''}!</div>
-                        <div class="beer-emojis">${beerEmojis}</div>
+                    <div class="no-beer-result">
+                        <div class="success-message">🎉 Solo spotlight mode! No beer emojis awarded.</div>
                     </div>
                 `;
             } else {
-                resultsHtml += `
-                    <div class="no-beer-result">
-                        <div class="success-message">🎉 You guessed correctly! No beer emoji for you!</div>
-                    </div>
-                `;
+                // Show if this player got a beer emoji
+                const playerBeerCount = beerScores[playerData.name] || 0;
+                if (playerBeerCount > 0) {
+                    const beerEmojis = '🍺'.repeat(playerBeerCount);
+                    resultsHtml += `
+                        <div class="your-beer-result">
+                            <div class="beer-message">You got ${playerBeerCount} beer emoji${playerBeerCount > 1 ? 's' : ''}!</div>
+                            <div class="beer-emojis">${beerEmojis}</div>
+                        </div>
+                    `;
+                } else {
+                    resultsHtml += `
+                        <div class="no-beer-result">
+                            <div class="success-message">🎉 You guessed correctly! No beer emoji for you!</div>
+                        </div>
+                    `;
+                }
             }
             
             resultsHtml += `</div>`;

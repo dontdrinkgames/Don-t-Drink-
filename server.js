@@ -599,16 +599,26 @@ io.on('connection', (socket) => {
             });
 
             // Trigger spotlight guessing phase - show question to all
-            socket.emit('spotlight-show-question', {
-                roomCode: roomCode,
-                questionData: {
-                    text: room.currentQuestion?.text,
-                    optionA: room.currentQuestion?.optionA,
-                    optionB: room.currentQuestion?.optionB,
-                    game: room.game,
-                    spotlightPlayer: data.playerName
-                }
-            });
+            // If only 1 player, skip guessing phase and go straight to reveal
+            const nonSpotlightPlayers = room.players.filter(p => p.name !== data.playerName);
+            if (nonSpotlightPlayers.length === 0) {
+                // Only spotlight player, show reveal button immediately
+                io.to(roomCode).emit('all-guessed-received', {
+                    readyToReveal: true
+                });
+            } else {
+                // Multiple players, show guessing phase
+                socket.emit('spotlight-show-question', {
+                    roomCode: roomCode,
+                    questionData: {
+                        text: room.currentQuestion?.text,
+                        optionA: room.currentQuestion?.optionA,
+                        optionB: room.currentQuestion?.optionB,
+                        game: room.game,
+                        spotlightPlayer: data.playerName
+                    }
+                });
+            }
             
             console.log(`💭 Spotlight answer saved for room ${roomCode}`);
         } catch (error) {
@@ -641,13 +651,16 @@ io.on('connection', (socket) => {
             });
             
             // Award beer emojis for wrong guesses
-            Object.entries(guesses).forEach(([socketId, guess]) => {
-                const player = room.players.find(p => p.socketId === socketId);
-                if (player && guess !== correctAnswer) {
-                    beerScores[player.name] = (beerScores[player.name] || 0) + 1;
-                    console.log(`🍺 ${player.name} gets a beer emoji for wrong guess: ${guess} (correct: ${correctAnswer})`);
-                }
-            });
+            // If only 1 player, they can't get beer emojis (no one to guess wrong)
+            if (Object.keys(guesses).length > 0) {
+                Object.entries(guesses).forEach(([socketId, guess]) => {
+                    const player = room.players.find(p => p.socketId === socketId);
+                    if (player && guess !== correctAnswer) {
+                        beerScores[player.name] = (beerScores[player.name] || 0) + 1;
+                        console.log(`🍺 ${player.name} gets a beer emoji for wrong guess: ${guess} (correct: ${correctAnswer})`);
+                    }
+                });
+            }
             
             // Update player beer counts
             room.players.forEach(player => {
@@ -719,7 +732,12 @@ io.on('connection', (socket) => {
             const nonSpotlightPlayers = room.players.filter(p => p.name !== room.spotlightPlayer);
             const guessesReceived = Object.keys(room.spotlightGuesses).length;
             
-            if (guessesReceived >= nonSpotlightPlayers.length) {
+            // If only 1 player (spotlight player), show reveal button immediately
+            if (nonSpotlightPlayers.length === 0) {
+                io.to(roomCode).emit('all-guessed-received', {
+                    readyToReveal: true
+                });
+            } else if (guessesReceived >= nonSpotlightPlayers.length) {
                 // All players have guessed, show reveal button
                 io.to(roomCode).emit('all-guessed-received', {
                     readyToReveal: true

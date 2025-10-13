@@ -1406,7 +1406,9 @@
             
             // Show who got beer emojis
             const playersWithBeers = Object.entries(beerScores).filter(([name, count]) => count > 0);
-            if (playersWithBeers.length > 0) {
+            if (Object.keys(guesses || {}).length === 0) {
+                resultsHtml += `<div style="font-size: 1rem; color: #1a1a1a;">🎉 Solo spotlight mode! No beer emojis awarded.</div>`;
+            } else if (playersWithBeers.length > 0) {
                 resultsHtml += `<div style="font-size: 1rem; margin-bottom: 10px;">🍺 Beer Emojis Awarded:</div>`;
                 playersWithBeers.forEach(([name, count]) => {
                     const beerEmojis = '🍺'.repeat(count);
