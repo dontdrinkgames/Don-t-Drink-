@@ -438,6 +438,11 @@
             font-size: 0.85rem;
         }
 
+        .beer-count {
+            margin-left: 8px;
+            font-size: 1rem;
+        }
+
         /* Footer for badges */
         .game-footer {
             margin-top: 20px;
@@ -1366,6 +1371,11 @@
                 answerEl.textContent = data.answer || 'Answer revealed!';
                 answerEl.classList.remove('hidden');
                 document.getElementById('spotlightStatus').textContent = 'Answer revealed!';
+                
+                // Show beer emoji scores
+                if (data.beerScores) {
+                    showBeerEmojiScores(data.beerScores, data.correctAnswer, data.guesses);
+                }
             } else {
                 // Called from button click
                 if (socket && socket.connected) {
@@ -1376,13 +1386,54 @@
                 }
             }
         }
+
+        // Show beer emoji scores
+        function showBeerEmojiScores(beerScores, correctAnswer, guesses) {
+            // Hide guessing phase
+            document.getElementById('spotlightGuessingPhase').classList.add('hidden');
+            
+            // Show spotlight display with results
+            const spotlightDisplay = document.getElementById('spotlightDisplay');
+            spotlightDisplay.classList.remove('hidden');
+            
+            // Update spotlight status to show results
+            document.getElementById('spotlightStatus').textContent = 'Results:';
+            
+            // Create results display
+            const answerEl = document.getElementById('spotlightAnswer');
+            let resultsHtml = `<div style="margin-top: 20px;">`;
+            resultsHtml += `<div style="font-size: 1.1rem; margin-bottom: 15px; color: #1a1a1a;">Correct Answer: <strong>${correctAnswer}</strong></div>`;
+            
+            // Show who got beer emojis
+            const playersWithBeers = Object.entries(beerScores).filter(([name, count]) => count > 0);
+            if (playersWithBeers.length > 0) {
+                resultsHtml += `<div style="font-size: 1rem; margin-bottom: 10px;">🍺 Beer Emojis Awarded:</div>`;
+                playersWithBeers.forEach(([name, count]) => {
+                    const beerEmojis = '🍺'.repeat(count);
+                    resultsHtml += `<div style="margin: 5px 0; color: #1a1a1a;">${name}: ${beerEmojis} (${count})</div>`;
+                });
+            } else {
+                resultsHtml += `<div style="font-size: 1rem; color: #1a1a1a;">🎉 No one got beer emojis! Everyone guessed correctly!</div>`;
+            }
+            
+            resultsHtml += `</div>`;
+            answerEl.innerHTML = resultsHtml;
+            answerEl.classList.remove('hidden');
+        }
         
         // Update players display
         function updatePlayersDisplay() {
             const displayEl = document.getElementById('playersDisplay');
-            displayEl.innerHTML = players.map(p => `
-                <div class="player-chip">${p.avatar} ${p.name}</div>
-            `).join('');
+            displayEl.innerHTML = players.map(p => {
+                const beerCount = p.beerCount || 0;
+                const beerEmojis = beerCount > 0 ? '🍺'.repeat(beerCount) : '';
+                return `
+                    <div class="player-chip">
+                        ${p.avatar} ${p.name}
+                        ${beerEmojis ? `<span class="beer-count">${beerEmojis}</span>` : ''}
+                    </div>
+                `;
+            }).join('');
         }
         
         // End game

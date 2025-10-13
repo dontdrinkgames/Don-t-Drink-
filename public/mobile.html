@@ -589,6 +589,76 @@
             flex-direction: column;
             gap: 12px;
         }
+
+        /* Beer Results Overlay */
+        .beer-results-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .beer-results {
+            background: rgba(255, 255, 255, 0.15);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 20px;
+            padding: 30px;
+            text-align: center;
+            color: white;
+            max-width: 90%;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        }
+
+        .results-title {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: #FACC15;
+            margin-bottom: 15px;
+        }
+
+        .correct-answer {
+            font-size: 1.1rem;
+            margin-bottom: 20px;
+            color: rgba(255, 255, 255, 0.9);
+        }
+
+        .your-beer-result {
+            background: rgba(245, 158, 11, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .beer-message {
+            font-size: 1.1rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #F59E0B;
+        }
+
+        .beer-emojis {
+            font-size: 2rem;
+        }
+
+        .no-beer-result {
+            background: rgba(16, 185, 129, 0.2);
+            border-radius: 15px;
+            padding: 20px;
+            margin: 15px 0;
+        }
+
+        .success-message {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: #10B981;
+        }
         
         /* Confirmation Message */
         .confirmation-message {
@@ -1027,6 +1097,11 @@
                 document.getElementById('spotlightPlayerView').classList.remove('active');
                 document.getElementById('spectatorView').classList.remove('active');
                 document.getElementById('spotlightGuessingView').classList.remove('active');
+                
+                // Show beer emoji results
+                if (data.beerScores) {
+                    showMobileBeerResults(data);
+                }
             });
 
             // Spotlight guessing phase - show question to all after spotlight answers
@@ -2038,6 +2113,51 @@
                 // Show confirmation
                 showConfirmation();
             }
+        }
+
+        // Show mobile beer emoji results
+        function showMobileBeerResults(data) {
+            const { answer, beerScores, correctAnswer, guesses } = data;
+            
+            // Create results display
+            let resultsHtml = `
+                <div class="beer-results">
+                    <div class="results-title">🍺 Spotlight Results</div>
+                    <div class="correct-answer">Correct Answer: <strong>${correctAnswer}</strong></div>
+            `;
+            
+            // Show if this player got a beer emoji
+            const playerBeerCount = beerScores[playerData.name] || 0;
+            if (playerBeerCount > 0) {
+                const beerEmojis = '🍺'.repeat(playerBeerCount);
+                resultsHtml += `
+                    <div class="your-beer-result">
+                        <div class="beer-message">You got ${playerBeerCount} beer emoji${playerBeerCount > 1 ? 's' : ''}!</div>
+                        <div class="beer-emojis">${beerEmojis}</div>
+                    </div>
+                `;
+            } else {
+                resultsHtml += `
+                    <div class="no-beer-result">
+                        <div class="success-message">🎉 You guessed correctly! No beer emoji for you!</div>
+                    </div>
+                `;
+            }
+            
+            resultsHtml += `</div>`;
+            
+            // Show results in a modal-like overlay
+            const resultsOverlay = document.createElement('div');
+            resultsOverlay.className = 'beer-results-overlay';
+            resultsOverlay.innerHTML = resultsHtml;
+            document.body.appendChild(resultsOverlay);
+            
+            // Auto-hide after 5 seconds
+            setTimeout(() => {
+                if (resultsOverlay.parentNode) {
+                    resultsOverlay.parentNode.removeChild(resultsOverlay);
+                }
+            }, 5000);
         }
         
         // Select spotlight answer

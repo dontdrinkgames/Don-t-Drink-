@@ -628,12 +628,41 @@ io.on('connection', (socket) => {
                 return;
             }
             
-            // Reveal the answer to everyone
-            io.to(roomCode).emit('answer-revealed', {
-                answer: room.spotlightAnswer
+            // Calculate beer emoji scores
+            const correctAnswer = room.spotlightAnswer;
+            const guesses = room.spotlightGuesses || {};
+            const beerScores = {};
+            
+            // Initialize beer scores for all players
+            room.players.forEach(player => {
+                if (!beerScores[player.name]) {
+                    beerScores[player.name] = player.beerCount || 0;
+                }
             });
             
-            console.log(`✨ Answer revealed in room ${roomCode}`);
+            // Award beer emojis for wrong guesses
+            Object.entries(guesses).forEach(([socketId, guess]) => {
+                const player = room.players.find(p => p.socketId === socketId);
+                if (player && guess !== correctAnswer) {
+                    beerScores[player.name] = (beerScores[player.name] || 0) + 1;
+                    console.log(`🍺 ${player.name} gets a beer emoji for wrong guess: ${guess} (correct: ${correctAnswer})`);
+                }
+            });
+            
+            // Update player beer counts
+            room.players.forEach(player => {
+                player.beerCount = beerScores[player.name] || 0;
+            });
+            
+            // Reveal the answer to everyone with beer scores
+            io.to(roomCode).emit('answer-revealed', {
+                answer: room.spotlightAnswer,
+                beerScores: beerScores,
+                correctAnswer: correctAnswer,
+                guesses: guesses
+            });
+            
+            console.log(`✨ Answer revealed in room ${roomCode} with beer scores:`, beerScores);
         } catch (error) {
             console.error('Reveal answer error:', error);
             socket.emit('error', { message: error.message });
@@ -674,11 +703,17 @@ io.on('connection', (socket) => {
                 return;
             }
             
-            // Store the guess
+            // Store the guess with socket ID
             if (!room.spotlightGuesses) {
                 room.spotlightGuesses = {};
             }
             room.spotlightGuesses[socket.id] = guess;
+            
+            // Update player's socket ID if needed
+            const player = room.players.find(p => p.socketId === socket.id);
+            if (player) {
+                player.socketId = socket.id;
+            }
             
             // Check if all non-spotlight players have guessed
             const nonSpotlightPlayers = room.players.filter(p => p.name !== room.spotlightPlayer);
@@ -691,7 +726,7 @@ io.on('connection', (socket) => {
                 });
             }
             
-            console.log(`🎯 Guess received from ${socket.id} in room ${roomCode}`);
+            console.log(`🎯 Guess received from ${socket.id} in room ${roomCode}: ${guess}`);
         } catch (error) {
             console.error('Spotlight guess error:', error);
         }
