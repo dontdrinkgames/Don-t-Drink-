@@ -2055,6 +2055,19 @@
                 console.log('🎯 Spotlight view should now be visible');
                 // Set up answer buttons based on game type
                 setupSpotlightAnswerButtons(currentGameData?.game);
+                
+                // If we have currentGameData, make sure the question is displayed
+                if (currentGameData) {
+                    const questionEl = document.getElementById('spotlightQuestion');
+                    if (questionEl) {
+                        let questionText = currentGameData.text || 'Loading question...';
+                        if (currentGameData.game === 'never_have_i_ever' || currentGameData.game === 'nhie') {
+                            questionText = questionText.replace(/^Never have I ever\s*/i, '...');
+                        }
+                        questionEl.textContent = questionText;
+                        console.log('🎯 Question set in spotlight view:', questionText);
+                    }
+                }
             } else {
                 // Show spectator view
                 document.getElementById('spectatorView').classList.add('active');
