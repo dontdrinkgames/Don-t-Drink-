@@ -28,6 +28,17 @@ try {
     console.log('✅ Questions database loaded');
 } catch (error) {
     console.warn('⚠️ Questions database not loaded:', error.message);
+    // Create fallback manager
+    questionManager = {
+        getRandomQuestion: () => ({
+            id: 'fallback',
+            text: 'Questions database not available. Please refresh the page.',
+            isCustom: false
+        }),
+        addCustomQuestion: () => false,
+        rateQuestion: () => false,
+        getRemovedQuestions: () => []
+    };
 }
 
 // Store active rooms
@@ -93,6 +104,20 @@ app.get('/test', (req, res) => {
     res.status(200).json({ 
         message: 'Server is running!',
         timestamp: new Date().toISOString()
+    });
+});
+
+// Fallback route for debugging
+app.get('/debug', (req, res) => {
+    res.status(200).json({
+        message: 'Debug info',
+        timestamp: new Date().toISOString(),
+        nodeVersion: process.version,
+        platform: process.platform,
+        memory: process.memoryUsage(),
+        uptime: process.uptime(),
+        questionManager: questionManager ? 'loaded' : 'not loaded',
+        rooms: Object.keys(rooms).length
     });
 });
 
