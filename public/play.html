@@ -677,7 +677,7 @@
             socket.on('new-question', (data) => {
                 console.log('📨 NEW-QUESTION EVENT RECEIVED!');
                 console.log('📦 Data:', data);
-                console.log('❓ Question:', data.question);
+                console.log('❓ Question:', data.text || data.question);
                 console.log('🎮 Game:', data.game);
                 console.log('📱 Mode:', data.mode);
                 resultsRevealed = false; // Reset reveal state for new question
