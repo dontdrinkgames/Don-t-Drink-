@@ -63,11 +63,25 @@ function generateRoomCode() {
 
 // Routes
 app.get('/', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'index.html'));
+    try {
+        const indexPath = path.join(__dirname, 'public', 'index.html');
+        console.log('Serving index.html from:', indexPath);
+        res.sendFile(indexPath);
+    } catch (error) {
+        console.error('Error serving index.html:', error);
+        res.status(500).send('Error loading landing page');
+    }
 });
 
 app.get('/host', (req, res) => {
-    res.sendFile(path.join(__dirname, 'public', 'host.html'));
+    try {
+        const hostPath = path.join(__dirname, 'public', 'host.html');
+        console.log('Serving host.html from:', hostPath);
+        res.sendFile(hostPath);
+    } catch (error) {
+        console.error('Error serving host.html:', error);
+        res.status(500).send('Error loading host page');
+    }
 });
 
 app.get('/mobile', (req, res) => {
@@ -109,6 +123,9 @@ app.get('/test', (req, res) => {
 
 // Fallback route for debugging
 app.get('/debug', (req, res) => {
+    const fs = require('fs');
+    const publicFiles = fs.readdirSync(path.join(__dirname, 'public'));
+    
     res.status(200).json({
         message: 'Debug info',
         timestamp: new Date().toISOString(),
@@ -117,7 +134,11 @@ app.get('/debug', (req, res) => {
         memory: process.memoryUsage(),
         uptime: process.uptime(),
         questionManager: questionManager ? 'loaded' : 'not loaded',
-        rooms: Object.keys(rooms).length
+        rooms: Object.keys(rooms).length,
+        workingDirectory: __dirname,
+        publicFiles: publicFiles,
+        hostFileExists: fs.existsSync(path.join(__dirname, 'public', 'host.html')),
+        indexFileExists: fs.existsSync(path.join(__dirname, 'public', 'index.html'))
     });
 });
 
