@@ -201,6 +201,7 @@ io.on('connection', (socket) => {
     // Create room
     socket.on('create-room', (data, callback) => {
         try {
+            console.log(`🧩 create-room from ${socket.id} ua=${(socket.handshake && socket.handshake.headers && socket.handshake.headers['user-agent']) || 'unknown'}`);
             const roomCode = generateRoomCode();
             
             rooms[roomCode] = {

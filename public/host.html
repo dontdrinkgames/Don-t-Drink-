@@ -494,9 +494,10 @@
         }
         
         function createSocketConnection() {
-            const socketUrl = window.location.hostname === 'localhost' 
-                ? 'http://localhost:3000' 
-                : window.location.origin;
+            const isLocal = (host) => /^(localhost|127\.0\.0\.1)$/i.test(host);
+            const host = window.location.hostname;
+            const socketUrl = isLocal(host) ? `http://${host}:3000` : window.location.origin;
+            console.log('🔗 Socket URL:', socketUrl, 'host:', host);
             
             socket = io(socketUrl, {
                 transports: ['polling', 'websocket'], // Polling first for mobile reliability
@@ -550,6 +551,7 @@
             });
             
             socket.on('room-created', (data) => {
+                console.log('📦 room-created event:', data);
                 if (data && data.roomCode && !gameState.roomCode) {
                     gameState.roomCode = data.roomCode;
                     updateRoomDisplay();
