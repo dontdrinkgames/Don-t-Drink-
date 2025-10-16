@@ -2074,7 +2074,7 @@
         function setupSpotlightAnswerButtons(game) {
             const container = document.getElementById('spotlightAnswerButtons');
             const questionEl = document.getElementById('spotlightQuestion');
-            container.innerHTML = '';
+            if (container) container.innerHTML = '';
             
             console.log('🎯 setupSpotlightAnswerButtons called with game:', game);
             console.log('🎯 currentGameData:', currentGameData);
@@ -2095,21 +2095,23 @@
                 questionEl.textContent = 'No question data available';
             }
             
-            if (game === 'never_have_i_ever') {
-                container.innerHTML = `
-                    <button class="answer-btn agree" onclick="selectSpotlightAnswer('have')">✅ I HAVE</button>
-                    <button class="answer-btn disagree" onclick="selectSpotlightAnswer('havent')">❌ I HAVE NEVER</button>
-                `;
-            } else if (game === 'hot_takes') {
-                container.innerHTML = `
-                    <button class="answer-btn agree" onclick="selectSpotlightAnswer('agree')">✅ AGREE</button>
-                    <button class="answer-btn disagree" onclick="selectSpotlightAnswer('disagree')">❌ DISAGREE</button>
-                `;
-            } else if (game === 'would_you_rather') {
-                container.innerHTML = `
-                    <button class="answer-btn" onclick="selectSpotlightAnswer('optionA')">🅰️ ${currentGameData?.optionA || 'OPTION A'}</button>
-                    <button class="answer-btn" onclick="selectSpotlightAnswer('optionB')">🅱️ ${currentGameData?.optionB || 'OPTION B'}</button>
-                `;
+            if (container) {
+                if (game === 'never_have_i_ever') {
+                    container.innerHTML = `
+                        <button class="answer-btn agree" onclick="selectSpotlightAnswer('have')">✅ I HAVE</button>
+                        <button class="answer-btn disagree" onclick="selectSpotlightAnswer('havent')">❌ I HAVE NEVER</button>
+                    `;
+                } else if (game === 'hot_takes') {
+                    container.innerHTML = `
+                        <button class="answer-btn agree" onclick="selectSpotlightAnswer('agree')">✅ AGREE</button>
+                        <button class="answer-btn disagree" onclick="selectSpotlightAnswer('disagree')">❌ DISAGREE</button>
+                    `;
+                } else if (game === 'would_you_rather') {
+                    container.innerHTML = `
+                        <button class="answer-btn" onclick="selectSpotlightAnswer('optionA')">🅰️ ${currentGameData?.optionA || 'OPTION A'}</button>
+                        <button class="answer-btn" onclick="selectSpotlightAnswer('optionB')">🅱️ ${currentGameData?.optionB || 'OPTION B'}</button>
+                    `;
+                }
             }
         }
 
@@ -2130,23 +2132,25 @@
             playerNameEl.textContent = questionData.spotlightPlayer || 'Player';
             
             // Setup buttons based on game type
-            container.innerHTML = '';
-            
-            if (questionData.game === 'never_have_i_ever') {
-                container.innerHTML = `
-                    <button class="vote-btn" onclick="submitSpotlightGuess('have')">✅ I HAVE</button>
-                    <button class="vote-btn" onclick="submitSpotlightGuess('havent')">❌ I HAVE NEVER</button>
-                `;
-            } else if (questionData.game === 'hot_takes') {
-                container.innerHTML = `
-                    <button class="vote-btn" onclick="submitSpotlightGuess('agree')">✅ AGREE</button>
-                    <button class="vote-btn" onclick="submitSpotlightGuess('disagree')">❌ DISAGREE</button>
-                `;
-            } else if (questionData.game === 'would_you_rather') {
-                container.innerHTML = `
-                    <button class="vote-btn" onclick="submitSpotlightGuess('optionA')">🅰️ OPTION A</button>
-                    <button class="vote-btn" onclick="submitSpotlightGuess('optionB')">🅱️ OPTION B</button>
-                `;
+            if (container) {
+                container.innerHTML = '';
+                
+                if (questionData.game === 'never_have_i_ever') {
+                    container.innerHTML = `
+                        <button class="vote-btn" onclick="submitSpotlightGuess('have')">✅ I HAVE</button>
+                        <button class="vote-btn" onclick="submitSpotlightGuess('havent')">❌ I HAVE NEVER</button>
+                    `;
+                } else if (questionData.game === 'hot_takes') {
+                    container.innerHTML = `
+                        <button class="vote-btn" onclick="submitSpotlightGuess('agree')">✅ AGREE</button>
+                        <button class="vote-btn" onclick="submitSpotlightGuess('disagree')">❌ DISAGREE</button>
+                    `;
+                } else if (questionData.game === 'would_you_rather') {
+                    container.innerHTML = `
+                        <button class="vote-btn" onclick="submitSpotlightGuess('optionA')">🅰️ OPTION A</button>
+                        <button class="vote-btn" onclick="submitSpotlightGuess('optionB')">🅱️ OPTION B</button>
+                    `;
+                }
             }
         }
 
