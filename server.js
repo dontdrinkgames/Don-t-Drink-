@@ -630,7 +630,14 @@ io.on('connection', (socket) => {
                 player: player.name,
                 avatar: player.avatar,
                 status: 'thinking',
-                questionData: room.currentQuestion // Include question data for single player mode
+                questionData: room.currentQuestion ? {
+                    text: room.currentQuestion.text,
+                    optionA: room.currentQuestion.optionA,
+                    optionB: room.currentQuestion.optionB,
+                    game: room.game,
+                    mode: room.mode,
+                    intensity: room.intensity
+                } : null // Include complete question data for single player mode
             });
             
             console.log(`🎯 Spotlight on ${playerName} in room ${roomCode}`);

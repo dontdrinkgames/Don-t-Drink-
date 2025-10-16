@@ -2037,8 +2037,8 @@
         function handleSpotlight(data) {
             const { player, avatar, status, questionData } = data;
             
-            // If question data is provided, set it as current game data
-            if (questionData) {
+            // If question data is provided and we don't have currentGameData yet, set it
+            if (questionData && !currentGameData) {
                 currentGameData = questionData;
                 console.log('📱 Spotlight: Set currentGameData from spotlight-active:', questionData);
             }
@@ -2072,6 +2072,9 @@
             const questionEl = document.getElementById('spotlightQuestion');
             container.innerHTML = '';
             
+            console.log('🎯 setupSpotlightAnswerButtons called with game:', game);
+            console.log('🎯 currentGameData:', currentGameData);
+            
             // Show the question
             if (currentGameData) {
                 let questionText = currentGameData.text || 'Loading question...';
@@ -2081,7 +2084,11 @@
                     questionText = questionText.replace(/^Never have I ever\s*/i, '...');
                 }
                 
+                console.log('🎯 Setting question text:', questionText);
                 questionEl.textContent = questionText;
+            } else {
+                console.log('❌ No currentGameData available for spotlight question');
+                questionEl.textContent = 'No question data available';
             }
             
             if (game === 'never_have_i_ever') {
