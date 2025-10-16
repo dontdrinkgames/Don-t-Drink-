@@ -78,7 +78,22 @@ app.get('/add-question/:roomCode', (req, res) => {
 
 // Health check for Render
 app.get('/health', (req, res) => {
-    res.status(200).json({ status: 'ok', rooms: Object.keys(rooms).length });
+    res.status(200).json({ 
+        status: 'ok', 
+        rooms: Object.keys(rooms).length,
+        timestamp: new Date().toISOString(),
+        uptime: process.uptime(),
+        memory: process.memoryUsage(),
+        nodeVersion: process.version
+    });
+});
+
+// Simple test endpoint
+app.get('/test', (req, res) => {
+    res.status(200).json({ 
+        message: 'Server is running!',
+        timestamp: new Date().toISOString()
+    });
 });
 
 // Room code routing - MUST be last
@@ -859,6 +874,17 @@ setInterval(() => {
 // Start server with error handling
 const PORT = process.env.PORT || 3000;
 
+// Add process error handlers
+process.on('uncaughtException', (err) => {
+    console.error('❌ Uncaught Exception:', err);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('❌ Unhandled Rejection at:', promise, 'reason:', reason);
+    process.exit(1);
+});
+
 server.on('error', (err) => {
     console.error('❌ Server error:', err);
     if (err.code === 'EADDRINUSE') {
@@ -866,6 +892,9 @@ server.on('error', (err) => {
         process.exit(1);
     }
 });
+
+// Add timeout to prevent hanging
+server.timeout = 30000;
 
 server.listen(PORT, '0.0.0.0', () => {
     console.log(`
@@ -887,4 +916,6 @@ server.listen(PORT, '0.0.0.0', () => {
     
     console.log(`✅ Server ready at port ${PORT}`);
     console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
+    console.log(`✅ Process ID: ${process.pid}`);
+    console.log(`✅ Node version: ${process.version}`);
 });
