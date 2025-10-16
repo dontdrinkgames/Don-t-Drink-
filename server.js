@@ -629,7 +629,8 @@ io.on('connection', (socket) => {
             io.to(roomCode).emit('spotlight-active', {
                 player: player.name,
                 avatar: player.avatar,
-                status: 'thinking'
+                status: 'thinking',
+                questionData: room.currentQuestion // Include question data for single player mode
             });
             
             console.log(`🎯 Spotlight on ${playerName} in room ${roomCode}`);

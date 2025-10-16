@@ -2035,7 +2035,13 @@
         
         // Handle spotlight
         function handleSpotlight(data) {
-            const { player, avatar, status } = data;
+            const { player, avatar, status, questionData } = data;
+            
+            // If question data is provided, set it as current game data
+            if (questionData) {
+                currentGameData = questionData;
+                console.log('📱 Spotlight: Set currentGameData from spotlight-active:', questionData);
+            }
             
             // Check if this player is in the spotlight
             if (player === playerData.name) {
