@@ -9,7 +9,7 @@
     "npm": ">=8.0.0"
   },
   "scripts": {
-    "start": "node server.js",
+    "start": "node minimal-server.js",
     "dev": "node server.js"
   },
   "dependencies": {
