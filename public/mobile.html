@@ -58,6 +58,15 @@
             }
         }
         
+        /* Use a taller, portrait-optimized background on phones */
+        @media (orientation: portrait) {
+            body::before {
+                background-image: url('/hostbackground-mobile.png'); /* add this file for best quality on tall screens */
+                background-position: center center;
+                background-size: cover;
+            }
+        }
+        
         .container {
             background: transparent;
             border-radius: 0;
