@@ -1095,9 +1095,7 @@
             
             // Spotlight events
             socket.on('spotlight-active', (data) => {
-                console.log('🎯 SPOTLIGHT-ACTIVE EVENT RECEIVED:', data);
-                console.log('🎯 Player name from event:', data.player);
-                console.log('🎯 Current player name:', playerData.name);
+                console.log('Spotlight active:', data);
                 handleSpotlight(data);
             });
             
@@ -2042,17 +2040,14 @@
             // If question data is provided and we don't have currentGameData yet, set it
             if (questionData && !currentGameData) {
                 currentGameData = questionData;
-                console.log('📱 Spotlight: Set currentGameData from spotlight-active:', questionData);
             }
             
             // Check if this player is in the spotlight
             if (player === playerData.name) {
-                console.log('🎯 Player is in spotlight, showing spotlight view');
                 // Show spotlight player view
                 document.getElementById('spotlightPlayerView').classList.add('active');
                 document.getElementById('spectatorView').classList.remove('active');
                 
-                console.log('🎯 Spotlight view should now be visible');
                 // Set up answer buttons based on game type
                 setupSpotlightAnswerButtons(currentGameData?.game);
                 
@@ -2065,7 +2060,6 @@
                             questionText = questionText.replace(/^Never have I ever\s*/i, '...');
                         }
                         questionEl.textContent = questionText;
-                        console.log('🎯 Question set in spotlight view:', questionText);
                     }
                 }
             } else {
@@ -2089,9 +2083,6 @@
             const questionEl = document.getElementById('spotlightQuestion');
             if (container) container.innerHTML = '';
             
-            console.log('🎯 setupSpotlightAnswerButtons called with game:', game);
-            console.log('🎯 currentGameData:', currentGameData);
-            
             // Show the question
             if (currentGameData) {
                 let questionText = currentGameData.text || 'Loading question...';
@@ -2101,10 +2092,8 @@
                     questionText = questionText.replace(/^Never have I ever\s*/i, '...');
                 }
                 
-                console.log('🎯 Setting question text:', questionText);
                 questionEl.textContent = questionText;
             } else {
-                console.log('❌ No currentGameData available for spotlight question');
                 questionEl.textContent = 'No question data available';
             }
             

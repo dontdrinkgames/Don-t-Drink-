@@ -613,18 +613,12 @@ io.on('connection', (socket) => {
             const { roomCode, playerName } = data;
             const room = rooms[roomCode];
             
-            console.log('🎯 SET-SPOTLIGHT received:', { roomCode, playerName });
-            console.log('🎯 Room exists:', !!room);
-            console.log('🎯 Room players:', room?.players?.map(p => p.name));
-            
             if (!room) {
                 socket.emit('error', { message: 'Room not found' });
                 return;
             }
             
             const player = room.players.find(p => p.name === playerName);
-            
-            console.log('🎯 Player found:', !!player, player?.name);
             
             if (!player) {
                 socket.emit('error', { message: 'Player not found' });
@@ -645,9 +639,6 @@ io.on('connection', (socket) => {
                     intensity: room.intensity
                 } : null // Include complete question data for single player mode
             };
-            
-            console.log('🎯 Sending spotlight-active to room:', roomCode);
-            console.log('🎯 Spotlight data:', spotlightData);
             
             io.to(roomCode).emit('spotlight-active', spotlightData);
             
