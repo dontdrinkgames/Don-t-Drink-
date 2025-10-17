@@ -58,12 +58,11 @@
             }
         }
         
-        /* Use a taller, portrait-optimized background on phones */
+        /* Use a CSS gradient for mobile instead of stretched image */
         @media (orientation: portrait) {
             body::before {
-                background-image: url('/mobilebackground.png');
-                background-position: center center;
-                background-size: contain;
+                background-image: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                background-size: cover;
             }
         }
         
