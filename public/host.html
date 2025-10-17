@@ -738,12 +738,12 @@
                 startBtn.textContent = 'Start Game (Offline Mode)';
                 startBtn.disabled = false;
             } else if (gameState.selectedMode === 'spotlight') {
-                // Spotlight mode can start with 1 player
-                if (players.length === 0) {
-                    startBtn.textContent = 'Waiting for players to join...';
+                // Spotlight mode requires at least 2 players
+                if (players.length < 2) {
+                    startBtn.textContent = 'You need more than 2 players to start spotlight mode';
                     startBtn.disabled = true;
                 } else {
-                    startBtn.textContent = `Start Game (${players.length} player${players.length > 1 ? 's' : ''})`;
+                    startBtn.textContent = `Start Game (${players.length} players)`;
                     startBtn.disabled = false;
                 }
             } else if (players.length === 0) {
@@ -757,8 +757,12 @@
         
         // Start game
         document.getElementById('startBtn').addEventListener('click', () => {
-            // Offline mode and spotlight mode don't require multiple players
-            const hasEnoughPlayers = gameState.selectedMode === 'offline' || gameState.selectedMode === 'spotlight' || players.length > 0;
+            // Determine player requirement per mode
+            const hasEnoughPlayers = gameState.selectedMode === 'offline'
+                ? true
+                : gameState.selectedMode === 'spotlight'
+                    ? players.length >= 2
+                    : players.length > 0;
             
             if (gameState.selectedGame && gameState.selectedMode && 
                 gameState.selectedIntensity && hasEnoughPlayers) {
