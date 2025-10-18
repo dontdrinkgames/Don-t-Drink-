@@ -975,4 +975,5 @@ server.listen(PORT, '0.0.0.0', () => {
     console.log(`✅ Environment: ${process.env.NODE_ENV || 'development'}`);
     console.log(`✅ Process ID: ${process.pid}`);
     console.log(`✅ Node version: ${process.version}`);
+    console.log(`✅ Render deployment ready`);
 });
