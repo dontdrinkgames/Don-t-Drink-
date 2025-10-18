@@ -45,7 +45,12 @@ try {
 const rooms = {};
 
 // Middleware
-app.use(express.static('public'));
+// Serve static files with caching
+app.use(express.static('public', {
+    maxAge: '1d', // Cache for 1 day
+    etag: true,
+    lastModified: true
+}));
 app.use(express.json());
 
 // Generate unique room code
