@@ -2049,13 +2049,17 @@
         function handleSpotlight(data) {
             const { player, avatar, status, questionData } = data;
             
-            // If question data is provided and we don't have currentGameData yet, set it
-            if (questionData && !currentGameData) {
+            console.log('🎯 handleSpotlight called:', { player, currentPlayer: playerData.name, hasQuestionData: !!questionData, hasCurrentGameData: !!currentGameData });
+            
+            // If question data is provided, always update currentGameData for spotlight
+            if (questionData) {
                 currentGameData = questionData;
+                console.log('🎯 Updated currentGameData from spotlight-active:', questionData);
             }
             
             // Check if this player is in the spotlight
             if (player === playerData.name) {
+                console.log('🎯 Player is in spotlight, showing spotlight view');
                 // Show spotlight player view
                 document.getElementById('spotlightPlayerView').classList.add('active');
                 document.getElementById('spectatorView').classList.remove('active');
@@ -2063,16 +2067,17 @@
                 // Set up answer buttons based on game type
                 setupSpotlightAnswerButtons(currentGameData?.game);
                 
-                // If we have currentGameData, make sure the question is displayed
-                if (currentGameData) {
-                    const questionEl = document.getElementById('spotlightQuestion');
-                    if (questionEl) {
-                        let questionText = currentGameData.text || 'Loading question...';
-                        if (currentGameData.game === 'never_have_i_ever' || currentGameData.game === 'nhie') {
-                            questionText = questionText.replace(/^Never have I ever\s*/i, '...');
-                        }
-                        questionEl.textContent = questionText;
+                // Always ensure the question is displayed
+                const questionEl = document.getElementById('spotlightQuestion');
+                if (questionEl && currentGameData) {
+                    let questionText = currentGameData.text || 'Loading question...';
+                    if (currentGameData.game === 'never_have_i_ever' || currentGameData.game === 'nhie') {
+                        questionText = questionText.replace(/^Never have I ever\s*/i, '...');
                     }
+                    console.log('🎯 Setting question text for spotlight player:', questionText);
+                    questionEl.textContent = questionText;
+                } else {
+                    console.log('❌ No question element or currentGameData for spotlight player');
                 }
             } else {
                 // Show spectator view
@@ -2095,6 +2100,9 @@
             const questionEl = document.getElementById('spotlightQuestion');
             if (container) container.innerHTML = '';
             
+            console.log('🎯 setupSpotlightAnswerButtons called with game:', game);
+            console.log('🎯 currentGameData:', currentGameData);
+            
             // Show the question
             if (currentGameData) {
                 let questionText = currentGameData.text || 'Loading question...';
@@ -2104,8 +2112,10 @@
                     questionText = questionText.replace(/^Never have I ever\s*/i, '...');
                 }
                 
+                console.log('🎯 Setting question text in setupSpotlightAnswerButtons:', questionText);
                 questionEl.textContent = questionText;
             } else {
+                console.log('❌ No currentGameData in setupSpotlightAnswerButtons');
                 questionEl.textContent = 'No question data available';
             }
             
