@@ -9,3 +9,11 @@ services:
     envVars:
       - key: NODE_ENV
         value: production
+
+  - type: cron
+    name: keep-alive-pinger
+    env: docker
+    plan: free
+    schedule: "*/5 * * * *"  # Every 5 minutes
+    buildCommand: echo "Pinger ready"
+    startCommand: curl -f https://dont-drink-games.onrender.com/health || exit 1
