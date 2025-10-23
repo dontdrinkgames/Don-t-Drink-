@@ -728,8 +728,9 @@
 
             // All players have guessed, show reveal button
             socket.on('all-guessed-received', (data) => {
-                console.log('All guessed received:', data);
+                console.log('🎯 PLAY: All guessed received:', data);
                 if (data.readyToReveal) {
+                    console.log('🎯 PLAY: Showing reveal answer button');
                     document.getElementById('revealAnswerBtn').classList.add('active');
                 }
             });
