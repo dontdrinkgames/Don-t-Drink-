@@ -2193,6 +2193,7 @@
             // Check if this player is in the spotlight
             if (player === playerData.name) {
                 console.log('🎯 Player is in spotlight, showing spotlight view');
+                console.log('🎯 MOBILE: Spotlight player data:', { player, currentPlayer: playerData.name, currentGameData });
                 // Show spotlight player view
                 document.getElementById('spotlightPlayerView').classList.add('active');
                 document.getElementById('spectatorView').classList.remove('active');
