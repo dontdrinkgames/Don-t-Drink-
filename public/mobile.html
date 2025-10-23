@@ -2198,6 +2198,7 @@
                 document.getElementById('spectatorView').classList.remove('active');
                 
                 // Set up answer buttons based on game type
+                console.log('🎯 MOBILE: About to call setupSpotlightAnswerButtons with game:', currentGameData?.game);
                 setupSpotlightAnswerButtons(currentGameData?.game);
                 
                 // Always ensure the question is displayed
@@ -2235,6 +2236,8 @@
             
             console.log('🎯 setupSpotlightAnswerButtons called with game:', game);
             console.log('🎯 currentGameData:', currentGameData);
+            console.log('🎯 Game comparison - game === "fmk":', game === 'fmk');
+            console.log('🎯 Game comparison - game === "fuck_marry_kill":', game === 'fuck_marry_kill');
             
             // Show the question
             if (currentGameData) {
