@@ -631,6 +631,10 @@ io.on('connection', (socket) => {
             }
             
             // Notify all clients who is in spotlight
+            console.log(`🎯 Setting spotlight for ${playerName} in room ${roomCode}`);
+            console.log(`🎯 Room currentQuestion:`, room.currentQuestion);
+            console.log(`🎯 Room game/mode/intensity:`, room.game, room.mode, room.intensity);
+            
             const spotlightData = {
                 player: player.name,
                 avatar: player.avatar,
@@ -645,6 +649,7 @@ io.on('connection', (socket) => {
                 } : null // Include complete question data for single player mode
             };
             
+            console.log(`🎯 Sending spotlight-active with data:`, spotlightData);
             io.to(roomCode).emit('spotlight-active', spotlightData);
             
             console.log(`🎯 Spotlight on ${playerName} in room ${roomCode}`);
@@ -685,7 +690,12 @@ io.on('connection', (socket) => {
                 });
             } else {
                 // Multiple players, show guessing phase to ALL clients
-                io.to(roomCode).emit('spotlight-guessing-phase', {
+                console.log(`🎯 Triggering spotlight-guessing-phase for room ${roomCode}`);
+                console.log(`🎯 Current question data:`, room.currentQuestion);
+                console.log(`🎯 Spotlight player:`, data.playerName);
+                console.log(`🎯 Non-spotlight players:`, nonSpotlightPlayers.length);
+                
+                const guessingData = {
                     question: {
                         text: room.currentQuestion?.text,
                         optionA: room.currentQuestion?.optionA,
@@ -693,7 +703,10 @@ io.on('connection', (socket) => {
                         game: room.game
                     },
                     spotlightPlayer: data.playerName
-                });
+                };
+                
+                console.log(`🎯 Sending spotlight-guessing-phase:`, guessingData);
+                io.to(roomCode).emit('spotlight-guessing-phase', guessingData);
             }
             
             console.log(`💭 Spotlight answer saved for room ${roomCode}`);
