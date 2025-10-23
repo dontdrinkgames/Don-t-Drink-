@@ -1203,6 +1203,11 @@ class QuestionManager {
         ...selectedQuestion, // Spread the object (includes optionA, optionB, etc.)
         isCustom: customQuestions.includes(selectedQuestion)
       };
+      
+      // For WYR questions, create a text property from optionA and optionB
+      if (game === 'would_you_rather' && questionObj.optionA && questionObj.optionB) {
+        questionObj.text = `Would you rather ${questionObj.optionA.toLowerCase()} or ${questionObj.optionB.toLowerCase()}?`;
+      }
     }
 
     // Add to used questions
