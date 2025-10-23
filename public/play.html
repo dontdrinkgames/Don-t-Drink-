@@ -740,7 +740,9 @@
             });
             
             socket.on('players-updated', (data) => {
+                console.log('🎯 PLAY: players-updated received:', data);
                 players = Array.isArray(data) ? data : (data.players || []);
+                console.log('🎯 PLAY: Updated players array:', players);
                 updatePlayersDisplay();
             });
         }

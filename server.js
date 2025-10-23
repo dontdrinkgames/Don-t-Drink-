@@ -294,6 +294,11 @@ io.on('connection', (socket) => {
                 });
             } else {
                 console.log(`✅ Host-Display connected to room ${roomCode}`);
+                // Send current players to Host-Display
+                socket.emit('players-updated', {
+                    players: room.players,
+                    count: room.players.length
+                });
             }
             
             socket.join(roomCode.toUpperCase());
