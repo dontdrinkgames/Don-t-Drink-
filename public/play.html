@@ -680,6 +680,14 @@
                 console.log('❓ Question:', data.text || data.question);
                 console.log('🎮 Game:', data.game);
                 console.log('📱 Mode:', data.mode);
+                console.log('🎯 Current mode before displayQuestion:', currentMode);
+                
+                // Set currentMode based on server data
+                if (data.mode) {
+                    currentMode = data.mode === 'voting' ? 'mobile' : data.mode;
+                    console.log('🎯 Updated currentMode from server:', currentMode);
+                }
+                
                 resultsRevealed = false; // Reset reveal state for new question
                 displayQuestion(data);
             });
@@ -886,12 +894,16 @@
             }
             
             // Set up spotlight if in spotlight mode
+            console.log('🎯 Checking spotlight setup:', { currentMode, playersLength: players.length, players });
             if (currentMode === 'spotlight' && players.length > 0) {
                 const spotlightPlayer = players[(questionCounter - 1) % players.length];
+                console.log('🎯 Sending set-spotlight for player:', spotlightPlayer.name);
                 socket.emit('set-spotlight', {
                     roomCode: gameConfig.roomCode,
                     playerName: spotlightPlayer.name
                 });
+            } else {
+                console.log('🎯 Not setting up spotlight:', { currentMode, playersLength: players.length });
             }
         }
         
