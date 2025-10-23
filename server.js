@@ -684,16 +684,15 @@ io.on('connection', (socket) => {
                     readyToReveal: true
                 });
             } else {
-                // Multiple players, show guessing phase
-                socket.emit('spotlight-show-question', {
-                    roomCode: roomCode,
-                    questionData: {
+                // Multiple players, show guessing phase to ALL clients
+                io.to(roomCode).emit('spotlight-guessing-phase', {
+                    question: {
                         text: room.currentQuestion?.text,
                         optionA: room.currentQuestion?.optionA,
                         optionB: room.currentQuestion?.optionB,
-                        game: room.game,
-                        spotlightPlayer: data.playerName
-                    }
+                        game: room.game
+                    },
+                    spotlightPlayer: data.playerName
                 });
             }
             
@@ -759,28 +758,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // Spotlight guessing phase - show question to all after spotlight answers
-    socket.on('spotlight-show-question', (data) => {
-        try {
-            const { roomCode, questionData } = data;
-            const room = rooms[roomCode];
-            
-            if (!room) {
-                socket.emit('error', { message: 'Room not found' });
-                return;
-            }
-            
-            // Show question and voting options to all players (except spotlight)
-            io.to(roomCode).emit('spotlight-guessing-phase', {
-                question: questionData,
-                spotlightPlayer: room.spotlightPlayer
-            });
-            
-            console.log(`🎯 Spotlight guessing phase started in room ${roomCode}`);
-        } catch (error) {
-            console.error('Spotlight show question error:', error);
-        }
-    });
 
     // Handle guessing votes in spotlight mode
     socket.on('spotlight-guess', (data) => {
