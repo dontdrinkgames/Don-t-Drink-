@@ -505,6 +505,129 @@
             margin: 20px 0;
         }
         
+        /* FMK Spotlight Styles */
+        .fmk-spotlight-container {
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+        
+        .fmk-spotlight-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            margin-bottom: 20px;
+            padding: 15px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .fmk-spotlight-options .fmk-option {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            cursor: grab;
+            font-size: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            transition: all 0.3s ease;
+        }
+        
+        .fmk-spotlight-options .fmk-option:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+        
+        .fmk-spotlight-options .fmk-option:active {
+            cursor: grabbing;
+        }
+        
+        .fmk-spotlight-categories {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        
+        .fmk-spotlight-category {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 10px;
+            padding: 15px;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+        
+        .fmk-spotlight-category .fmk-category-title {
+            font-weight: bold;
+            margin-bottom: 10px;
+            font-size: 16px;
+        }
+        
+        .fmk-spotlight-category .fmk-drop-zone {
+            min-height: 50px;
+            border: 2px dashed rgba(255, 255, 255, 0.3);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: rgba(255, 255, 255, 0.6);
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+        
+        .fmk-spotlight-category .fmk-drop-zone.drag-over {
+            border-color: #4CAF50;
+            background: rgba(76, 175, 80, 0.1);
+            color: #4CAF50;
+        }
+        
+        .fmk-spotlight-category .dropped-option {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-size: 14px;
+        }
+        
+        .fmk-spotlight-category .remove-option {
+            background: rgba(255, 0, 0, 0.3);
+            color: white;
+            border: none;
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            cursor: pointer;
+            margin-left: 8px;
+            font-size: 12px;
+        }
+        
+        .fmk-spotlight-submit-btn {
+            width: 100%;
+            padding: 15px;
+            background: rgba(76, 175, 80, 0.8);
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        
+        .fmk-spotlight-submit-btn:disabled {
+            background: rgba(255, 255, 255, 0.2);
+            cursor: not-allowed;
+        }
+        
+        .fmk-spotlight-submit-btn:not(:disabled):hover {
+            background: rgba(76, 175, 80, 1);
+            transform: translateY(-2px);
+        }
+        
         .answer-btn {
             padding: 40px;
             border: none;
@@ -2145,8 +2268,190 @@
                         <button class="answer-btn" onclick="selectSpotlightAnswer('optionA')">🅰️ ${currentGameData?.optionA || 'OPTION A'}</button>
                         <button class="answer-btn" onclick="selectSpotlightAnswer('optionB')">🅱️ ${currentGameData?.optionB || 'OPTION B'}</button>
                     `;
+                } else if (game === 'fmk' || game === 'fuck_marry_kill') {
+                    // For FMK, show the drag-and-drop interface
+                    console.log('🎯 Setting up FMK spotlight interface');
+                    container.innerHTML = `
+                        <div class="fmk-spotlight-container">
+                            <div class="fmk-spotlight-options" id="fmkSpotlightOptions">
+                                <!-- Draggable options will be inserted here -->
+                            </div>
+                            
+                            <div class="fmk-spotlight-categories">
+                                <div class="fmk-spotlight-category" data-category="fuck">
+                                    <div class="fmk-category-title">💋 Fuck</div>
+                                    <div class="fmk-drop-zone" id="spotlight-drop-fuck">Drag here</div>
+                                </div>
+                                
+                                <div class="fmk-spotlight-category" data-category="marry">
+                                    <div class="fmk-category-title">💍 Marry</div>
+                                    <div class="fmk-drop-zone" id="spotlight-drop-marry">Drag here</div>
+                                </div>
+                                
+                                <div class="fmk-spotlight-category" data-category="kill">
+                                    <div class="fmk-category-title">🔪 Kill</div>
+                                    <div class="fmk-drop-zone" id="spotlight-drop-kill">Drag here</div>
+                                </div>
+                            </div>
+                            
+                            <button class="fmk-spotlight-submit-btn" id="fmkSpotlightSubmitBtn" disabled>Submit Answer</button>
+                        </div>
+                    `;
+                    
+                    // Setup FMK drag-and-drop for spotlight
+                    setupSpotlightFMKDragDrop();
                 }
             }
+        }
+
+        // Setup FMK drag-and-drop for spotlight mode
+        function setupSpotlightFMKDragDrop() {
+            console.log('🎯 Setting up FMK spotlight drag-and-drop');
+            
+            if (!currentGameData || !currentGameData.text) {
+                console.log('❌ No currentGameData for FMK spotlight');
+                return;
+            }
+            
+            // Parse FMK options from text (comma-separated)
+            const options = currentGameData.text.split(',').map(opt => opt.trim());
+            console.log('🎯 FMK spotlight options:', options);
+            
+            const optionsContainer = document.getElementById('fmkSpotlightOptions');
+            if (!optionsContainer) {
+                console.log('❌ No fmkSpotlightOptions container found');
+                return;
+            }
+            
+            // Create draggable options
+            optionsContainer.innerHTML = options.map((option, index) => `
+                <div class="fmk-option" draggable="true" data-option="${option}" data-index="${index}">
+                    ${option}
+                </div>
+            `).join('');
+            
+            // Add drag event listeners
+            const draggableOptions = optionsContainer.querySelectorAll('.fmk-option');
+            draggableOptions.forEach(option => {
+                option.addEventListener('dragstart', handleSpotlightDragStart);
+                option.addEventListener('dragend', handleSpotlightDragEnd);
+            });
+            
+            // Add drop event listeners to drop zones
+            const dropZones = document.querySelectorAll('#fmkSpotlightOptions ~ .fmk-spotlight-categories .fmk-drop-zone');
+            dropZones.forEach(zone => {
+                zone.addEventListener('dragover', handleSpotlightDragOver);
+                zone.addEventListener('drop', handleSpotlightDrop);
+                zone.addEventListener('dragenter', handleSpotlightDragEnter);
+                zone.addEventListener('dragleave', handleSpotlightDragLeave);
+            });
+            
+            // Setup submit button
+            const submitBtn = document.getElementById('fmkSpotlightSubmitBtn');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', submitSpotlightFMKAnswer);
+            }
+        }
+        
+        // Spotlight FMK drag handlers
+        let spotlightDraggedElement = null;
+        
+        function handleSpotlightDragStart(e) {
+            spotlightDraggedElement = e.target;
+            e.target.style.opacity = '0.5';
+        }
+        
+        function handleSpotlightDragEnd(e) {
+            e.target.style.opacity = '1';
+            spotlightDraggedElement = null;
+        }
+        
+        function handleSpotlightDragOver(e) {
+            e.preventDefault();
+        }
+        
+        function handleSpotlightDragEnter(e) {
+            e.preventDefault();
+            e.target.classList.add('drag-over');
+        }
+        
+        function handleSpotlightDragLeave(e) {
+            e.target.classList.remove('drag-over');
+        }
+        
+        function handleSpotlightDrop(e) {
+            e.preventDefault();
+            e.target.classList.remove('drag-over');
+            
+            if (spotlightDraggedElement) {
+                const category = e.target.id.replace('spotlight-drop-', '');
+                const option = spotlightDraggedElement.dataset.option;
+                
+                console.log(`🎯 Dropped ${option} into ${category}`);
+                
+                // Remove from original container
+                spotlightDraggedElement.remove();
+                
+                // Add to drop zone
+                e.target.innerHTML = `
+                    <div class="dropped-option" data-option="${option}" data-category="${category}">
+                        ${option}
+                        <button class="remove-option" onclick="removeSpotlightOption('${option}', '${category}')">×</button>
+                    </div>
+                `;
+                
+                // Check if all options are placed
+                checkSpotlightFMKComplete();
+            }
+        }
+        
+        function removeSpotlightOption(option, category) {
+            // Remove from drop zone
+            const dropZone = document.getElementById(`spotlight-drop-${category}`);
+            dropZone.innerHTML = 'Drag here';
+            
+            // Add back to options container
+            const optionsContainer = document.getElementById('fmkSpotlightOptions');
+            const optionElement = document.createElement('div');
+            optionElement.className = 'fmk-option';
+            optionElement.draggable = true;
+            optionElement.dataset.option = option;
+            optionElement.textContent = option;
+            optionElement.addEventListener('dragstart', handleSpotlightDragStart);
+            optionElement.addEventListener('dragend', handleSpotlightDragEnd);
+            
+            optionsContainer.appendChild(optionElement);
+            
+            // Check completion
+            checkSpotlightFMKComplete();
+        }
+        
+        function checkSpotlightFMKComplete() {
+            const dropZones = document.querySelectorAll('#fmkSpotlightOptions ~ .fmk-spotlight-categories .fmk-drop-zone');
+            const allPlaced = Array.from(dropZones).every(zone => zone.children.length > 0);
+            
+            const submitBtn = document.getElementById('fmkSpotlightSubmitBtn');
+            if (submitBtn) {
+                submitBtn.disabled = !allPlaced;
+            }
+        }
+        
+        function submitSpotlightFMKAnswer() {
+            const dropZones = document.querySelectorAll('#fmkSpotlightOptions ~ .fmk-spotlight-categories .fmk-drop-zone');
+            const answer = {};
+            
+            dropZones.forEach(zone => {
+                const category = zone.id.replace('spotlight-drop-', '');
+                const option = zone.querySelector('.dropped-option');
+                if (option) {
+                    answer[category] = option.dataset.option;
+                }
+            });
+            
+            console.log('🎯 Submitting FMK spotlight answer:', answer);
+            
+            // Submit answer
+            selectSpotlightAnswer(answer);
         }
 
         // Setup spotlight guessing buttons
