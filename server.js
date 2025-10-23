@@ -436,13 +436,15 @@ io.on('connection', (socket) => {
                 room.currentQuestion = question;
                 
                 // Send to all clients in room - send the FULL question object
-                io.to(roomCode).emit('new-question', {
+                const questionData = {
                     ...question, // Spread all question properties (text, optionA, optionB, etc.)
                     questionNumber,
                     game: resolvedGame,
                     mode,
                     intensity
-                });
+                };
+                console.log('🎯 SERVER: Sending new-question to all clients in room:', roomCode, questionData);
+                io.to(roomCode).emit('new-question', questionData);
                 
                 // ALSO send directly to the requester
                 socket.emit('new-question', {
@@ -615,6 +617,7 @@ io.on('connection', (socket) => {
     // Spotlight mode - set spotlight player
     socket.on('set-spotlight', (data) => {
         try {
+            console.log('🎯 SERVER: set-spotlight event received:', data);
             const { roomCode, playerName } = data;
             const room = rooms[roomCode];
             
