@@ -2256,17 +2256,21 @@
             }
             
             if (container) {
-                if (game === 'never_have_i_ever') {
+                console.log('🎯 Setting up buttons for game:', game);
+                if (game === 'never_have_i_ever' || game === 'nhie') {
+                    console.log('🎯 Setting up NHIE buttons');
                     container.innerHTML = `
                         <button class="answer-btn agree" onclick="selectSpotlightAnswer('have')">✅ I HAVE</button>
                         <button class="answer-btn disagree" onclick="selectSpotlightAnswer('havent')">❌ I HAVE NEVER</button>
                     `;
                 } else if (game === 'hot_takes') {
+                    console.log('🎯 Setting up Hot Takes buttons');
                     container.innerHTML = `
                         <button class="answer-btn agree" onclick="selectSpotlightAnswer('agree')">✅ AGREE</button>
                         <button class="answer-btn disagree" onclick="selectSpotlightAnswer('disagree')">❌ DISAGREE</button>
                     `;
-                } else if (game === 'would_you_rather') {
+                } else if (game === 'would_you_rather' || game === 'wyr') {
+                    console.log('🎯 Setting up WYR buttons');
                     container.innerHTML = `
                         <button class="answer-btn" onclick="selectSpotlightAnswer('optionA')">🅰️ ${currentGameData?.optionA || 'OPTION A'}</button>
                         <button class="answer-btn" onclick="selectSpotlightAnswer('optionB')">🅱️ ${currentGameData?.optionB || 'OPTION B'}</button>
@@ -2303,6 +2307,11 @@
                     
                     // Setup FMK drag-and-drop for spotlight
                     setupSpotlightFMKDragDrop();
+                } else {
+                    console.log('🎯 No matching game case for:', game);
+                    console.log('🎯 Available currentGameData:', currentGameData);
+                    // Fallback - show text only
+                    container.innerHTML = '<p>No interactive elements available for this game type</p>';
                 }
             }
         }
