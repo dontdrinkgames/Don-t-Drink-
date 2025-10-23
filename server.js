@@ -344,6 +344,9 @@ io.on('connection', (socket) => {
             
             room.gameState = 'playing';
             room.gameConfig = gameConfig;
+            room.game = gameConfig.game;
+            room.mode = gameConfig.mode;
+            room.intensity = gameConfig.intensity;
             
             io.to(roomCode).emit('game-started', {
                 game: gameConfig.game,
