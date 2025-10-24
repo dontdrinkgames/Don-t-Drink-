@@ -789,7 +789,10 @@ io.on('connection', (socket) => {
             const { roomCode, guess } = data;
             const room = rooms[roomCode];
             
+            console.log(`🎯 SERVER: spotlight-guess received from ${socket.id} in room ${roomCode}: ${guess}`);
+            
             if (!room) {
+                console.log(`❌ SERVER: Room ${roomCode} not found for spotlight-guess`);
                 socket.emit('error', { message: 'Room not found' });
                 return;
             }
@@ -810,13 +813,17 @@ io.on('connection', (socket) => {
             const nonSpotlightPlayers = room.players.filter(p => p.name !== room.spotlightPlayer);
             const guessesReceived = Object.keys(room.spotlightGuesses).length;
             
+            console.log(`🎯 SERVER: Non-spotlight players: ${nonSpotlightPlayers.length}, guesses received: ${guessesReceived}`);
+            
             // If only 1 player (spotlight player), show reveal button immediately
             if (nonSpotlightPlayers.length === 0) {
+                console.log(`🎯 SERVER: Only spotlight player, emitting all-guessed-received immediately`);
                 io.to(roomCode).emit('all-guessed-received', {
                     readyToReveal: true
                 });
             } else if (guessesReceived >= nonSpotlightPlayers.length) {
                 // All players have guessed, show reveal button
+                console.log(`🎯 SERVER: All players guessed, emitting all-guessed-received`);
                 io.to(roomCode).emit('all-guessed-received', {
                     readyToReveal: true
                 });

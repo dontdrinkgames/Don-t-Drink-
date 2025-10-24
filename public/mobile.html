@@ -2473,6 +2473,9 @@
             const questionEl = document.getElementById('guessingQuestion');
             const playerNameEl = document.getElementById('guessingPlayerName');
             
+            console.log('🎯 setupSpotlightGuessingButtons called with:', questionData);
+            console.log('🎯 Game type:', questionData.game);
+            
             // Update question text
             if (questionData.text) {
                 questionEl.textContent = questionData.text;
@@ -2487,20 +2490,31 @@
             if (container) {
                 container.innerHTML = '';
                 
-                if (questionData.game === 'never_have_i_ever') {
+                if (questionData.game === 'never_have_i_ever' || questionData.game === 'nhie') {
                     container.innerHTML = `
                         <button class="vote-btn" onclick="submitSpotlightGuess('have')">✅ I HAVE</button>
                         <button class="vote-btn" onclick="submitSpotlightGuess('havent')">❌ I HAVE NEVER</button>
                     `;
-                } else if (questionData.game === 'hot_takes') {
+                } else if (questionData.game === 'hot_takes' || questionData.game === 'ht') {
                     container.innerHTML = `
                         <button class="vote-btn" onclick="submitSpotlightGuess('agree')">✅ AGREE</button>
                         <button class="vote-btn" onclick="submitSpotlightGuess('disagree')">❌ DISAGREE</button>
                     `;
-                } else if (questionData.game === 'would_you_rather') {
+                } else if (questionData.game === 'would_you_rather' || questionData.game === 'wyr') {
                     container.innerHTML = `
                         <button class="vote-btn" onclick="submitSpotlightGuess('optionA')">🅰️ OPTION A</button>
                         <button class="vote-btn" onclick="submitSpotlightGuess('optionB')">🅱️ OPTION B</button>
+                    `;
+                } else if (questionData.game === 'fuck_marry_kill' || questionData.game === 'fmk') {
+                    container.innerHTML = `
+                        <button class="vote-btn" onclick="submitSpotlightGuess('fuck')">💋 FUCK</button>
+                        <button class="vote-btn" onclick="submitSpotlightGuess('marry')">💍 MARRY</button>
+                        <button class="vote-btn" onclick="submitSpotlightGuess('kill')">💀 KILL</button>
+                    `;
+                } else {
+                    console.log('🎯 Unknown game type for guessing buttons:', questionData.game);
+                    container.innerHTML = `
+                        <button class="vote-btn" onclick="submitSpotlightGuess('unknown')">❓ UNKNOWN</button>
                     `;
                 }
             }
@@ -2508,6 +2522,10 @@
 
         // Submit spotlight guess
         function submitSpotlightGuess(guess) {
+            console.log('🎯 submitSpotlightGuess called with:', guess);
+            console.log('🎯 Socket connected:', socket && socket.connected);
+            console.log('🎯 Room code:', gameConfig.roomCode);
+            
             if (socket && socket.connected) {
                 socket.emit('spotlight-guess', {
                     roomCode: gameConfig.roomCode,
@@ -2517,6 +2535,8 @@
                 
                 // Show confirmation
                 showConfirmation();
+            } else {
+                console.log('❌ Socket not connected, cannot submit guess');
             }
         }
 
