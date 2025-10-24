@@ -2501,15 +2501,19 @@
                         <button class="vote-btn" onclick="submitSpotlightGuess('disagree')">❌ DISAGREE</button>
                     `;
                 } else if (questionData.game === 'would_you_rather' || questionData.game === 'wyr') {
+                    const optionA = questionData.optionA || 'Option A';
+                    const optionB = questionData.optionB || 'Option B';
                     container.innerHTML = `
-                        <button class="vote-btn" onclick="submitSpotlightGuess('optionA')">🅰️ OPTION A</button>
-                        <button class="vote-btn" onclick="submitSpotlightGuess('optionB')">🅱️ OPTION B</button>
+                        <button class="vote-btn" onclick="submitSpotlightGuess('optionA')">🅰️ ${optionA}</button>
+                        <button class="vote-btn" onclick="submitSpotlightGuess('optionB')">🅱️ ${optionB}</button>
                     `;
                 } else if (questionData.game === 'fuck_marry_kill' || questionData.game === 'fmk') {
+                    // For FMK, we need to show the actual options
+                    const options = questionData.text ? questionData.text.split(', ') : ['Option 1', 'Option 2', 'Option 3'];
                     container.innerHTML = `
-                        <button class="vote-btn" onclick="submitSpotlightGuess('fuck')">💋 FUCK</button>
-                        <button class="vote-btn" onclick="submitSpotlightGuess('marry')">💍 MARRY</button>
-                        <button class="vote-btn" onclick="submitSpotlightGuess('kill')">💀 KILL</button>
+                        <button class="vote-btn" onclick="submitSpotlightGuess('fuck')">💋 FUCK: ${options[0] || 'Option 1'}</button>
+                        <button class="vote-btn" onclick="submitSpotlightGuess('marry')">💍 MARRY: ${options[1] || 'Option 2'}</button>
+                        <button class="vote-btn" onclick="submitSpotlightGuess('kill')">💀 KILL: ${options[2] || 'Option 3'}</button>
                     `;
                 } else {
                     console.log('🎯 Unknown game type for guessing buttons:', questionData.game);
@@ -2525,6 +2529,7 @@
             console.log('🎯 submitSpotlightGuess called with:', guess);
             console.log('🎯 Socket connected:', socket && socket.connected);
             console.log('🎯 Room code:', gameConfig.roomCode);
+            console.log('🎯 Player data:', playerData);
             
             if (socket && socket.connected) {
                 socket.emit('spotlight-guess', {
