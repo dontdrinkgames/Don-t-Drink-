@@ -1134,12 +1134,18 @@
                 updateConnectionStatus(true);
                 // Auto-rejoin room after reconnect
                 if (playerData.roomCode && playerData.name) {
+                    console.log('🔄 Auto-rejoining room after reconnect:', playerData.roomCode);
                     socket.emit('join-room', {
                         roomCode: playerData.roomCode,
                         playerName: playerData.name,
                         avatar: playerData.avatar
                     }, (response) => {
                         console.log('Auto-rejoin response:', response);
+                        if (response && response.success) {
+                            console.log('✅ Successfully rejoined room');
+                        } else {
+                            console.log('❌ Failed to rejoin room:', response);
+                        }
                     });
                 }
             });
@@ -1174,6 +1180,8 @@
             // New question received
             socket.on('new-question', (data) => {
                 console.log('📨 MOBILE: new-question received:', data);
+                console.log('📨 MOBILE: Question ID:', data.id);
+                console.log('📨 MOBILE: Question text:', data.text);
                 handleNewQuestion(data);
             });
             
@@ -2044,14 +2052,14 @@
                 }
                 html += '</div>';
             } else {
-                // Stack cards vertically on mobile
-                html += '<div style="display: flex; flex-direction: column; gap: 20px;">';
-                
-                // Create SEPARATE CARD for each option
-                for (const option of allOptions) {
-                    const count = data.votes[option] || 0;
-                    const percentage = data.totalPlayers > 0 ? Math.round((count / data.totalPlayers) * 100) : 0;
-                    const votersForOption = data.voters[option] || [];
+            // Stack cards vertically on mobile
+            html += '<div style="display: flex; flex-direction: column; gap: 20px;">';
+            
+            // Create SEPARATE CARD for each option
+            for (const option of allOptions) {
+                const count = data.votes[option] || 0;
+                const percentage = data.totalPlayers > 0 ? Math.round((count / data.totalPlayers) * 100) : 0;
+                const votersForOption = data.voters[option] || [];
                 
                 console.log(`   - Mobile card for "${option}": ${count} votes (${percentage}%)`);
                 
@@ -2260,19 +2268,19 @@
                 console.log('🎯 Setting up buttons for game:', game);
                 if (game === 'never_have_i_ever' || game === 'nhie') {
                     console.log('🎯 Setting up NHIE buttons');
-                    container.innerHTML = `
-                        <button class="answer-btn agree" onclick="selectSpotlightAnswer('have')">✅ I HAVE</button>
-                        <button class="answer-btn disagree" onclick="selectSpotlightAnswer('havent')">❌ I HAVE NEVER</button>
-                    `;
-                } else if (game === 'hot_takes') {
+                container.innerHTML = `
+                    <button class="answer-btn agree" onclick="selectSpotlightAnswer('have')">✅ I HAVE</button>
+                    <button class="answer-btn disagree" onclick="selectSpotlightAnswer('havent')">❌ I HAVE NEVER</button>
+                `;
+            } else if (game === 'hot_takes') {
                     console.log('🎯 Setting up Hot Takes buttons');
-                    container.innerHTML = `
-                        <button class="answer-btn agree" onclick="selectSpotlightAnswer('agree')">✅ AGREE</button>
-                        <button class="answer-btn disagree" onclick="selectSpotlightAnswer('disagree')">❌ DISAGREE</button>
-                    `;
+                container.innerHTML = `
+                    <button class="answer-btn agree" onclick="selectSpotlightAnswer('agree')">✅ AGREE</button>
+                    <button class="answer-btn disagree" onclick="selectSpotlightAnswer('disagree')">❌ DISAGREE</button>
+                `;
                 } else if (game === 'would_you_rather' || game === 'wyr') {
                     console.log('🎯 Setting up WYR buttons');
-                    container.innerHTML = `
+                container.innerHTML = `
                         <button class="answer-btn" onclick="selectSpotlightAnswer('optionA')">🅰️ ${currentGameData?.optionA || 'OPTION A'}</button>
                         <button class="answer-btn" onclick="selectSpotlightAnswer('optionB')">🅱️ ${currentGameData?.optionB || 'OPTION B'}</button>
                     `;
@@ -2402,6 +2410,24 @@
                 
                 console.log(`🎯 Dropped ${option} into ${category}`);
                 
+                // Check if this drop zone already has an option
+                if (e.target.querySelector('.dropped-option')) {
+                    // Move the existing option back to options container
+                    const existingOption = e.target.querySelector('.dropped-option');
+                    const existingOptionText = existingOption.dataset.option;
+                    const optionsContainer = document.getElementById('fmkSpotlightOptions');
+                    if (optionsContainer) {
+                        const newOption = document.createElement('div');
+                        newOption.className = 'fmk-option';
+                        newOption.draggable = true;
+                        newOption.dataset.option = existingOptionText;
+                        newOption.textContent = existingOptionText;
+                        newOption.addEventListener('dragstart', handleSpotlightDragStart);
+                        newOption.addEventListener('dragend', handleSpotlightDragEnd);
+                        optionsContainer.appendChild(newOption);
+                    }
+                }
+                
                 // Remove from original container
                 spotlightDraggedElement.remove();
                 
@@ -2528,12 +2554,12 @@
         function submitSpotlightGuess(guess) {
             console.log('🎯 submitSpotlightGuess called with:', guess);
             console.log('🎯 Socket connected:', socket && socket.connected);
-            console.log('🎯 Room code:', gameConfig.roomCode);
+            console.log('🎯 Room code:', playerData.roomCode);
             console.log('🎯 Player data:', playerData);
             
             if (socket && socket.connected) {
                 socket.emit('spotlight-guess', {
-                    roomCode: gameConfig.roomCode,
+                    roomCode: playerData.roomCode,
                     guess: guess
                 });
                 console.log('🎯 Submitted spotlight guess:', guess);
